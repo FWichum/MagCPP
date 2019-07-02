@@ -74,10 +74,11 @@ void connectionRobot::run()
 
 clock_t connectionRobot::defaultTimer()
 {
-
+    // FW: TODO switch for each System !?
+    return clock();
 }
 
 void connectionRobot::setCommand()
 {
-
+    // FW: TODO
 }
