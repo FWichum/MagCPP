@@ -83,5 +83,6 @@ clock_t connectionRobot::defaultTimer()
 
 void connectionRobot::setCommand()
 {
+    // Test.
     // FW: TODO
 }
