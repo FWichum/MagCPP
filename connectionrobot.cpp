@@ -6,7 +6,10 @@ connectionRobot::connectionRobot(std::queue<float> serialWriteQueue, std::queue<
 {
     this->serialWriteQueue = serialWriteQueue;
     this->updateRobotQueue = updateRobotQueue;
-    // FW: TODO Rest
+    this->stopped = false;
+    this->paused = true;
+    this->nextPokeTime = NAN;
+    // this->connectionCommand = NAN; //FW: TODO
 }
 
 void connectionRobot::run()
