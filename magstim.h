@@ -2,10 +2,14 @@
 #define MAGSTIM_H
 
 
+#include <QString>
+#include <queue>
+#include "connectionrobot.h"
+
 class MagStim
 {
 public:
-    MagStim();
+    MagStim(QString serialConnection);
     void parseMagstimResponse();
     void connect();
     void disconnect();
@@ -25,8 +29,19 @@ public:
 
 
 private:
-    void setupSerialPort();
+    void setupSerialPort(QString serialConnection);
     void processCommand();
+
+    std::queue<float> sendQueue;
+    std::queue<float> receiveQueue;
+    std::queue<float> robotQueue;
+    // connection.daemon = true; //FW: TODO
+    connectionRobot robot;
+    // robot.daemon = true; //FW: TODO
+    bool connected;
+    // connectionCommand = (b'Q@n', None, 3) //FW: TODO
+    // auto queryCommand; //FW: TODO
+
 };
 
 #endif // MAGSTIM_H
