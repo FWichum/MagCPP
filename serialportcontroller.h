@@ -1,18 +1,19 @@
 #ifndef SERIALPORTCONTROLLER_H
 #define SERIALPORTCONTROLLER_H
+
 #include <QtSerialPort/QSerialPort>
 #include <queue>
-
-class serialPortController
+class serialportcontroller
 {
 public:
-    serialPortController(std::queue<float> serialWriteQueue, std::queue<float> serialReadQueue);
+    serialportcontroller(std::queue<float> serialWriteQueue, std::queue<float> serialReadQueue);
     void run();
-
 private:
-    QSerialPort port;
-       std::queue<float> serialWriteQueue;
-       std::queue<float> serialReadQueue;
+
+   // QSerialPort port;
+    std::queue<float> serialWriteQueue;
+    std::queue<float> serialReadQueue;
+
 };
 
 #endif // SERIALPORTCONTROLLER_H
