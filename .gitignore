@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+# User Config
+*.pro.user
+*.pro.user.*
