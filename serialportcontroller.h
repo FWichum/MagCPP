@@ -10,10 +10,11 @@ public:
     void run();
 private:
 
-   // QSerialPort port;
+    QSerialPort port;
     std::queue<float> serialWriteQueue;
     std::queue<float> serialReadQueue;
-
+    std::string SERIAL_WRITE_ERROR;
+    std::string SERIAL_READ_ERROR;
 };
 
 #endif // SERIALPORTCONTROLLER_H
