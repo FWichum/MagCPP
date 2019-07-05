@@ -9,8 +9,8 @@ class connectionRobot
 public:
     connectionRobot(std::queue<float> serialWriteQueue, std::queue<float> updateRobotQueue);
     void run();
-     clock_t defaultTimer();
-     void setCommand(); //FW: TODO which Type? What is this?
+    clock_t defaultTimer();
+    void setCommand(); //FW: TODO which Type? What is this?
 
 private:
     std::queue<float> serialWriteQueue;
