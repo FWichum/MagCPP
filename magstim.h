@@ -4,13 +4,16 @@
 
 #include <QString>
 #include <queue>
+#include <tuple>
+#include <list>
+#include <map>
 #include "connectionrobot.h"
 
 class MagStim
 {
 public:
     MagStim(QString serialConnection);
-    void parseMagstimResponse();
+    std::map<QString, std::map<QString, int>> parseMagstimResponse(std::list<QByteArray> responseString, QString responseType);
     void connect();
     void disconnect();
     void remoteControl();
