@@ -4,10 +4,11 @@
 #include <QIODevice>
 
 
-serialportcontroller::serialportcontroller(std::queue<float> serialWriteQueue, std::queue<float> serialReadQueue)
+serialportcontroller::serialportcontroller(QString serialConnection, std::queue<float> serialWriteQueue, std::queue<float> serialReadQueue)
 {
     this->serialWriteQueue = serialWriteQueue;
     this->serialReadQueue = serialReadQueue;
+    this->address = serialConnection;
 }
 
 void serialportcontroller::run()
@@ -21,7 +22,7 @@ void serialportcontroller::run()
     */
 
     // N.B. most of these settings are actually the default in PySerial, but just being careful.
-    //  port adress TODO
+    this->port.setPortName(this->address);
     this->port.setBaudRate(QSerialPort::Baud9600);
     this->port.setDataBits(QSerialPort::Data8);
     this->port.setStopBits(QSerialPort::OneStop);

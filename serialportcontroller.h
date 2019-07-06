@@ -6,7 +6,7 @@
 class serialportcontroller
 {
 public:
-    serialportcontroller(std::queue<float> serialWriteQueue, std::queue<float> serialReadQueue);
+    serialportcontroller(QString serialConnection, std::queue<float> serialWriteQueue, std::queue<float> serialReadQueue);
     void run();
 private:
 
