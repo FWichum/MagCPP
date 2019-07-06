@@ -13,6 +13,8 @@ private:
     QSerialPort port;
     std::queue<float> serialWriteQueue;
     std::queue<float> serialReadQueue;
+    QString address;
+
     std::string SERIAL_WRITE_ERROR;
     std::string SERIAL_READ_ERROR;
 };
