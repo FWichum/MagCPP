@@ -122,14 +122,22 @@ void MagStim::disconnect()
 
 }
 
-void MagStim::remoteControl()
+std::tuple<int, std::map<QString, std::map<QString, int> > > MagStim::remoteControl(bool enable, bool receipt)
 {
-
+    QString str;
+    if (receipt) {
+        str = "instr";
+    }
+    if (enable) {
+        return this->processCommand("Q@", str, 3);
+    } else {
+        return this->processCommand("R@", str, 3);
+    }
 }
 
-void MagStim::getParameters()
+std::tuple<int, std::map<QString, std::map<QString, int> > > MagStim::getParameters()
 {
-
+    return this->processCommand("J@", "magstimParam", 12);
 }
 
 void MagStim::setPower()
@@ -137,9 +145,9 @@ void MagStim::setPower()
 
 }
 
-void MagStim::getTemperature()
+std::tuple<int, std::map<QString, std::map<QString, int> > > MagStim::getTemperature()
 {
-
+    return this->processCommand("F@", "magstimTemp", 9);
 }
 
 void MagStim::poke()
@@ -152,9 +160,13 @@ void MagStim::arm()
 
 }
 
-void MagStim::disarm()
+std::tuple<int, std::map<QString, std::map<QString, int> > > MagStim::disarm(bool receipt)
 {
-
+    QString str;
+    if (receipt) {
+        str = "instr";
+    }
+    return this->processCommand("EA", str, 3);
 }
 
 void MagStim::isArmed()
@@ -172,9 +184,13 @@ void MagStim::isReadyToFire()
 
 }
 
-void MagStim::fire()
+std::tuple<int, std::map<QString, std::map<QString, int> > > MagStim::fire(bool receipt)
 {
-
+    QString str;
+    if (receipt) {
+        str = "instr";
+    }
+    return this->processCommand("EH", str, 3);
 }
 
 void MagStim::resetQuickFire()

@@ -17,17 +17,17 @@ public:
     std::map<QString, std::map<QString, int>> parseMagstimResponse(std::list<QByteArray> responseString, QString responseType);
     void connect();
     void disconnect();
-    void remoteControl();
-    void getParameters();
+    std::tuple<int, std::map<QString, std::map<QString, int>>> remoteControl(bool enable, bool receipt=false);
+    std::tuple<int, std::map<QString, std::map<QString, int>>> getParameters();
     void setPower();
-    void getTemperature();
+    std::tuple<int, std::map<QString, std::map<QString, int>>> getTemperature();
     void poke();
     void arm();
-    void disarm();
+    std::tuple<int, std::map<QString, std::map<QString, int>>> disarm(bool receipt=false);
     void isArmed();
     void isUnderControl();
     void isReadyToFire();
-    void fire();
+    std::tuple<int, std::map<QString, std::map<QString, int>>> fire(bool receipt=false);
     void resetQuickFire();
     void quickFire();
 
