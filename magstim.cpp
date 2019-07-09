@@ -192,7 +192,54 @@ void MagStim::setupSerialPort(QString serialConnection)
 
 }
 
-void MagStim::processCommand()
+std::tuple<int, std::map<QString, std::map<QString, int> > > MagStim::processCommand(QString commandString, QString receiptType, int readBytes)
 {
+    // TODO: Return Error oder Tuple oder ... Referenz verwenden!?
+    QByteArray comString = commandString.toLocal8Bit();
+    //TODO check?
+    if (this->connected || comString.at(0) == (char)0x81 || comString.at(0) == (char)0x82 || comString.at(0) == (char)0x74 || comString.at(0) == (char)0x70 || comString.contains("EA") || ( comString.at(0) == (char)0x92 && this->parameterReturnByte != 0 )  ) {
+        std::tuple<QByteArray,QString, int> test;
+        // this->sendQueue.push(test);
+        if (receiptType != 0) {
+            // error, reply = self.receiveQueue.get()
+            int error = 0;
+            QByteArray reply = "Test";
+            if (error) {
+                return; // TODO
+            } else {
+                if (reply.at(0) == (char)0x63) {
+                    return; // TODO
+                } else if (reply.at(1) == (char)0x63)  {
+                    return; // TODO
+                } else if (reply.at(1) == (char)0x83) {
+                    return; // TODO
+                } else if (reply.at(0) != comString.at(0)) {
+                    return; // TODO
+                } else if (false) { //TODO ord(calcCRC(reply[:-1])) != reply[-1]:
+                    return; // TODO
+                }
 
+            }
+        }
+        if (this->connected) {
+            if (comString.at(0) == (char)0x82) {
+                this->robotQueue.push(-1);
+            } else if (comString.left(2).contains("EA") ) {
+                this->robotQueue.push(1);
+            } else if (comString.left(2).contains("EB") ) {
+                this->robotQueue.push(2);
+            }  else {
+                this->robotQueue.push(0);
+            }
+        }
+        return; // TODO
+    } else {
+        return; // TODO
+    }
+}
+
+QByteArray MagStim::calcCRC(QString command)
+{
+    QByteArray a;
+    return a;
 }

@@ -7,6 +7,7 @@
 #include <tuple>
 #include <list>
 #include <map>
+#include <QByteArray>
 #include "connectionrobot.h"
 
 class MagStim
@@ -31,9 +32,11 @@ public:
     void quickFire();
 
 
+
 private:
     void setupSerialPort(QString serialConnection);
-    void processCommand();
+    std::tuple<int, std::map<QString, std::map<QString, int>>> processCommand(QString commandString, QString receiptType, int readBytes);
+    QByteArray calcCRC(QString command);
 
     std::queue<float> sendQueue;
     std::queue<float> receiveQueue;
@@ -44,6 +47,7 @@ private:
     bool connected;
     // connectionCommand = (b'Q@n', None, 3) //FW: TODO
     // auto queryCommand; //FW: TODO
+    int parameterReturnByte;
 
 };
 
