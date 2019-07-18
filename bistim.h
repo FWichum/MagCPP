@@ -1,8 +1,8 @@
 #ifndef BISTIM_H
 #define BISTIM_H
+#include "magstim.h"
 
-
-class BiStim
+class BiStim : public MagStim
 {
 public:
     BiStim();

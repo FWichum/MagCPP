@@ -32,6 +32,7 @@ SOURCES += \
         magstimerror.cpp \
         main.cpp \
         rapid.cpp \
+        rs232.c \
         serialportcontroller.cpp
 
 HEADERS += \
@@ -40,6 +41,7 @@ HEADERS += \
         magstim.h \
         magstimerror.h \
         rapid.h \
+        rs232.h \
         serialportcontroller.h
 
 FORMS +=
