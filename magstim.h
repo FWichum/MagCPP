@@ -1,5 +1,11 @@
 #ifndef MAGSTIM_H
 #define MAGSTIM_H
+#include <stdio.h>
+#include <iostream>
+#include "rs232.h"
+#include <math.h>
+#include <iomanip>
+#include <sstream>
 
 
 #include <QString>
@@ -13,10 +19,12 @@
 class MagStim
 {
 public:
-    MagStim(QString serialConnection);
-    std::map<QString, std::map<QString, int>> parseMagstimResponse(std::list<QByteArray> responseString, QString responseType);
-    void connect();
+    MagStim(std::string port);
+    bool connect(std::string port);
     void disconnect();
+    bool get_status();
+
+    std::map<QString, std::map<QString, int>> parseMagstimResponse(std::list<QByteArray> responseString, QString responseType);
     std::tuple<int, std::map<QString, std::map<QString, int>>> remoteControl(bool enable, bool receipt=false);
     std::tuple<int, std::map<QString, std::map<QString, int>>> getParameters();
     void setPower();
@@ -65,6 +73,13 @@ private:
     // connectionCommand = (b'Q@n', None, 3) //FW: TODO
     // auto queryCommand; //FW: TODO
     int parameterReturnByte;
+
+    int bdrate=19200;
+    bool encode_command(uint8_t *destination, uint8_t *data);
+    int cp_num=16;
+    uint8_t command[13]={};
+    char mode[4]={'8','N','1',0};
+    uint8_t stat_command[10]={0x40,0x30,0x30,0x4D,0x30,0x30,0x34,0x44,0x0D,0x0A}; // stimmt noch nicht
 
 };
 
