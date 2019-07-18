@@ -6,7 +6,8 @@
 class Rapid : public MagStim
 {
 public:
-    Rapid(QString serialConnection, bool superRapid, QString unlockCode, int voltage, std::tuple<int, int, int> version);
+    Rapid(QString serialConnection, int superRapid, QString unlockCode, int voltage, std::tuple<int, int, int> version);
+    Rapid(QString serialConnection);
 
 private:
     int DEFAULT_RAPID_TYPE;
@@ -17,7 +18,7 @@ private:
     // MAX_FREQUENCY
     // JOULES
 
-    bool super;
+    int super;
     QString unlockCode;
     int voltage;
     std::tuple<int, int, int> version;
