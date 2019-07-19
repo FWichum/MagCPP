@@ -25,23 +25,23 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
-        bistim.cpp \
-        connectionrobot.cpp \
-        magstim.cpp \
-        magstimerror.cpp \
+#        bistim.cpp \
+ #       connectionrobot.cpp \
+ #       magstim.cpp \
+ #       magstimerror.cpp \
         main.cpp \
-        rapid.cpp \
-        rs232.c \
-        serialportcontroller.cpp
+ #       rapid.cpp \
+  #      rs232.c \
+  #      serialportcontroller.cpp
 
 HEADERS += \
-        bistim.h \
-        connectionrobot.h \
-        magstim.h \
-        magstimerror.h \
-        rapid.h \
-        rs232.h \
-        serialportcontroller.h
+ #       bistim.h \
+  #      connectionrobot.h \
+   #     magstim.h \
+    #    magstimerror.h \
+     #   rapid.h \
+      #  rs232.h \
+       # serialportcontroller.h
 
 FORMS +=
 
@@ -49,3 +49,9 @@ FORMS +=
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+#for yaml library
+unix|win32: LIBS += -LC:/Users/Felix/Desktop/Vorruebergehend/Downloads/yaml-cpp-master/build/Release/ -llibyaml-cppmd
+
+INCLUDEPATH += $$PWD/yaml/include
+DEPENDPATH += $$PWD/yaml/include
