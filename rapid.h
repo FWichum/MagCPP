@@ -9,13 +9,15 @@ public:
     Rapid(QString serialConnection);
 
 private:
+    void setDefault();
+
     int DEFAULT_RAPID_TYPE;
     int DEFAULT_VOLTAGE;
     QString DEFAULT_UNLOCK_CODE;
     bool ENFORCE_ENERGY_SAFETY;
     std::tuple<int, int, int> DEFAULT_VIRTUAL_VERSION;
-    // MAX_FREQUENCY
-    // JOULES
+    std::map<int, float> JOULES;
+    std::map<int, std::map<int, std::map<int, int>>> MAX_FREQUENCY;
 
     int super;
     QString unlockCode;
