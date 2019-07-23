@@ -7,6 +7,9 @@ class Rapid : public MagStim
 public:
     Rapid(QString serialConnection, int superRapid, QString unlockCode, int voltage, std::tuple<int, int, int> version);
     Rapid(QString serialConnection);
+    float getRapidMinWaitTime(int power, int nPulses, double frequency);
+    float getRapidMaxOnTime(int power, double frequency);
+    float getRapidMaxContinuousOperationsFrequency(int power);
 
 private:
     void setDefault();
