@@ -29,6 +29,35 @@ Rapid::Rapid(QString serialConnection) :
     Rapid(serialConnection,this->DEFAULT_RAPID_TYPE,this->DEFAULT_UNLOCK_CODE,this->DEFAULT_VOLTAGE,this->DEFAULT_VIRTUAL_VERSION);
 }
 
+float Rapid::getRapidMinWaitTime(int power, int nPulses, double frequency)
+{
+    float minWaitTime = 0.5;
+    float calcWaitTime = (nPulses * ((frequency * this->JOULES[power]) - 1050.0));
+    if(minWaitTime < calcWaitTime) {
+        return calcWaitTime;
+    }
+    else {
+        return minWaitTime;
+    }
+}
+
+float Rapid::getRapidMaxOnTime(int power, double frequency)
+{
+    float PulseNum = 63000.0;
+    float FreqPow = frequency * this->JOULES[power];
+    return PulseNum / FreqPow;
+}
+
+float Rapid::getRapidMaxContinuousOperationsFrequency(int power)
+{
+    float a = 1050.0;
+    float b = this->JOULES[power];
+    return a / b;
+}
+
+
+
+
 void Rapid::setDefault()
 // FW: CPP exclusive for getting default settings in constructor
 {
