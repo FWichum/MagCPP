@@ -30,7 +30,7 @@ SOURCES += \
  #       magstim.cpp \
  #       magstimerror.cpp \
         main.cpp \
- #       rapid.cpp \
+        rapid.cpp \
   #      rs232.c \
   #      serialportcontroller.cpp
 
@@ -39,7 +39,7 @@ HEADERS += \
   #      connectionrobot.h \
    #     magstim.h \
     #    magstimerror.h \
-     #   rapid.h \
+        rapid.h \
       #  rs232.h \
        # serialportcontroller.h
 
