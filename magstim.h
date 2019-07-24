@@ -60,7 +60,7 @@ public:
 private:
     void setupSerialPort(QString serialConnection);
     std::tuple<int, std::map<QString, std::map<QString, int>>> processCommand(QString commandString, QString receiptType, int readBytes);
-    QByteArray calcCRC(QString command);
+    char calcCRC(QByteArray command);
 
     std::queue<float> sendQueue;
     std::queue<float> receiveQueue;

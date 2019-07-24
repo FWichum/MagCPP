@@ -297,8 +297,14 @@ std::tuple<int, std::map<QString, std::map<QString, int> > > MagStim::processCom
     return vorruebergehend;
 }
 
-QByteArray MagStim::calcCRC(QString command)
+char MagStim::calcCRC(QByteArray command)
+//  Return the CRC checksum for the command string.
 {
-    QByteArray a;
-    return a;
+    // Convert command string to sum of ASCII/byte values
+    int commandSum = 0;
+    for (int i = 1 ; i< command.length() ; i++) {
+        commandSum += command.at(i);
+    }
+    // Convert command sum to binary, then invert and return 8-bit character value
+    return (char) (~commandSum & 0xff);
 }
