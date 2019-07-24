@@ -27,8 +27,7 @@ std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::li
         int i=0;
         do {
             foo[i] = *it;
-            it++;
-            i++;
+            it++; i++;
         } while (it != responseString.end());
         // FW: read as number
         QString s = foo;
@@ -48,19 +47,13 @@ std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::li
             magstimResponse = std::make_tuple(versionList.at(0).toInt(), versionList.at(1).toInt(), 0);
         if (versionList.length() == 1)
             magstimResponse = std::make_tuple(versionList.at(0).toInt(), 0, 0);
-
-        // FW: TODO something - Regexpression!?
-        // 86 55 46 50 32 0
-        // erstes und letztes weg lassen, Rest ergibt als Charakater "7.2" -->
-
+        // FW: TODO this magstimResponse is not the correct type for returning!
     } else {
         // Get ASCII code of first data character
-        int temp = responseString.front(); //FW: TODO richtiger Typ?
-        // temp = int 137
+        int temp = responseString.front();
         responseString.pop_front();
-        // interpret bits
         std::map<QString, int> instr;
-        instr["standby"]        =  temp      & 1; // nur diese letzte/erste Stelle
+        instr["standby"]        =  temp      & 1;
         instr["armed"]          = (temp >>1) & 1;
         instr["ready"]          = (temp >>2) & 1;
         instr["coilPresent"]    = (temp >>3) & 1;
@@ -73,7 +66,7 @@ std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::li
     // If a Rapid system and response includes rTMS status
     if (responseType == "instrRapid" || responseType == "rapidParam" || responseType=="systemRapid") {
         // Get ASCII code of second data character
-        int temp = responseString.front(); //FW: TODO richtiger Typ?
+        int temp = responseString.front();
         responseString.pop_front();
         // interpret bits
         std::map<QString, int> rapid;
@@ -87,56 +80,61 @@ std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::li
         rapid["modifiedCoilAlgorithm"]  = (temp >>7) & 1;
         magstimResponse["rapid"]= rapid;
     }
+    std::string str(responseString.begin(), responseString.end());
+    QString rs =  QString::fromUtf8(str.data(), str.size());
     // if requesting parameter settings or coil temperature
     if (responseType == "bistimParam") {
         std::map<QString, int> bistimParam;
-        bistimParam["powerA"]   = 1; //FW: TODO
-        bistimParam["powerB"]   = 1; //FW: TODO
-        bistimParam["ppOffset"] = 1; //FW: TODO
+        bistimParam["powerA"]   = rs.mid(0,2).toInt();
+        bistimParam["powerB"]   = rs.mid(3,5).toInt();
+        bistimParam["ppOffset"] = rs.mid(6,8).toInt();
         magstimResponse["bistimParam"]= bistimParam;
     } else if (responseType == "magstimParam") {
         std::map<QString, int> magstimParam;
-        magstimParam["power"]   = 1; //FW: TODO
+        magstimParam["power"]   = rs.mid(0,3).toInt();
         magstimResponse["magstimParam"]= magstimParam;
     } else if (responseType == "rapidParam") {
         // This is a bit of a hack to determine which software version we're dealing with
         if (responseString.size() == 20) {
             std::map<QString, int> rapidParam;
-            rapidParam["power"]   = 1; //FW: TODO
-            rapidParam["frequency"]   = 1; //FW: TODO
-            rapidParam["nPulses"] = 1; //FW: TODO
-            rapidParam["duration"] = 1; //FW: TODO
-            rapidParam["wait"] = 1; //FW: TODO
+            rapidParam["power"]     = rs.mid(0,2).toInt();
+            rapidParam["frequency"] = rs.mid(3,6).toInt(); //FW: TODO
+            rapidParam["nPulses"]   = rs.mid(7,11).toInt();
+            rapidParam["duration"]  = rs.mid(12,15).toInt(); //FW: TODO
+            rapidParam["wait"]      = rs.mid(16,19).toInt(); //FW: TODO
             magstimResponse["rapidParam"]= rapidParam;
         } else {
             std::map<QString, int> rapidParam;      // responseString 38 50 57 48 = als chr --> 029
-            rapidParam["power"]   = 1; //FW: TODO      // 29     WICHTIG = 0:3 heißt 0:2
-            rapidParam["frequency"]   = 1; //FW: TODO
-            rapidParam["nPulses"] = 1; //FW: TODO
-            rapidParam["duration"] = 1; //FW: TODO
-            rapidParam["wait"] = 1; //FW: TODO
+            //FW: TODO      // Power = 29     WICHTIG = 0:3 heißt 0:2
+            rapidParam["power"]     = rs.mid(0,2).toInt();
+            rapidParam["frequency"] = rs.mid(3,6).toInt(); //FW: TODO
+            rapidParam["nPulses"]   = rs.mid(7,10).toInt();
+            rapidParam["duration"]  = rs.mid(11,13).toInt(); //FW: TODO
+            rapidParam["wait"]      = rs.mid(14,rs.length()-1).toInt(); //FW: TODO
             magstimResponse["rapidParam"]= rapidParam;
         }
     } else if (responseType == "magstimTemp") {
         std::map<QString, int> magstimTemp;
-        magstimTemp["coil1Temp"]   = 1; //FW: TODO
-        magstimTemp["coil2Temp"]   = 1; //FW: TODO
+        magstimTemp["coil1Temp"]   = rs.mid(0,2).toInt(); //FW: TODO
+        magstimTemp["coil2Temp"]   = rs.mid(2,5).toInt(); //FW: TODO
         magstimResponse["magstimTemp"]= magstimTemp;
     } else if (responseType == "systemRapid") {
-        int temp = responseString.front(); //FW: TODO richtiger Typ?
+        int temp = responseString.front();
+        std::string str(responseString.begin(), responseString.end());
+        QString rs =  QString::fromUtf8(str.data(), str.size());
         responseString.pop_front();
         std::map<QString, int> extInstr;
-        extInstr["plus1ModuleDetected"]         = temp & 1; //FW: TODO
-        extInstr["specialTriggerModeActive"]    = (temp >> 1) & 1; //FW: TODO
-        extInstr["chargeDelaySet"]              = (temp >> 2) & 1; //FW: TODO
+        extInstr["plus1ModuleDetected"]         = temp & 1;
+        extInstr["specialTriggerModeActive"]    = (temp >> 1) & 1;
+        extInstr["chargeDelaySet"]              = (temp >> 2) & 1;
         magstimResponse["extInstr"]= extInstr;
     } else if (responseType == "error") {
         std::map<QString, int> currentErrorCode;
-        currentErrorCode["currentErrorCode"]  = 1; //FW: TODO
+        currentErrorCode["currentErrorCode"]  = rs.mid(0,rs.length()-2).toInt(); //FW: TODO
         magstimResponse["currentErrorCode"]= currentErrorCode;
     } else if (responseType == "instrCharge") {
         std::map<QString, int> chargeDelay;
-        chargeDelay["currentErrorCode"]  = 1; //FW: TODO
+        chargeDelay["currentErrorCode"]  = rs.toInt();
         magstimResponse["chargeDelay"]= chargeDelay;
     }
     return magstimResponse;
