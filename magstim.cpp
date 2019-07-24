@@ -1,6 +1,8 @@
 #include "magstim.h"
 
 #include <functional>
+#include <QRegExp>
+#include <QStringList>
 
 MagStim::MagStim(QString serialConnection) :
     robot(this->sendQueue, this->robotQueue)
@@ -18,6 +20,35 @@ std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::li
 {
     std::map<QString, std::map<QString, int>> magstimResponse;
     if (responseType == "version") {
+        // FW: Convert to char except first and last element
+        char foo[4]; //FIXME: responseString.size()-2
+        std::list<int>::iterator it = responseString.begin();
+        it++;
+        int i=0;
+        do {
+            foo[i] = *it;
+            it++;
+            i++;
+        } while (it != responseString.end());
+        // FW: read as number
+        QString s = foo;
+        QStringList versionList = s.split('.');
+        for (int i = 0; i<versionList.length(); i++) {
+            bool ok = true;
+            int hex = versionList.at(i).toInt(&ok, 10);
+            if (!ok)
+                versionList[i] = "0";
+            std::cout << versionList.at(i).toStdString() << " ";
+        }
+        // FW: create tuple;
+        std::tuple<int, int, int> magstimResponse;
+        if (versionList.length() == 3)
+            magstimResponse = std::make_tuple(versionList.at(0).toInt(), versionList.at(1).toInt(), versionList.at(2).toInt());
+        if (versionList.length() == 2)
+            magstimResponse = std::make_tuple(versionList.at(0).toInt(), versionList.at(1).toInt(), 0);
+        if (versionList.length() == 1)
+            magstimResponse = std::make_tuple(versionList.at(0).toInt(), 0, 0);
+
         // FW: TODO something - Regexpression!?
         // 86 55 46 50 32 0
         // erstes und letztes weg lassen, Rest ergibt als Charakater "7.2" -->
@@ -152,6 +183,7 @@ bool MagStim::encode_command(uint8_t *destination, uint8_t *data)
         hexstring+=test.str();
         destination[9]= hexstring[0];
         destination[10]= hexstring[1];
+        return true;
 }
 
 bool MagStim::get_status()
