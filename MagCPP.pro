@@ -25,21 +25,21 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
-        bistim.cpp \
+   #     bistim.cpp \
         connectionrobot.cpp \
         magstim.cpp \
         magstimerror.cpp \
         main.cpp \
-        rapid.cpp \
+    #    rapid.cpp \
         rs232.c \
         serialportcontroller.cpp
 
 HEADERS += \
-        bistim.h \
+    #    bistim.h \
         connectionrobot.h \
         magstim.h \
         magstimerror.h \
-        rapid.h \
+    #    rapid.h \
         rs232.h \
         serialportcontroller.h
 

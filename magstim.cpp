@@ -2,41 +2,34 @@
 
 #include <functional>
 
-MagStim::MagStim(std::string port)
+MagStim::MagStim(QString serialConnection) :
+    robot(this->sendQueue, this->robotQueue)
 {
-    this->connect(port);
-}
-
-/*MagStim::MagStim(QString serialConnection):
-    robot(this->sendQueue,this->robotQueue)
-{
-    setupSerialPort(serialConnection);
+    this->connect(serialConnection.toStdString());
     // connection.daemon = true; //FW: TODO
     // robot.daemon = true; //FW: TODO
     this->connected = false;
     // connectionCommand = (b'Q@n', None, 3) //FW: TODO
     // auto queryCommand = std::bind(this->remoteControl, true, true);//FW: TODO
 }
-*/
 
-std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::list<QByteArray> responseString, QString responseType)
+std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::list<int> responseString, QString responseType)
 // Interprets response sent from the Magstim unit.
 {
     std::map<QString, std::map<QString, int>> magstimResponse;
     if (responseType == "version") {
         // FW: TODO something - Regexpression!?
-        std::list<QByteArray>::iterator it = responseString.begin();
-        while(it != responseString.end()) {
-            // ...
-            it++;
-        }
+        // 86 55 46 50 32 0
+        // erstes und letztes weg lassen, Rest ergibt als Charakater "7.2" -->
+
     } else {
         // Get ASCII code of first data character
-        int temp = responseString.front().toInt(); //FW: TODO richtiger Typ?
+        int temp = responseString.front(); //FW: TODO richtiger Typ?
+        // temp = int 137
         responseString.pop_front();
         // interpret bits
         std::map<QString, int> instr;
-        instr["standby"]        =  temp      & 1;
+        instr["standby"]        =  temp      & 1; // nur diese letzte/erste Stelle
         instr["armed"]          = (temp >>1) & 1;
         instr["ready"]          = (temp >>2) & 1;
         instr["coilPresent"]    = (temp >>3) & 1;
@@ -49,7 +42,7 @@ std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::li
     // If a Rapid system and response includes rTMS status
     if (responseType == "instrRapid" || responseType == "rapidParam" || responseType=="systemRapid") {
         // Get ASCII code of second data character
-        int temp = responseString.front().toInt(); //FW: TODO richtiger Typ?
+        int temp = responseString.front(); //FW: TODO richtiger Typ?
         responseString.pop_front();
         // interpret bits
         std::map<QString, int> rapid;
@@ -85,8 +78,8 @@ std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::li
             rapidParam["wait"] = 1; //FW: TODO
             magstimResponse["rapidParam"]= rapidParam;
         } else {
-            std::map<QString, int> rapidParam;
-            rapidParam["power"]   = 1; //FW: TODO
+            std::map<QString, int> rapidParam;      // responseString 38 50 57 48 = als chr --> 029
+            rapidParam["power"]   = 1; //FW: TODO      // 29     WICHTIG = 0:3 heißt 0:2
             rapidParam["frequency"]   = 1; //FW: TODO
             rapidParam["nPulses"] = 1; //FW: TODO
             rapidParam["duration"] = 1; //FW: TODO
@@ -99,7 +92,7 @@ std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::li
         magstimTemp["coil2Temp"]   = 1; //FW: TODO
         magstimResponse["magstimTemp"]= magstimTemp;
     } else if (responseType == "systemRapid") {
-        int temp = responseString.front().toInt(); //FW: TODO richtiger Typ?
+        int temp = responseString.front(); //FW: TODO richtiger Typ?
         responseString.pop_front();
         std::map<QString, int> extInstr;
         extInstr["plus1ModuleDetected"]         = temp & 1; //FW: TODO
@@ -164,6 +157,7 @@ bool MagStim::encode_command(uint8_t *destination, uint8_t *data)
 bool MagStim::get_status()
 {
     RS232_SendBuf(cp_num,stat_command,10);
+    return true; //FW FIXME
 }
 
 std::tuple<int, std::map<QString, std::map<QString, int> > > MagStim::remoteControl(bool enable, bool receipt)
@@ -255,6 +249,8 @@ void MagStim::setupSerialPort(QString serialConnection)
 std::tuple<int, std::map<QString, std::map<QString, int> > > MagStim::processCommand(QString commandString, QString receiptType, int readBytes)
 {
     // TODO: Return Error oder Tuple oder ... Referenz verwenden!?
+    // commandString "/@"
+    // EB --> 69 66
     QByteArray comString = commandString.toLocal8Bit();
     //TODO check?
     if (this->connected || comString.at(0) == (char)0x81 || comString.at(0) == (char)0x82 || comString.at(0) == (char)0x74 || comString.at(0) == (char)0x70 || comString.contains("EA") || ( comString.at(0) == (char)0x92 && this->parameterReturnByte != 0 )  ) {
@@ -265,18 +261,18 @@ std::tuple<int, std::map<QString, std::map<QString, int> > > MagStim::processCom
             int error = 0;
             QByteArray reply = "Test";
             if (error) {
-                return; // TODO
+//                return; // TODO
             } else {
                 if (reply.at(0) == (char)0x63) {
-                    return; // TODO
+//                    return; // TODO
                 } else if (reply.at(1) == (char)0x63)  {
-                    return; // TODO
+//                    return; // TODO
                 } else if (reply.at(1) == (char)0x83) {
-                    return; // TODO
+//                    return; // TODO
                 } else if (reply.at(0) != comString.at(0)) {
-                    return; // TODO
+//                    return; // TODO
                 } else if (false) { //TODO ord(calcCRC(reply[:-1])) != reply[-1]:
-                    return; // TODO
+//                    return; // TODO
                 }
 
             }
@@ -292,10 +288,13 @@ std::tuple<int, std::map<QString, std::map<QString, int> > > MagStim::processCom
                 this->robotQueue.push(0);
             }
         }
-        return; // TODO
+//        return; // TODO
     } else {
-        return; // TODO
+//        return; // TODO
     }
+    std::map<QString, std::map<QString, int>> first;
+    std::tuple<int, std::map<QString, std::map<QString, int> > > vorruebergehend = std::make_tuple(1, first);
+    return vorruebergehend;
 }
 
 QByteArray MagStim::calcCRC(QString command)

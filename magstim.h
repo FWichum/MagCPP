@@ -19,11 +19,11 @@
 class MagStim
 {
 public:
-    MagStim(std::string port);
+    MagStim(QString serialConnection);
     bool connect(std::string port);
     void disconnect();
     bool get_status();
-    std::map<QString, std::map<QString, int>> parseMagstimResponse(std::list<QByteArray> responseString, QString responseType);
+    std::map<QString, std::map<QString, int>> parseMagstimResponse(std::list<int> responseString, QString responseType);
     std::tuple<int, std::map<QString, std::map<QString, int>>> remoteControl(bool enable, bool receipt=false);
     std::tuple<int, std::map<QString, std::map<QString, int>>> getParameters();
     void setPower();
