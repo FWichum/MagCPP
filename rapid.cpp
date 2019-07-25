@@ -55,6 +55,30 @@ float Rapid::getRapidMaxContinuousOperationsFrequency(int power)
     return a / b;
 }
 
+std::tuple<int, std::tuple<int,int,int>> Rapid::getVersion()
+{
+    auto e = this->processCommand("ND", "version", 0); // HO: TODO: 0 or NONE?!
+    int error= std::get<0>(e);
+    std::tuple message = std::get<1>(e); // HO: TODO: how to get the message here?
+    std::tuple<int, std::tuple<int,int,int>> answer;
+
+    if (error) {
+        this->version = message;
+        if (this->version >= (9,0,0)) {
+            this->parameterReturnBytes = 24;
+        }
+        else if (this->version >= (7,0,0)) {
+            this->parameterReturnBytes = 22;
+        }
+        else {
+            this->parameterReturnBytes = 21;
+        }
+    }
+    return answer;
+
+
+}
+
 
 
 

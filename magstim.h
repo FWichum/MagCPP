@@ -58,7 +58,7 @@ public:
     const int MAX_ON_TIME_ERR           = 18;// MAX_ON_TIME_ERR: Maximum on time exceeded for current train.
 
 
-private:
+protected:
     void setupSerialPort(QString serialConnection);
     std::tuple<int, std::map<QString, std::map<QString, int>>> processCommand(QString commandString, QString receiptType, int readBytes);
     QByteArray calcCRC(QString command);

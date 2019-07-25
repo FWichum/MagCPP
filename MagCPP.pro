@@ -27,7 +27,7 @@ CONFIG += c++11
 SOURCES += \
 #        bistim.cpp \
  #       connectionrobot.cpp \
- #       magstim.cpp \
+        magstim.cpp \
  #       magstimerror.cpp \
         main.cpp \
         rapid.cpp \
@@ -37,7 +37,7 @@ SOURCES += \
 HEADERS += \
  #       bistim.h \
   #      connectionrobot.h \
-   #     magstim.h \
+        magstim.h \
     #    magstimerror.h \
         rapid.h \
       #  rs232.h \

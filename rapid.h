@@ -10,6 +10,7 @@ public:
     float getRapidMinWaitTime(int power, int nPulses, float frequency);
     float getRapidMaxOnTime(int power, float frequency);
     float getRapidMaxContinuousOperationsFrequency(int power);
+    std::tuple<int, std::tuple<int,int,int>> getVersion(); // HO: TODO: zwei Ausgabeparameter, wie realisieren?
 
 private:
     void setDefault();
