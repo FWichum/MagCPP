@@ -207,9 +207,11 @@ void MagStim::remoteControl(bool enable, std::map<QString, std::map<QString, int
     return;
 }
 
-std::tuple<int, std::map<QString, std::map<QString, int> > > MagStim::getParameters()
+std::map<QString, std::map<QString, int> >MagStim::getParameters()
 {
-    return this->processCommand("J@", "magstimParam", 12);
+    std::map<QString, std::map<QString, int> > mes;
+    this->processCommand("J@", "magstimParam", 12, mes);
+    return mes;
 }
 
 void MagStim::setPower()
