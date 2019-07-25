@@ -258,13 +258,11 @@ void MagStim::isReadyToFire()
 
 }
 
-std::tuple<int, std::map<QString, std::map<QString, int> > > MagStim::fire(bool receipt)
+void MagStim::fire(std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error = MagStim::er)
 {
-    QString str;
-    if (receipt) {
-        str = "instr";
-    }
-    return this->processCommand("EH", str, 3);
+    QString str = "instr";
+    error =  this->processCommand("EH", str, 3, message);
+    return;
 }
 
 void MagStim::resetQuickFire()

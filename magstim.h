@@ -35,7 +35,7 @@ public:
     void isArmed();
     void isUnderControl();
     void isReadyToFire();
-    std::tuple<int, std::map<QString, std::map<QString, int>>> fire(bool receipt=false);
+    void fire(std::map<QString, std::map<QString, int> > &message, int &error);
     void resetQuickFire();
     void quickFire();
 
