@@ -28,7 +28,7 @@ public:
     void remoteControl(bool enable, std::map<QString, std::map<QString, int> > &message, int &error);
     std::map<QString, std::map<QString, int> > getParameters();
     void setPower();
-    std::tuple<int, std::map<QString, std::map<QString, int>>> getTemperature();
+    std::map<QString, std::map<QString, int> > getTemperature();
     void poke();
     void arm();
     void disarm(std::map<QString, std::map<QString, int> > &message, int &error);

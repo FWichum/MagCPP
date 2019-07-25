@@ -219,9 +219,11 @@ void MagStim::setPower()
 
 }
 
-std::tuple<int, std::map<QString, std::map<QString, int> > > MagStim::getTemperature()
+std::map<QString, std::map<QString, int> > MagStim::getTemperature()
 {
-    return this->processCommand("F@", "magstimTemp", 9);
+    std::map<QString, std::map<QString, int> > mes;
+    this->processCommand("F@", "magstimTemp", 9, mes);
+    return mes;
 }
 
 void MagStim::poke()
