@@ -282,7 +282,7 @@ void MagStim::setupSerialPort(QString serialConnection)
 
 }
 
-int MagStim::processCommand(QString commandString, QString receiptType, int readBytes, std::map<QString, std::map<QString, int>> &message)
+int MagStim::processCommand(QString commandString, QString receiptType, int readBytes, std::tuple<int, int, int> &version, std::map<QString, std::map<QString, int>> &message)
 {
     // FW: Main Changes for C++
     // TODO: Return Error oder Tuple oder ... Referenz verwenden!?
@@ -326,16 +326,35 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
         }
         std::string s = reply.toStdString();
         std::list<int> intlist(s.begin(), s.end());
-        message = this->parseMagstimResponse(intlist, receiptType);
+        if (receiptType == "version") {
+            version = this->parseMagstimResponse_version(intlist);
+        } else {
+            message = this->parseMagstimResponse(intlist, receiptType);
+        }
         return 0;
     } else {
         return MagStim::NO_REMOTE_CONTROL_ERR;
     }
+}
 
-    // TODO löschen!
-    std::map<QString, std::map<QString, int>> first;
-    std::tuple<int, std::map<QString, std::map<QString, int> > > vorruebergehend = std::make_tuple(1, first);
-//    return vorruebergehend;
+int MagStim::processCommand(QString commandString, QString receiptType, int readBytes, std::tuple<int, int, int> &version)
+{
+    if (receiptType == "version") {
+        std::map<QString, std::map<QString, int>> mes;
+        return processCommand(commandString, receiptType, readBytes, version, mes);
+    } else {
+        return MagStim::INVALID_DATA_ERR;
+    }
+}
+
+int MagStim::processCommand(QString commandString, QString receiptType, int readBytes, std::map<QString, std::map<QString, int>> &message)
+{
+    if (receiptType == "version") {
+        return MagStim::INVALID_DATA_ERR;
+    } else {
+        std::tuple<int, int, int> vers;
+        return processCommand(commandString, receiptType, readBytes, vers, message);
+    }
 }
 
 char MagStim::calcCRC(QByteArray command)
