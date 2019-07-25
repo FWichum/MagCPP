@@ -276,35 +276,35 @@ void MagStim::setupSerialPort(QString serialConnection)
 
 }
 
-std::tuple<int, std::map<QString, std::map<QString, int> > > MagStim::processCommand(QString commandString, QString receiptType, int readBytes)
+int MagStim::processCommand(QString commandString, QString receiptType, int readBytes, std::map<QString, std::map<QString, int>> &message)
 {
+    // FW: Main Changes for C++
     // TODO: Return Error oder Tuple oder ... Referenz verwenden!?
     // commandString "/@"
     // EB --> 69 66
     QByteArray comString = commandString.toLocal8Bit();
-    //TODO check?
-    if (this->connected || comString.at(0) == (char)0x81 || comString.at(0) == (char)0x82 || comString.at(0) == (char)0x74 || comString.at(0) == (char)0x70 || comString.contains("EA") || ( comString.at(0) == (char)0x92 && this->parameterReturnByte != 0 )  ) {
+    QByteArray reply;
+    if (this->connected || comString.at(0) == (char)81 || comString.at(0) == (char)82 || comString.at(0) == (char)74 || comString.at(0) == (char)70 || comString.contains("EA") || ( comString.at(0) == (char)92 && this->parameterReturnByte != 0 )  ) {
         std::tuple<QByteArray,QString, int> test;
-        // this->sendQueue.push(test);
-        if (receiptType != 0) {
-            // error, reply = self.receiveQueue.get()
+        //this->sendQueue.push(test);    -------------------- <QByteArray, QString, int>
+        if (!receiptType.isEmpty()) {
+            // error, reply = self.receiveQueue.get()  ------ <int, QByteArray>
             int error = 0;
-            QByteArray reply = "Test";
+            reply = "Test";
             if (error) {
-//                return; // TODO
+                return error; // FW: Change for C++ Reasons to just error
             } else {
-                if (reply.at(0) == (char)0x63) {
-//                    return; // TODO
-                } else if (reply.at(1) == (char)0x63)  {
-//                    return; // TODO
-                } else if (reply.at(1) == (char)0x83) {
-//                    return; // TODO
+                if (reply.at(0) == (char)63) {
+                    return MagStim::INVALID_COMMAND_ERR;
+                } else if (reply.at(1) == (char)63)  {
+                    return MagStim::INVALID_DATA_ERR;
+                } else if (reply.at(1) == (char)83) {
+                    return MagStim::COMMAND_CONFLICT_ERR;
                 } else if (reply.at(0) != comString.at(0)) {
-//                    return; // TODO
-                } else if (false) { //TODO ord(calcCRC(reply[:-1])) != reply[-1]:
-//                    return; // TODO
+                    return MagStim::INVALID_CONFIRMATION_ERR;
+                } else if (calcCRC(reply.mid(0,reply.length()-2)) != reply.at(reply.length()-1)) { //TODO check
+                    return MagStim::CRC_MISMATCH_ERR;
                 }
-
             }
         }
         if (this->connected) {
@@ -318,13 +318,18 @@ std::tuple<int, std::map<QString, std::map<QString, int> > > MagStim::processCom
                 this->robotQueue.push(0);
             }
         }
-//        return; // TODO
+        std::string s = reply.toStdString();
+        std::list<int> intlist(s.begin(), s.end());
+        message = this->parseMagstimResponse(intlist, receiptType);
+        return 0;
     } else {
-//        return; // TODO
+        return MagStim::NO_REMOTE_CONTROL_ERR;
     }
+
+    // TODO löschen!
     std::map<QString, std::map<QString, int>> first;
     std::tuple<int, std::map<QString, std::map<QString, int> > > vorruebergehend = std::make_tuple(1, first);
-    return vorruebergehend;
+//    return vorruebergehend;
 }
 
 char MagStim::calcCRC(QByteArray command)

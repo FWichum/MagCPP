@@ -13,11 +13,21 @@
 int main()
 {
     std::cout << std::endl << "Test." << std::endl;
+    QByteArray reply = "EB";
+    std::string s = reply.toStdString();
+    std::list<int> teste(s.begin(), s.end());
+    std::cout << "Liste : " << teste.front() << ", " << teste.back() <<std::endl;
 
-    std::list<int> responseString = {38, 50, 57, 48, 12, 11, 11};
 
-    std::string str(responseString.begin(), responseString.end());
-    QString qs =  QString::fromUtf8(str.data(), str.size());
-    std::cout << "    " << qs.mid(1,2).toStdString();
+    // EB --> 69 66
+    QString commandString = "EB";
+    QByteArray comString = commandString.toLocal8Bit();
+    //TODO check?
+    std::cout << "String :" << commandString.toStdString() << std::endl;
+    std::cout << "Bytes :" << (int) comString.at(0) << " " <<(int) comString.at(1) ;
+    if (comString.at(0) == (char)69)
+        std::cout << "Wahr!";
+    if (comString.contains("EB"))
+        std::cout << " COol";
     return 0;
 }
