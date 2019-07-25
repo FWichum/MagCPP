@@ -56,13 +56,22 @@ float Rapid::getRapidMaxContinuousOperationsFrequency(int power)
 }
 
 std::tuple<int, std::tuple<int,int,int>> Rapid::getVersion()
+       /*
+       Get Magstim software version number. This is needed when obtaining parameters from the Magstim.
+       Returns:
+       :tuple:(error,message):
+           error (int): error code (0 = no error; 1+ = error)
+           message (tuple): if error is 0 (False) returns a tuple containing the version number (in (Major,Minor,Patch) format), otherwise returns an error string
+       */
 {
     auto e = this->processCommand("ND", "version", 0); // HO: TODO: 0 or NONE?!
     int error= std::get<0>(e);
     std::tuple message = std::get<1>(e); // HO: TODO: how to get the message here?
     std::tuple<int, std::tuple<int,int,int>> answer;
 
-    if (error) {
+    // If we didn't receive an error, update the version number and the number of bytes that will be returned by a getParameters() command
+
+    if (error == 0) {
         this->version = message;
         if (this->version >= (9,0,0)) {
             this->parameterReturnBytes = 24;
@@ -75,8 +84,30 @@ std::tuple<int, std::tuple<int,int,int>> Rapid::getVersion()
         }
     }
     return answer;
+}
 
+void Rapid::connect(bool receipt)
+    /*
+    Connect to the Rapid.
+    This starts the serial port controller, as well as a process that constantly keeps in contact with the Rapid so as not to lose control.
+    It also collects the software version number of the Rapid in order to send the correct command for obtaining parameter settings.
 
+    Args:
+    receipt (bool): whether to return occurrence of an error and the automated response from the Rapid unit (defaults to False)
+
+    Returns:
+      :tuple:(error,message):
+      error (int): error code (0 = no error; 1+ = error)
+       message (str): if error is 0 (False) returns a string containing the version number (in (X,X,X) format), otherwise returns an error string
+    */
+
+{
+    // HO: TODO: connect
+    int error = std::get<0>(this->getVersion());
+    if (error) {
+        this->disconnect();
+        throw new std::string("Could not determine software version of Rapid. Disconnecting.");
+    }
 }
 
 
