@@ -31,7 +31,7 @@ public:
     std::tuple<int, std::map<QString, std::map<QString, int>>> getTemperature();
     void poke();
     void arm();
-    std::tuple<int, std::map<QString, std::map<QString, int>>> disarm(bool receipt=false);
+    void disarm(std::map<QString, std::map<QString, int> > &message, int &error);
     void isArmed();
     void isUnderControl();
     void isReadyToFire();
@@ -64,6 +64,10 @@ private:
     int processCommand(QString commandString, QString receiptType, int readBytes, std::tuple<int, int, int> &version);
     int processCommand(QString commandString, QString receiptType, int readBytes, std::tuple<int, int, int> &version, std::map<QString, std::map<QString, int> > &message);
     char calcCRC(QByteArray command);
+
+    static int er;
+    static std::tuple<int, int, int> ver;
+    static std::map<QString, std::map<QString, int>> mes;
 
     std::queue<float> sendQueue;
     std::queue<float> receiveQueue;

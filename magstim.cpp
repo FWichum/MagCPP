@@ -234,13 +234,11 @@ void MagStim::arm()
 
 }
 
-std::tuple<int, std::map<QString, std::map<QString, int> > > MagStim::disarm(bool receipt)
+void MagStim::disarm(std::map<QString, std::map<QString, int>> &message = MagStim::mes, int &error = MagStim::er)
 {
-    QString str;
-    if (receipt) {
-        str = "instr";
-    }
-    return this->processCommand("EA", str, 3);
+    QString str = "instr";
+    error = this->processCommand("EA", str, 3, message);
+    return;
 }
 
 void MagStim::isArmed()
