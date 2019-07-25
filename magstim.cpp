@@ -196,17 +196,15 @@ bool MagStim::get_status()
     return true; //FW FIXME
 }
 
-std::tuple<int, std::map<QString, std::map<QString, int> > > MagStim::remoteControl(bool enable, bool receipt)
+void MagStim::remoteControl(bool enable, std::map<QString, std::map<QString, int>> &message = MagStim::mes, int &error = MagStim::er)
 {
-    QString str;
-    if (receipt) {
-        str = "instr";
-    }
+    QString str = "instr";
     if (enable) {
-        return this->processCommand("Q@", str, 3);
+        error = this->processCommand("Q@", str, 3, message);
     } else {
-        return this->processCommand("R@", str, 3);
+        error = this->processCommand("R@", str, 3, message);
     }
+    return;
 }
 
 std::tuple<int, std::map<QString, std::map<QString, int> > > MagStim::getParameters()
