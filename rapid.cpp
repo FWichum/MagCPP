@@ -132,9 +132,9 @@ void Rapid::setDefault()
         YAML::Node config = YAML::LoadFile(file.toStdString());
         this->DEFAULT_RAPID_TYPE = config["defaultRapidType"].as<int>();
         this->DEFAULT_VOLTAGE = config["defaultVoltage"].as<int>();
-        this->DEFAULT_UNLOCK_CODE = config["unlockCode"].as<QString>();
+        this->DEFAULT_UNLOCK_CODE = QString::fromStdString(config["unlockCode"].as<std::string>());
         this->ENFORCE_ENERGY_SAFETY = config["enforceEnergySafety"].as<bool>();
-        this->DEFAULT_VIRTUAL_VERSION = config["virtualVersionNumber"].as<std::tuple<int, int, int>>();
+        this->DEFAULT_VIRTUAL_VERSION = std::make_tuple(5,0,0); //FIXME: config["virtualVersionNumber"].as<std::tuple<int, int, int>>();
     } else {
         this->DEFAULT_RAPID_TYPE = 0;
         this->DEFAULT_VOLTAGE = 240;
