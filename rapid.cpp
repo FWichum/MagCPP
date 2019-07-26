@@ -1,6 +1,7 @@
 #include "rapid.h"
 
-Rapid::Rapid()
+Rapid::Rapid(QString serialConnection) :
+    MagStim(serialConnection)
 {
 
 }

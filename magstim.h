@@ -20,24 +20,26 @@ class MagStim
 {
 public:
     MagStim(QString serialConnection);
-    bool connect(std::string port);
-    void disconnect();
-    bool get_status();
-    std::map<QString, std::map<QString, int>> parseMagstimResponse(std::list<int> responseString, QString responseType);
-    std::tuple<int, int, int> parseMagstimResponse_version(std::list<int> responseString);
-    void remoteControl(bool enable, std::map<QString, std::map<QString, int> > &message, int &error);
-    std::map<QString, std::map<QString, int> > getParameters();
-    void setPower();
-    std::map<QString, std::map<QString, int> > getTemperature();
-    void poke();
-    void arm();
-    void disarm(std::map<QString, std::map<QString, int> > &message, int &error);
-    void isArmed();
-    void isUnderControl();
-    void isReadyToFire();
-    void fire(std::map<QString, std::map<QString, int> > &message, int &error);
-    void resetQuickFire();
-    void quickFire();
+    //FW: TODO Destruktor!?
+
+    virtual bool connect(std::string port);
+    virtual void disconnect();
+    virtual bool get_status();
+    virtual std::map<QString, std::map<QString, int>> parseMagstimResponse(std::list<int> responseString, QString responseType);
+    virtual std::tuple<int, int, int> parseMagstimResponse_version(std::list<int> responseString);
+    virtual void remoteControl(bool enable, std::map<QString, std::map<QString, int> > &message, int &error);
+    virtual std::map<QString, std::map<QString, int> > getParameters();
+    virtual void setPower();
+    virtual std::map<QString, std::map<QString, int> > getTemperature();
+    virtual void poke();
+    virtual void arm();
+    virtual void disarm(std::map<QString, std::map<QString, int> > &message, int &error);
+    virtual void isArmed();
+    virtual void isUnderControl();
+    virtual void isReadyToFire();
+    virtual void fire(std::map<QString, std::map<QString, int> > &message, int &error);
+    virtual void resetQuickFire();
+    virtual void quickFire();
 
     // ErrorCodes
     const int INVALID_COMMAND_ERR       = 3; // INVALID_COMMAND_ERR: Invalid command sent.
@@ -58,12 +60,12 @@ public:
     const int MAX_ON_TIME_ERR           = 18;// MAX_ON_TIME_ERR: Maximum on time exceeded for current train.
 
 
-private:
-    void setupSerialPort(QString serialConnection);
-    int processCommand(QString commandString, QString receiptType, int readBytes, std::map<QString, std::map<QString, int> > &message);
-    int processCommand(QString commandString, QString receiptType, int readBytes, std::tuple<int, int, int> &version);
-    int processCommand(QString commandString, QString receiptType, int readBytes, std::tuple<int, int, int> &version, std::map<QString, std::map<QString, int> > &message);
-    char calcCRC(QByteArray command);
+protected:
+    virtual void setupSerialPort(QString serialConnection);
+    virtual int processCommand(QString commandString, QString receiptType, int readBytes, std::map<QString, std::map<QString, int> > &message);
+    virtual int processCommand(QString commandString, QString receiptType, int readBytes, std::tuple<int, int, int> &version);
+    virtual int processCommand(QString commandString, QString receiptType, int readBytes, std::tuple<int, int, int> &version, std::map<QString, std::map<QString, int> > &message);
+    virtual char calcCRC(QByteArray command);
 
     static int er;
     static std::tuple<int, int, int> ver;

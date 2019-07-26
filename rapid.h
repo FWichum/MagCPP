@@ -5,7 +5,7 @@
 class Rapid : public MagStim
 {
 public:
-    Rapid();
+    Rapid(QString serialConnection);
 };
 
 #endif // RAPID_H

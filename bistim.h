@@ -5,7 +5,7 @@
 class BiStim : public MagStim
 {
 public:
-    BiStim();
+    BiStim(QString serialConnection);
 };
 
 #endif // BISTIM_H
