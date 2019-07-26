@@ -11,6 +11,8 @@ public:
     float getRapidMaxOnTime(int power, float frequency);
     float getRapidMaxContinuousOperationsFrequency(int power);
     std::tuple<int, std::tuple<int,int,int>> getVersion(); // HO: TODO: zwei Ausgabeparameter, wie realisieren?
+    void connect(bool receipt = false);
+    bool disconnect();
 
 private:
     void setDefault();

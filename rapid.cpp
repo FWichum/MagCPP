@@ -1,4 +1,5 @@
 #include "rapid.h"
+#include "rapid.h"
 
 #include "yaml/include/yaml-cpp/yaml.h"
 #include <QDir>
@@ -102,13 +103,26 @@ void Rapid::connect(bool receipt)
     */
 
 {
-    // HO: TODO: connect
+    // HO: TODO: connect (connection needs connect-function from magstim)
     int error = std::get<0>(this->getVersion());
     if (error) {
         this->disconnect();
         throw new std::string("Could not determine software version of Rapid. Disconnecting.");
     }
 }
+
+bool Rapid::disconnect() // HO: TODO: is bool the right value?
+{
+    /*
+    Disconnect from the Magstim.
+        This stops maintaining contact with the Magstim and turns the serial port controller off.
+    */
+    //Just some housekeeping before we call the base magstim class method disconnect
+    this->sequenceValidated = false;
+    this->repetitiveMode = false;
+    // HO: TODO: return -> disconnect funciton from MagStim
+}
+
 
 
 
