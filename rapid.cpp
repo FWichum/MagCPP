@@ -103,7 +103,7 @@ void Rapid::connect(bool receipt)
     */
 
 {
-    // HO: TODO: connect (connection needs connect-function from magstim)
+    MagStim::connect("COM1");// HO: TODO: right port
     int error = std::get<0>(this->getVersion());
     if (error) {
         this->disconnect();
@@ -111,7 +111,7 @@ void Rapid::connect(bool receipt)
     }
 }
 
-bool Rapid::disconnect() // HO: TODO: is bool the right value?
+void Rapid::disconnect()
 {
     /*
     Disconnect from the Magstim.
@@ -120,7 +120,7 @@ bool Rapid::disconnect() // HO: TODO: is bool the right value?
     //Just some housekeeping before we call the base magstim class method disconnect
     this->sequenceValidated = false;
     this->repetitiveMode = false;
-    // HO: TODO: return -> disconnect funciton from MagStim
+    return MagStim::disconnect();
 }
 
 

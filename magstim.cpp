@@ -135,6 +135,7 @@ bool MagStim::connect(std::string port)
     }
 }
 
+
 void MagStim::disconnect()
 {
     RS232_CloseComport(cp_num);
