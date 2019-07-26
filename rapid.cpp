@@ -74,10 +74,10 @@ std::tuple<int, std::tuple<int,int,int>> Rapid::getVersion()
 
     if (error == 0) {
         this->version = message;
-        if (this->version >= (9,0,0)) {
+        if (std::get<0>(this->version) >= 9) {
             this->parameterReturnBytes = 24;
         }
-        else if (this->version >= (7,0,0)) {
+        else if (std::get<0>(this->version) >= 7) {
             this->parameterReturnBytes = 22;
         }
         else {
@@ -121,6 +121,56 @@ void Rapid::disconnect()
     this->sequenceValidated = false;
     this->repetitiveMode = false;
     return MagStim::disconnect();
+}
+
+void Rapid::rTMSMode(bool enable, bool receipt)
+{
+    /*
+    This is a helper function to enable/disable rTMS mode.
+
+    Args:
+    enable (bool): whether to enable (True) or disable (False) control
+    receipt (bool): whether to return occurrence of an error and the automated response from the Rapid unit (defaults to False)
+
+        Returns:
+        If receipt argument is True:
+            :tuple:(error,message):
+                error (int): error code (0 = no error; 1+ = error)
+                message (dict,str): if error is 0 (False) returns a dict containing Rapid instrument status ['instr'] and rMTS setting ['rapid'] dicts, otherwise returns an error string
+        If receipt argument is False:
+            None This is a helper function to enable/disable rTMS mode.
+
+        Args:
+        enable (bool): whether to enable (True) or disable (False) control
+        receipt (bool): whether to return occurrence of an error and the automated response from the Rapid unit (defaults to False)
+
+        Returns:
+        If receipt argument is True:
+            :tuple:(error,message):
+                error (int): error code (0 = no error; 1+ = error)
+                message (dict,str): if error is 0 (False) returns a dict containing Rapid instrument status ['instr'] and rMTS setting ['rapid'] dicts, otherwise returns an error string
+        If receipt argument is False:
+            None
+    */
+    this->sequenceValidated = false;
+    // Durations of 1 or 0 are used to toggle repetitive mode on and off
+    if (std::get<0>(this->version) >= 9) {
+        if (enable) {
+            std::string commandString = "0010";
+        }
+        else {
+            std::string commandString = "0000";
+            }
+    }
+    else {
+        if (enable) {
+            std::string commandString = "010";
+        }
+        else {
+            std::string commandString = "000";
+        }
+    }
+    //this->processCommand()
 }
 
 

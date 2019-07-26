@@ -13,6 +13,7 @@ public:
     std::tuple<int, std::tuple<int,int,int>> getVersion(); // HO: TODO: zwei Ausgabeparameter, wie realisieren?
     void connect(bool receipt = false);
     void disconnect();
+    void rTMSMode(bool enable, bool receipt = false);
 
 private:
     void setDefault();
