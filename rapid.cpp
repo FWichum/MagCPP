@@ -56,7 +56,7 @@ float Rapid::getRapidMaxContinuousOperationsFrequency(int power)
     return a / b;
 }
 
-std::tuple<int, std::tuple<int,int,int>> Rapid::getVersion()
+std::tuple<int,int,int> Rapid::getVersion(int &er=MagStim::er)
        /*
        Get Magstim software version number. This is needed when obtaining parameters from the Magstim.
        Returns:
@@ -65,29 +65,25 @@ std::tuple<int, std::tuple<int,int,int>> Rapid::getVersion()
            message (tuple): if error is 0 (False) returns a tuple containing the version number (in (Major,Minor,Patch) format), otherwise returns an error string
        */
 {
-    auto e = this->processCommand("ND", "version", 0); // HO: TODO: 0 or NONE?!
-    int error= std::get<0>(e);
-    std::tuple message = std::get<1>(e); // HO: TODO: how to get the message here?
-    std::tuple<int, std::tuple<int,int,int>> answer;
-
-    // If we didn't receive an error, update the version number and the number of bytes that will be returned by a getParameters() command
-
-    if (error == 0) {
-        this->version = message;
-        if (this->version >= (9,0,0)) {
+    std::tuple<int, int, int> vers;
+    er = this->processCommand("ND", "version", 0, vers); // HO: TODO: 0 or NONE?!
+   // If we didn't receive an error, update the version number and the number of bytes that will be returned by a getParameters() command
+    if (er == 0) {
+        this->version = vers;
+        if (std::get<0>(this->version) >= 9) {
             this->parameterReturnBytes = 24;
         }
-        else if (this->version >= (7,0,0)) {
+        else if (std::get<0>(this->version) >= 7) {
             this->parameterReturnBytes = 22;
         }
         else {
             this->parameterReturnBytes = 21;
         }
     }
-    return answer;
+    return vers;
 }
 
-void Rapid::connect(bool receipt)
+void Rapid::connect(int &er=MagStim::er)
     /*
     Connect to the Rapid.
     This starts the serial port controller, as well as a process that constantly keeps in contact with the Rapid so as not to lose control.
@@ -103,9 +99,9 @@ void Rapid::connect(bool receipt)
     */
 
 {
-    MagStim::connect("COM1");// HO: TODO: right port
-    int error = std::get<0>(this->getVersion());
-    if (error) {
+    std::ignore = MagStim::connect("COM1");// HO: TODO: right port
+    std::ignore = this->getVersion(er);
+    if (er) {
         this->disconnect();
         throw new std::string("Could not determine software version of Rapid. Disconnecting.");
     }
