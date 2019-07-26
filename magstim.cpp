@@ -25,6 +25,7 @@ std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::li
         // Get ASCII code of first data character
         int temp = responseString.front();
         responseString.pop_front();
+        // interpret bits
         std::map<QString, int> instr;
         instr["standby"]        =  temp      & 1;
         instr["armed"]          = (temp >>1) & 1;
