@@ -19,25 +19,27 @@
 class MagStim
 {
 public:
-    MagStim(std::string port);
-    bool connect(std::string port);
-    void disconnect();
-    bool get_status();
+    MagStim(QString serialConnection);
+    //FW: TODO Destruktor!?
 
-    std::map<QString, std::map<QString, int>> parseMagstimResponse(std::list<QByteArray> responseString, QString responseType);
-    std::tuple<int, std::map<QString, std::map<QString, int>>> remoteControl(bool enable, bool receipt=false);
-    std::tuple<int, std::map<QString, std::map<QString, int>>> getParameters();
-    void setPower();
-    std::tuple<int, std::map<QString, std::map<QString, int>>> getTemperature();
-    void poke();
-    void arm();
-    std::tuple<int, std::map<QString, std::map<QString, int>>> disarm(bool receipt=false);
-    void isArmed();
-    void isUnderControl();
-    void isReadyToFire();
-    std::tuple<int, std::map<QString, std::map<QString, int>>> fire(bool receipt=false);
-    void resetQuickFire();
-    void quickFire();
+    virtual bool connect(std::string port);
+    virtual void disconnect();
+    virtual bool get_status();
+    virtual std::map<QString, std::map<QString, int>> parseMagstimResponse(std::list<int> responseString, QString responseType);
+    virtual std::tuple<int, int, int> parseMagstimResponse_version(std::list<int> responseString);
+    virtual void remoteControl(bool enable, std::map<QString, std::map<QString, int> > &message, int &error);
+    virtual std::map<QString, std::map<QString, int> > getParameters();
+    virtual void setPower();
+    virtual std::map<QString, std::map<QString, int> > getTemperature();
+    virtual void poke();
+    virtual void arm();
+    virtual void disarm(std::map<QString, std::map<QString, int> > &message, int &error);
+    virtual void isArmed();
+    virtual void isUnderControl();
+    virtual void isReadyToFire();
+    virtual void fire(std::map<QString, std::map<QString, int> > &message, int &error);
+    virtual void resetQuickFire();
+    virtual void quickFire();
 
     // ErrorCodes
     const int INVALID_COMMAND_ERR       = 3; // INVALID_COMMAND_ERR: Invalid command sent.
@@ -59,9 +61,15 @@ public:
 
 
 protected:
-    void setupSerialPort(QString serialConnection);
-    std::tuple<int, std::map<QString, std::map<QString, int>>> processCommand(QString commandString, QString receiptType, int readBytes);
-    QByteArray calcCRC(QString command);
+    virtual void setupSerialPort(QString serialConnection);
+    virtual int processCommand(QString commandString, QString receiptType, int readBytes, std::map<QString, std::map<QString, int> > &message);
+    virtual int processCommand(QString commandString, QString receiptType, int readBytes, std::tuple<int, int, int> &version);
+    virtual int processCommand(QString commandString, QString receiptType, int readBytes, std::tuple<int, int, int> &version, std::map<QString, std::map<QString, int> > &message);
+    virtual char calcCRC(QByteArray command);
+
+    static int er;
+    static std::tuple<int, int, int> ver;
+    static std::map<QString, std::map<QString, int>> mes;
 
     std::queue<float> sendQueue;
     std::queue<float> receiveQueue;
@@ -80,7 +88,6 @@ protected:
     uint8_t command[13]={};
     char mode[4]={'8','N','1',0};
     uint8_t stat_command[10]={0x40,0x30,0x30,0x4D,0x30,0x30,0x34,0x44,0x0D,0x0A}; // stimmt noch nicht
-
 };
 
 #endif // MAGSTIM_H
