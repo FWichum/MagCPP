@@ -32,11 +32,11 @@ public:
     virtual void setPower(int newPower, bool delay, int &error, QString commandByte);
     virtual std::map<QString, std::map<QString, int> > getTemperature(int &error);
     virtual void poke();
-    virtual void arm();
+    virtual void arm(bool delay, std::map<QString, std::map<QString, int> > &message, int &error);
     virtual void disarm(std::map<QString, std::map<QString, int> > &message, int &error);
-    virtual void isArmed();
-    virtual void isUnderControl();
-    virtual void isReadyToFire();
+    virtual bool isArmed();
+    virtual bool isUnderControl();
+    virtual bool isReadyToFire();
     virtual void fire(std::map<QString, std::map<QString, int> > &message, int &error);
     virtual void resetQuickFire();
     virtual void quickFire();

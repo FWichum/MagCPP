@@ -282,9 +282,13 @@ void MagStim::poke()
 
 }
 
-void MagStim::arm()
+void MagStim::arm(bool delay = false, std::map<QString, std::map<QString, int>> &message = MagStim::mes, int &error = MagStim::er)
 {
-
+    error = this->processCommand("EB", "instr", 3, mes);
+    if (delay) {
+        // sleep
+    }
+    return;
 }
 
 void MagStim::disarm(std::map<QString, std::map<QString, int>> &message = MagStim::mes, int &error = MagStim::er)
@@ -294,19 +298,52 @@ void MagStim::disarm(std::map<QString, std::map<QString, int>> &message = MagSti
     return;
 }
 
-void MagStim::isArmed()
+bool MagStim::isArmed()
+// Helper function that returns True if the Magstim is armed or ready, False if not or if it could not be determined.
 {
-
+    int error;
+    std::map<QString, std::map<QString, int>> mes;
+    this->remoteControl(true,mes,error);
+    if (error) {
+        return false;
+    }
+    if (mes["instr"]["armed"] || mes["instr"]["remoteStatus"]) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
-void MagStim::isUnderControl()
+bool MagStim::isUnderControl()
+// Helper function that returns True if the Magstim is under remote control, False if not or if it could not be determined.
 {
-
+    int error;
+    std::map<QString, std::map<QString, int>> mes;
+    this->remoteControl(true,mes,error);
+    if (error) {
+        return false;
+    }
+    if (mes["instr"]["remoteStatus"]) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
-void MagStim::isReadyToFire()
+bool MagStim::isReadyToFire()
+// Helper function that returns True if the Magstim is ready to fire, False if not or if it could not be determined.
 {
-
+    int error;
+    std::map<QString, std::map<QString, int>> mes;
+    this->remoteControl(true,mes,error);
+    if (error) {
+        return false;
+    }
+    if (mes["instr"]["ready"]) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 void MagStim::fire(std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error = MagStim::er)
