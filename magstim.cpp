@@ -215,9 +215,59 @@ std::map<QString, std::map<QString, int> >MagStim::getParameters(int &error = Ma
     return mes;
 }
 
-void MagStim::setPower()
+void MagStim::setPower(int newPower, bool delay=false, int &error = MagStim::er, QString commandByte = "@")
 {
+    // Make sure we have a valid power value
+    if (newPower <= 0 || newPower >= 100) {
+        error = MagStim::PARAMETER_RANGE_ERR;
+        return;
+    }
+    // If enforcing power change delay, grab current parameters
+    std::map<QString, std::map<QString, int> > mes;
+    int priorPower = 0;
+    if (delay) {
+        mes = this->getParameters(error);
+        if (error) {
+            return;
+        }
+        //FW: FIXME!!!
+        try {
+            if (commandByte == "@") {
+                priorPower = mes["bistimParam"]["PowerA"];
+            } else {
+                priorPower = mes["bistimParam"]["PowerB"];
+            }
+        } catch (...) {
+            try {
+                priorPower = mes["rapidParam"]["power"];
+            } catch (...) {
+                try {
+                    priorPower = mes["magstimParam"]["power"];
+                } catch (...) {
 
+                }
+            }
+        }
+    }
+    QString commandString = commandByte + QString("%1").arg(newPower, 3, 10, QChar('0'));
+    QString receiptType = "";
+    if (delay) {
+        receiptType = "instr";
+    }
+    error = this->processCommand(commandString, receiptType, 3, mes);
+
+    // If we're meant to delay (and we were able to change the power), then enforce if prior power settings are available
+    if (delay && !error) {
+        if (!error) {
+            if (newPower > priorPower) {
+                // FW: TODO sleep
+            } else {
+                // FW: TODO sleep
+            }
+        } else {
+          error = MagStim::PARAMETER_UPDATE_ERR;
+        }
+    }
 }
 
 std::map<QString, std::map<QString, int> > MagStim::getTemperature(int &error = MagStim::er)
@@ -295,7 +345,7 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
         if (!receiptType.isEmpty()) {
             // error, reply = self.receiveQueue.get()  ------ <int, QByteArray>
             int error = 0;
-            reply = "Test";
+            reply = "Test"; // FW: TODO
             if (error) {
                 return error; // FW: Change for C++ Reasons to just error
             } else {
