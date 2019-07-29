@@ -152,21 +152,28 @@ void Rapid::rTMSMode(bool enable, bool receipt)
     // Durations of 1 or 0 are used to toggle repetitive mode on and off
     if (std::get<0>(this->version) >= 9) {
         if (enable) {
-            std::string commandString = "0010";
+            QString commandString = "0010";
         }
         else {
-            std::string commandString = "0000";
+            QString commandString = "0000";
             }
     }
     else {
         if (enable) {
-            std::string commandString = "010";
+            QString commandString = "010";
         }
         else {
-            std::string commandString = "000";
+            QString commandString = "000";
+        }
+    std::map<QString,std::map<QString, int>> mes;
+    int error = this->processCommand("commadString", "instrRapid", 4, mes);
+    if (error == 0) {
+        if (enable) {
+            this->repetitiveMode = true;
+            std::map<QString, std::map<QString, int> > mes;
+            mes = getParameters();
         }
     }
-    //this->processCommand()
 }
 
 
