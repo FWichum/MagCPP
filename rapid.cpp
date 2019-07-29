@@ -201,6 +201,19 @@ This allows the stimulator to ignore the state of coil safety interlock switch.
     }
 }
 
+int Rapid::quickFire()
+/*
+   Trigger the stimulator to fire with very low latency using the RTS pin and a custom serial connection.
+*/
+{
+    if(this->repetitiveMode && Rapid::ENFORCE_ENERGY_SAFETY && !this->sequenceValidated) {
+        return MagStim::SEQUENCE_VALIDATION_ERR;
+    }
+    else {
+        MagStim::quickFire();
+    }
+}
+
 
 
 

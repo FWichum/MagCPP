@@ -15,6 +15,7 @@ public:
     void disconnect();
     void rTMSMode(bool enable, bool receipt = false);
     int ignoreCoilSafetySwitch(bool receipt = false);
+    int quickFire();
 
 private:
     void setDefault();
