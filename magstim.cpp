@@ -208,10 +208,10 @@ void MagStim::remoteControl(bool enable, std::map<QString, std::map<QString, int
     return;
 }
 
-std::map<QString, std::map<QString, int> >MagStim::getParameters()
+std::map<QString, std::map<QString, int> >MagStim::getParameters(int &error = MagStim::er)
 {
     std::map<QString, std::map<QString, int> > mes;
-    this->processCommand("J@", "magstimParam", 12, mes);
+    error = this->processCommand("J@", "magstimParam", 12, mes);
     return mes;
 }
 
@@ -220,10 +220,10 @@ void MagStim::setPower()
 
 }
 
-std::map<QString, std::map<QString, int> > MagStim::getTemperature()
+std::map<QString, std::map<QString, int> > MagStim::getTemperature(int &error = MagStim::er)
 {
     std::map<QString, std::map<QString, int> > mes;
-    this->processCommand("F@", "magstimTemp", 9, mes);
+    error = this->processCommand("F@", "magstimTemp", 9, mes);
     return mes;
 }
 

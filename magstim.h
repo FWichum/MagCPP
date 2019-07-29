@@ -28,9 +28,9 @@ public:
     virtual std::map<QString, std::map<QString, int>> parseMagstimResponse(std::list<int> responseString, QString responseType);
     virtual std::tuple<int, int, int> parseMagstimResponse_version(std::list<int> responseString);
     virtual void remoteControl(bool enable, std::map<QString, std::map<QString, int> > &message, int &error);
-    virtual std::map<QString, std::map<QString, int> > getParameters();
+    virtual std::map<QString, std::map<QString, int> > getParameters(int &error);
     virtual void setPower();
-    virtual std::map<QString, std::map<QString, int> > getTemperature();
+    virtual std::map<QString, std::map<QString, int> > getTemperature(int &error);
     virtual void poke();
     virtual void arm();
     virtual void disarm(std::map<QString, std::map<QString, int> > &message, int &error);
