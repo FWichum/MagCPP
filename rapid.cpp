@@ -165,14 +165,39 @@ void Rapid::rTMSMode(bool enable, bool receipt)
         else {
             QString commandString = "000";
         }
-    std::map<QString,std::map<QString, int>> mes;
-    int error = this->processCommand("commadString", "instrRapid", 4, mes);
-    if (error == 0) {
-        if (enable) {
-            this->repetitiveMode = true;
-            std::map<QString, std::map<QString, int> > mes;
-            mes = getParameters();
+        std::map<QString,std::map<QString, int>> mes;
+        int error = this->processCommand("commadString", "instrRapid", 4, mes);
+        if (error == 0) {
+            if (enable) {
+                this->repetitiveMode = true;
+                std::map<QString, std::map<QString, int> > mes;
+                mes = getParameters();
+            }
         }
+    }
+}
+
+int Rapid::ignoreCoilSafetySwitch(bool receipt)
+/*
+This allows the stimulator to ignore the state of coil safety interlock switch.
+
+        Args:
+        receipt (bool): whether to return occurrence of an error and the automated response from the Rapid unit (defaults to False)
+
+        Returns:
+        If receipt argument is True:
+            :tuple:(error,message):
+                error (int): error code (0 = no error; 1+ = error)
+                message (dict,str): if error is 0 (False) returns a dict containing Rapid instrument status ['instr'] dict, otherwise returns an error string
+        If receipt argument is False:
+            None
+*/
+{
+    if (receipt) {
+        return this->processCommand("b@", "instr", 3, mes);
+    }
+    else {
+        return this->processCommand("b@", "", 3, mes); // HO: TODO: is there a better way to code it without if - else?
     }
 }
 
