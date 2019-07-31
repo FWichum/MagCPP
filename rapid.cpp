@@ -119,7 +119,7 @@ void Rapid::disconnect()
     return MagStim::disconnect();
 }
 
-void Rapid::rTMSMode(bool enable, bool receipt)
+int Rapid::rTMSMode(bool enable, std::map<QString, std::map<QString, int>> &message = MagStim::mes, bool receipt)
 {
     /*
     This is a helper function to enable/disable rTMS mode.
@@ -156,7 +156,7 @@ void Rapid::rTMSMode(bool enable, bool receipt)
         }
         else {
             QString commandString = "0000";
-            }
+        }
     }
     else {
         if (enable) {
@@ -165,17 +165,35 @@ void Rapid::rTMSMode(bool enable, bool receipt)
         else {
             QString commandString = "000";
         }
-        std::map<QString,std::map<QString, int>> mes;
-        int error = this->processCommand("commadString", "instrRapid", 4, mes);
-        if (error == 0) {
-            if (enable) {
-                this->repetitiveMode = true;
-                std::map<QString, std::map<QString, int> > mes;
-                mes = getParameters();
+    }
+    int error = this->processCommand("commadString", "instrRapid", 4, message);
+    if (error == 0) {
+        if (enable) {
+            this->repetitiveMode = true;
+            std::map<QString, std::map<QString, int> > mes;
+            int updateError = 0;
+            mes = getParameters(updateError);
+            if (updateError == 0) {
+                if (mes["rapidParam"]["frequency"] == 0) {
+                    updateError = this->processCommand("B0010", "instrRapid", 4, mes);
+                    if (updateError) {
+                        return MagStim::PARAMETER_UPDATE_ERR;
+                    }
+                    else {
+                        return MagStim::PARAMETER_ACQUISTION_ERR;
+                    }
+                }
+                else {
+                    this->repetitiveMode = false;
+                }
             }
         }
     }
+    if (receipt) {
+        return error;
+    }
 }
+
 
 int Rapid::ignoreCoilSafetySwitch(bool receipt)
 /*

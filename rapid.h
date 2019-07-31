@@ -13,7 +13,7 @@ public:
     std::tuple<int, int, int> getVersion(int &er);
     void connect(int &er);
     void disconnect();
-    void rTMSMode(bool enable, bool receipt = false);
+    int rTMSMode(bool enable, std::map<QString,std::map<QString, int>> &message , bool receipt = false);
     int ignoreCoilSafetySwitch(bool receipt = false);
     void fire(int &error);
     void quickFire(int &error);
@@ -28,6 +28,7 @@ private:
     std::tuple<int, int, int> DEFAULT_VIRTUAL_VERSION;
     std::map<int, float> JOULES;
     std::map<int, std::map<int, std::map<int, int>>> MAX_FREQUENCY;
+    std::map<QString,std::map<QString, int>> DEFAULT_MESSAGE;
 
     int super;
     QString unlockCode;
