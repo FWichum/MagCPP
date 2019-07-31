@@ -201,13 +201,41 @@ This allows the stimulator to ignore the state of coil safety interlock switch.
     }
 }
 
-int Rapid::quickFire()
+void Rapid::fire(int &error = MagStim::er)
+/*
+Fire the stimulator. This overrides the base Magstim method in order to check whether rTMS mode is active, and if so whether the sequence has been validated and the min wait time between trains has elapsed
+
+        N.B. Will only succeed if previously armed.
+
+        Args:
+        receipt (bool): whether to return occurrence of an error and the automated response from the Magstim unit (defaults to False)
+
+        Returns:
+        If receipt argument is True:
+            :tuple:(error,message):
+                error (int): error code (0 = no error; 1+ = error)
+                message (dict,str): if error is 0 (False) returns a dict containing a Magstim instrument status ['instr'] dict, otherwise returns an error string
+        If receipt argument is False:
+            None
+*/
+{
+    if (this->repetitiveMode && Rapid::ENFORCE_ENERGY_SAFETY && !this->sequenceValidated) {
+        error = MagStim::SEQUENCE_VALIDATION_ERR;
+    }
+    else {
+        std::map<QString, std::map<QString, int>> message;
+        int error;
+        return MagStim::fire(message, error); //HO: TODO: not sure if it is okay to return a (void) fnuction in a void fuction
+    }
+}
+
+void Rapid::quickFire(int &error = MagStim::er)
 /*
    Trigger the stimulator to fire with very low latency using the RTS pin and a custom serial connection.
 */
 {
     if(this->repetitiveMode && Rapid::ENFORCE_ENERGY_SAFETY && !this->sequenceValidated) {
-        return MagStim::SEQUENCE_VALIDATION_ERR;
+        error = MagStim::SEQUENCE_VALIDATION_ERR;
     }
     else {
         MagStim::quickFire();
