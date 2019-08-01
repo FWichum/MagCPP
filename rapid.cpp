@@ -83,6 +83,22 @@ std::tuple<int,int,int> Rapid::getVersion(int &er=MagStim::er)
     return vers;
 }
 
+int Rapid::getErrorCode()
+    /*
+    Get current error code from Rapid.
+
+            Returns:
+            :tuple:(error,message):
+                error (int): error code (0 = no error; 1+ = error)
+                message (dict,str): if error is 0 (False) returns a dict containing Rapid instrument status ['instr'] and current error code ['errorCode'] dicts, otherwise returns an error string
+    */
+{
+    std::tuple<int, int, int> vers;
+
+    return this->processCommand("I@", "eror", 6, vers);
+
+}
+
 void Rapid::connect(int &er=MagStim::er)
     /*
     Connect to the Rapid.
@@ -218,6 +234,62 @@ This allows the stimulator to ignore the state of coil safety interlock switch.
         return this->processCommand("b@", "", 3, mes); // HO: TODO: is there a better way to code it without if - else?
     }
 }
+
+void Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, int> > &message, int &error, bool receipt)
+/*
+    Enable/Disable remote control of stimulator. Disabling remote control will first disarm the Magstim unit.
+
+            Args:
+            enable (bool): whether to enable (True) or disable (False) control
+            receipt (bool): whether to return occurrence of an error and the automated response from the Magstim unit (defaults to False)
+
+            Returns:
+            If receipt argument is True:
+                :tuple:(error,message):
+                    error (int): error code (0 = no error; 1+ = error)
+                    message (dict,str): if error is 0 (False) returns a dict containing a Magstim instrument status ['instr'] dict, otherwise returns an error string
+            If receipt argument is False:
+                None
+*/
+{
+    this->sequenceValidated = false;
+    if (this->unlockCode.isEmpty()) {
+        if(enable){
+            if(receipt) {
+            error = this->processCommand("Q@", "instr", 3, message);
+            }
+            else {
+                error = this->processCommand("Q@", "", 3, message);
+            }
+        }
+        else {
+            if(receipt) {
+            error = this->processCommand("R@", "instr", 3, message);
+            }
+            else {
+                error = this->processCommand("R@", "", 3, message);
+            }
+        }
+    }
+    else {
+        if(enable){
+            if(receipt) {
+            error = this->processCommand("Q"+ ..., "instr", 3, message);    // HO: TODO: change bytearray and put it in the function
+            }
+            else {
+                error = this->processCommand("Q" + ..., "", 3, message);
+            }
+        }
+        else {
+            if(receipt) {
+            error = this->processCommand("R@", "instr", 3, message);
+            }
+            else {
+                error = this->processCommand("R@", "", 3, message);
+            }
+    }
+}
+
 
 void Rapid::fire(int &error = MagStim::er)
 /*

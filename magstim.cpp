@@ -208,7 +208,7 @@ void MagStim::remoteControl(bool enable, std::map<QString, std::map<QString, int
     return;
 }
 
-std::map<QString, std::map<QString, int> >MagStim::getParameters(int error)
+std::map<QString, std::map<QString, int> >MagStim::getParameters(int &error)
 {
     std::map<QString, std::map<QString, int> > mes;
     error = this->processCommand("J@", "magstimParam", 12, mes);
