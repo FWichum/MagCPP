@@ -235,7 +235,7 @@ This allows the stimulator to ignore the state of coil safety interlock switch.
     }
 }
 
-void Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, int> > &message, int &error, bool receipt)
+int Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error = MagStim::er, bool receipt)
 /*
     Enable/Disable remote control of stimulator. Disabling remote control will first disarm the Magstim unit.
 
@@ -282,14 +282,100 @@ void Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, int> 
         }
         else {
             if(receipt) {
-            error = this->processCommand("R@", "instr", 3, message);
+                error = this->processCommand("R@", "instr", 3, message);
             }
             else {
                 error = this->processCommand("R@", "", 3, message);
             }
+        }
     }
 }
 
+void Rapid::enhancedPowerMode(bool enable, std::map<QString, std::map<QString, int> > &message, int &error = MagStim::er, bool receipt)
+/*
+    Enable/Disable enhanced power mode; allowing intensity to be set to 110%.
+
+            N.B. This can only be enabled in single-pulse mode, and lowers the maximum firing frequency to 0.5 Hz.
+
+                 Disabling will automatically reduce intensity to 100% if over
+
+            Args:
+            enable (bool): whether to enable (True) or disable (False) enhanced-power mode
+            receipt (bool): whether to return occurrence of an error and the automated response from the Rapid unit (defaults to False)
+
+            Returns:
+            If receipt argument is True:
+                :tuple:(error,message):
+                    error (int): error code (0 = no error; 1+ = error)
+                    message (dict,str): if error is 0 (False) returns a dict containing Rapid instrument status ['instr'] and rMTS setting ['rapid'] dicts, otherwise returns an error string
+            If receipt argument is False:
+                None
+*/
+{
+    if(enable) {
+        if(receipt) {
+            error = this->processCommand("^@", "instrRapid", 4, message);
+        }
+        else {
+            error = this->processCommand("^@", "", 4, message);
+        }
+       }
+    else {
+        if(receipt) {
+            error = this->processCommand("_@", "instrRapid", 4, message);
+        }
+        else {
+            error = this->processCommand("_@", "", 4, message);
+        }
+    }
+    return;
+}
+
+int Rapid::setFreqeuncy(float newFrequency, std::map<QString, std::map<QString, int> > &message, int &error, bool receipt)
+{
+    this->sequenceValidated = false;
+    // Convert to tenths of a Hz
+    newFrequency *= 10;
+    int helpFreq = int(newFrequency);
+    // Make sure we have a valid freqeuncy value
+    if (helpFreq - newFrequency != 0) {
+        return MagStim::PARAMETER_PRECISION_ERR;
+    }
+    std::map<QString, std::map<QString, int> > currentParameters;
+    int updateError = 0;
+    currentParameters = getParameters(updateError);
+    if (updateError) {
+        return MagStim::PARAMETER_ACQUISTION_ERR;
+    }
+    else {
+        int maxFrequency;
+        // HO: TODO: maxFrequncy from Rapid::MAX_FREQUENCY???
+        //int power = currentParameters["rapidParam"]["power"];
+        //Rapid::MAX_FREQUENCY[this->voltage][currentParameters["rapidParam"]["power"]];
+        if (newFrequency < 0 || newFrequency > maxFrequency){
+            return MagStim::PARAMETER_RANGE_ERR;
+        }
+    }
+    // Send command
+    error = this->processCommand("B", "instr", 4, message); // HO: TODO: bytearray(str(int(new...))
+    // If we didn't get an error, update the other parameters accordingly
+    if (error == 0){
+        int updateError = 0;
+        currentParameters = getParameters(updateError);
+        if(updateError == 0) {
+            updateError = this->processCommand("D", "instrRapid", 4, currentParameters); // HO: TODO: bytearray(str(int(new...))
+            if (updateError) {
+                return MagStim::PARAMETER_UPDATE_ERR;
+            }
+        }
+        else {
+            return MagStim::PARAMETER_ACQUISTION_ERR;
+        }
+    }
+    if(receipt) {
+        return error;
+    }
+}
 
 void Rapid::fire(int &error = MagStim::er)
 /*
@@ -332,6 +418,29 @@ void Rapid::quickFire(int &error = MagStim::er)
     }
 }
 
+int Rapid::validateSequence()
+/*
+Validate the energy consumption for the current rTMS parameters for the Rapid.
+        This must be performed before running any new sequence, otherwise calling fire() will return an error.
+
+        Returns:
+        :tuple:(error,message):
+            error (int): error code (0 = no error; 1+ = error)
+            message (dict,str): if error is 0 (False) returns 'OK', otherwise returns an error string
+*/
+{
+    std::map<QString, std::map<QString, int> > parameters;
+    int error;
+    parameters = getParameters(error);
+    if (error) {
+        return MagStim::PARAMETER_ACQUISTION_ERR;
+    }
+    else if () {
+
+    }
+    }
+}
+
 
 
 
@@ -360,3 +469,6 @@ void Rapid::setDefault()
     this->MAX_FREQUENCY = rapid["maxFrequency"].as<std::map<int, std::map<int, std::map<int, int>>>>();
     this->JOULES = rapid["joules"].as<std::map<int, float>>();
 }
+
+
+
