@@ -4,9 +4,11 @@
 #include <QRegExp>
 #include <QStringList>
 
-MagStim::MagStim(QString serialConnection) :
-    robot(this->sendQueue, this->robotQueue)
+MagStim::MagStim(QString serialConnection) //:
+   // robot(this->sendQueue, this->robotQueue)
 {
+    this->robot = new connectionRobot(this->sendQueue, this->robotQueue);
+    // FW: TODO signals
     this->connect(serialConnection.toStdString());
     // connection.daemon = true; //FW: TODO
     // robot.daemon = true; //FW: TODO

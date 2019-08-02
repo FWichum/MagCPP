@@ -3,11 +3,13 @@
 
 #include <QtSerialPort/QSerialPort>
 #include <queue>
-class serialportcontroller
+#include <QThread>
+
+class serialportcontroller : public QThread
 {
 public:
     serialportcontroller(QString serialConnection, std::queue<float> serialWriteQueue, std::queue<float> serialReadQueue);
-    void run();
+    void run() override;
 private:
 
     QSerialPort port;
@@ -15,8 +17,11 @@ private:
     std::queue<float> serialReadQueue;
     QString address;
 
-    std::string SERIAL_WRITE_ERROR;
-    std::string SERIAL_READ_ERROR;
+    const int SERIAL_WRITE_ERROR = 1; // SERIAL_WRITE_ERR: Could not send the command.
+    const int SERIAL_READ_ERROR  = 2; // SERIAL_READ_ERR:  Could not read the magstim response.
+
+signals:
+    void resultReady(const QString &s);
 };
 
 #endif // SERIALPORTCONTROLLER_H

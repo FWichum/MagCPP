@@ -13,8 +13,6 @@ serialportcontroller::serialportcontroller(QString serialConnection, std::queue<
 
 void serialportcontroller::run()
 {
-    this->SERIAL_READ_ERROR = "SERIAL_READ_ERR: Could not read the magstim.";
-    this->SERIAL_WRITE_ERROR = "SERIAL_WRITE_ERR: Could not send the command.";
     /*
     Continuously monitor the serialWriteQueue for commands from other Python processes to be sent to the Magstim.
     When requested, will return the automated reply from the Magstim unit to the calling process via the serialReadQueue.

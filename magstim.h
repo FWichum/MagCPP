@@ -74,8 +74,9 @@ protected:
     std::queue<float> sendQueue;
     std::queue<float> receiveQueue;
     std::queue<float> robotQueue;
+    connectionRobot *robot;
     // connection.daemon = true; //FW: TODO
-    connectionRobot robot;
+    // connectionRobot robot;
     // robot.daemon = true; //FW: TODO
     bool connected;
     // connectionCommand = (b'Q@n', None, 3) //FW: TODO
