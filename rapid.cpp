@@ -429,17 +429,32 @@ Validate the energy consumption for the current rTMS parameters for the Rapid.
             message (dict,str): if error is 0 (False) returns 'OK', otherwise returns an error string
 */
 {
+    // pre-initialization
     std::map<QString, std::map<QString, int> > parameters;
     int error;
+    float duration = parameters["rapidParam"]["duration"] / 10;
+    float MaxOnTime = Rapid::getRapidMaxOnTime(parameters["rapidParam"]["duration"], parameters["rapidParam"]["frequency"]);
+    float TimeHelp;
+    if (duration < 60) {
+        TimeHelp = duration;
+    }
+    else {
+        TimeHelp = 60;
+    }
+
     parameters = getParameters(error);
     if (error) {
         return MagStim::PARAMETER_ACQUISTION_ERR;
     }
-    else if () {
-
+    else if (TimeHelp > MaxOnTime) {
+        return MagStim::MAX_ON_TIME_ERR;
     }
+    else {
+        this->sequenceValidated = true;
+        return 0; //in python with "Sequence valid."
     }
 }
+
 
 
 

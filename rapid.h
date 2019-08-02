@@ -20,6 +20,7 @@ public:
     void enhancedPowerMode(bool enable, std::map<QString, std::map<QString, int>> &message, int &error, bool receipt = false);
     bool isEnhanced();  // HO: TODO: QueryCommand is needed
     int setFreqeuncy(float newFrequency, std::map<QString, std::map<QString, int>> &message, int &error, bool receipt = false);
+    int validateSequence();
     void fire(int &error);
     void quickFire(int &error);
 
