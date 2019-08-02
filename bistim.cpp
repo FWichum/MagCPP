@@ -1,6 +1,7 @@
 #include "bistim.h"
 
-BiStim::BiStim()
+BiStim::BiStim(QString serialConnection) :
+    MagStim (serialConnection)
 {
 
 }
