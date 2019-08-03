@@ -188,7 +188,7 @@ int Rapid::rTMSMode(bool enable, std::map<QString, std::map<QString, int>> &mess
             this->repetitiveMode = true;
             std::map<QString, std::map<QString, int> > mes;
             int updateError = 0;
-            mes = getParameters(updateError);
+            getParameters(mes, updateError);
             if (updateError == 0) {
                 if (mes["rapidParam"]["frequency"] == 0) {
                     updateError = this->processCommand("B0010", "instrRapid", 4, mes);
@@ -231,7 +231,7 @@ This allows the stimulator to ignore the state of coil safety interlock switch.
         return this->processCommand("b@", "instr", 3, mes);
     }
     else {
-        return this->processCommand("b@", "", 3, mes); // HO: TODO: is there a better way to code it without if - else?
+        return this->processCommand("b@", "", 3, mes);
     }
 }
 
@@ -273,11 +273,15 @@ int Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, int> >
     }
     else {
         if(enable){
+            QString a = this->unlockCode;
+            a = a.toLatin1();
+            QString b = "Q";
+            QString string = b+a;
             if(receipt) {
-            error = this->processCommand("Q"+ ..., "instr", 3, message);    // HO: TODO: change bytearray and put it in the function
+                error = this->processCommand(string, "instr", 3, message);
             }
             else {
-                error = this->processCommand("Q" + ..., "", 3, message);
+                error = this->processCommand(string, "", 3, message);
             }
         }
         else {
@@ -343,7 +347,7 @@ int Rapid::setFreqeuncy(float newFrequency, std::map<QString, std::map<QString, 
     }
     std::map<QString, std::map<QString, int> > currentParameters;
     int updateError = 0;
-    currentParameters = getParameters(updateError);
+    getParameters(currentParameters, updateError);
     if (updateError) {
         return MagStim::PARAMETER_ACQUISTION_ERR;
     }
@@ -360,8 +364,9 @@ int Rapid::setFreqeuncy(float newFrequency, std::map<QString, std::map<QString, 
     error = this->processCommand("B", "instr", 4, message); // HO: TODO: bytearray(str(int(new...))
     // If we didn't get an error, update the other parameters accordingly
     if (error == 0){
+        std::map<QString, std::map<QString, int> > currentParameters;
         int updateError = 0;
-        currentParameters = getParameters(updateError);
+        getParameters(currentParameters, updateError);
         if(updateError == 0) {
             updateError = this->processCommand("D", "instrRapid", 4, currentParameters); // HO: TODO: bytearray(str(int(new...))
             if (updateError) {
@@ -408,33 +413,45 @@ Set number of pulses in rTMS pulse train.
 
     // Send command
     int error;
+    QString string1 = QString::number(newPulses).rightJustified(5, '0');        // TODO: to ASCII??
+    QString string2 = QString::number(newPulses).rightJustified(4, '0');
+    QString string3 = "D";
     if(std::get<0>(this->version) >= 9) {
-        error = this->processCommand("D"+..., "instr", 4, message);     // TODO: Bytearray
+        QString string = string3 + string1;
+        error = this->processCommand(string, "instr", 4, message);
     }
     else {
-        error = this->processCommand("D"+..., "instr", 4, message);     // TODO: Bytearray
+        QString string = string3 + string2;
+        error = this->processCommand(string, "instr", 4, message);
     }
 
     // If we didn't get an error, update the other parameters accordingly
     if(error == 0) {
         std::map<QString, std::map<QString, int> > currentParameters;
         int updateError = 0;
-        currentParameters = getParameters(updateError);
+        getParameters(currentParameters, updateError);
+        int nPulses = currentParameters["rapidParam"]["nPulses"];
+        int frequency = currentParameters["rapidParam"]["frequency"];
+        QString string1 = QString::number(nPulses/frequency).rightJustified(4, '0');    // TODO: to ASCII??
+        QString string2 = QString::number(nPulses/frequency).rightJustified(3, '0');
+        QString string3 = "[";
         if(updateError == 0) {
             if(std::get<0>(this->version) >= 9) {
+                QString string = string3 + string1;
                 if(receipt){
-                    updateError = this->processCommand("["+..., "instrRapid", 4, currentParameters);    // TODO: bytearray
+                    updateError = this->processCommand(string, "instrRapid", 4, currentParameters);
                 }
                 else {
-                    updateError = this->processCommand("["+..., "", 4, currentParameters);              // TODO: bytearray
+                    updateError = this->processCommand(string, "", 4, currentParameters);
                 }
             }
             else {
+                QString string = string3 + string2;
                 if(receipt){
-                    updateError = this->processCommand("["+..., "instrRapid", 4, currentParameters);    // TODO: bytearray
+                    updateError = this->processCommand(string, "instrRapid", 4, currentParameters);
                 }
                 else {
-                    updateError = this->processCommand("["+..., "", 4, currentParameters);              // TODO: bytearray
+                    updateError = this->processCommand(string, "", 4, currentParameters);
                 }
             }
             if(updateError){
@@ -497,7 +514,7 @@ Set duration of rTMS pulse train.
     if(error == 0) {
         std::map<QString, std::map<QString, int> > currentParameters;
         int updateError = 0;
-        currentParameters = getParameters(updateError);
+        getParameters(currentParameters, updateError);
         if(updateError == 0) {
             if(std::get<0>(this->version) >= 9) {
                 updateError = this->processCommand("D"+..., "instrRapid", 4, currentParameters);    // TODO: bytearray
@@ -554,6 +571,73 @@ int Rapid::setPower(int newPower, std::map<QString, std::map<QString, int> > &me
 
     MagStim::setPower(); //TODO: setPower in MagStim is needed
 }
+
+int Rapid::setChargeDelay(int newDelay, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error  = MagStim::er, bool receipt)
+/*
+Set charge delay duration for the Rapid.
+
+        Args:
+        newDelay (int): new delay duration in seconds (Version 10+: 1-10000; Version 9: 1-2000)
+        receipt (bool): whether to return occurrence of an error and the automated response from the Rapid unit (defaults to False)
+
+        Returns:
+        If receipt argument is True:
+            :tuple:(error,message):
+                error (int): error code (0 = no error; 1+ = error)
+                message (dict,str): if error is 0 (False) returns a dict containing a Rapid instrument status ['instr'] dict, otherwise returns an error string
+        If receipt argument is False:
+            None
+*/
+{
+    if(std::get<0>(this->version)){  //TODO: is none?!
+        return MagStim::GET_SYSTEM_STATUS_ERR;
+    }
+    else if(std::get<0>(this->version) < 9) {
+        return MagStim::SYSTEM_STATUS_VERSION_ERR;
+    }
+    this->sequenceValidated = false;
+
+    // Make sure we have a valid delay duration value
+    if(newDelay % 1){
+        return MagStim::PARAMETER_FLOAT_ERR;
+    }
+    if(std::get<0>(this->version) >= 10){
+        error = this->processCommand("n"+..., "systemRapid", 6, message); // TODO: bytearray
+    }
+    else {
+        error = this->processCommand("n"+..., "instrRapid", 4, message);    // TODO: bytearray
+    }
+    if(receipt) {
+        return error;
+    }
+}
+
+int Rapid::getChargeDelay(std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error  = MagStim::er)
+/*
+Get current charge delay duration for the Rapid.
+
+        Returns:
+            :tuple:(error,message):
+                error (int): error code (0 = no error; 1+ = error)
+                message (dict,str): if error is 0 (False) returns a dict containing a Rapid instrument status ['instr'] dict and
+                charge delay duration ['chargeDelay'] value, otherwise returns an error string
+*/
+{
+    if(std::get<0>(this->version)){  //TODO: is none?!
+        return MagStim::GET_SYSTEM_STATUS_ERR;
+    }
+    else if(std::get<0>(this->version) < 9) {
+        return MagStim::SYSTEM_STATUS_VERSION_ERR;
+    }
+
+    if(std::get<0>(this->version) > 9) {
+        error = this->processCommand("o@", "instrCharge", 8, message);
+    }
+    else {
+        error = this->processCommand("o@", "instrCharge", 7, message);
+    }
+}
+
 
 void Rapid::fire(int &error = MagStim::er)
 /*
@@ -620,7 +704,7 @@ Validate the energy consumption for the current rTMS parameters for the Rapid.
         TimeHelp = 60;
     }
 
-    parameters = getParameters(error);
+    getParameters(parameters, error);
     if (error) {
         return MagStim::PARAMETER_ACQUISTION_ERR;
     }

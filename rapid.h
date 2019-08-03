@@ -24,6 +24,8 @@ public:
     int setDuration(float newDuration, std::map<QString, std::map<QString, int>> &message, bool receipt = false);
     void getParameters(std::map<QString, std::map<QString, int>> &message, int &error);
     int setPower(int newPower, std::map<QString, std::map<QString, int>> &message, int &error, bool receipt = false, bool delay = false);
+    int setChargeDelay(int newDelay, std::map<QString, std::map<QString, int>> &message, int &error, bool receipt = false);
+    int getChargeDelay(std::map<QString, std::map<QString, int>> &message, int &error);
     void fire(int &error);
     void quickFire(int &error);
     int validateSequence();
