@@ -20,9 +20,14 @@ public:
     void enhancedPowerMode(bool enable, std::map<QString, std::map<QString, int>> &message, int &error, bool receipt = false);
     bool isEnhanced();  // HO: TODO: QueryCommand is needed
     int setFreqeuncy(float newFrequency, std::map<QString, std::map<QString, int>> &message, int &error, bool receipt = false);
-    int validateSequence();
+    int setNPulses(int newPulses, std::map<QString, std::map<QString, int>> &message, bool receipt = false);
+    int setDuration(float newDuration, std::map<QString, std::map<QString, int>> &message, bool receipt = false);
+    void getParameters(std::map<QString, std::map<QString, int>> &message, int &error);
+    int setPower(int newPower, std::map<QString, std::map<QString, int>> &message, int &error, bool receipt = false, bool delay = false);
     void fire(int &error);
     void quickFire(int &error);
+    int validateSequence();
+    int getSystemStatur(std::map<QString, std::map<QString, int>> &message);
 
 private:
     void setDefault();

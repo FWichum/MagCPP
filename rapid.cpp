@@ -291,7 +291,7 @@ int Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, int> >
     }
 }
 
-void Rapid::enhancedPowerMode(bool enable, std::map<QString, std::map<QString, int> > &message, int &error = MagStim::er, bool receipt)
+void Rapid::enhancedPowerMode(bool enable, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error = MagStim::er, bool receipt)
 /*
     Enable/Disable enhanced power mode; allowing intensity to be set to 110%.
 
@@ -331,14 +331,14 @@ void Rapid::enhancedPowerMode(bool enable, std::map<QString, std::map<QString, i
     return;
 }
 
-int Rapid::setFreqeuncy(float newFrequency, std::map<QString, std::map<QString, int> > &message, int &error, bool receipt)
+int Rapid::setFreqeuncy(float newFrequency, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error = MagStim::er, bool receipt)
 {
     this->sequenceValidated = false;
     // Convert to tenths of a Hz
     newFrequency *= 10;
     int helpFreq = int(newFrequency);
     // Make sure we have a valid freqeuncy value
-    if (helpFreq - newFrequency != 0) {
+    if (helpFreq - newFrequency != 0) {         //HO: TODO: is there a better way to do it?
         return MagStim::PARAMETER_PRECISION_ERR;
     }
     std::map<QString, std::map<QString, int> > currentParameters;
@@ -375,6 +375,184 @@ int Rapid::setFreqeuncy(float newFrequency, std::map<QString, std::map<QString, 
     if(receipt) {
         return error;
     }
+}
+
+int Rapid::setNPulses(int newPulses, std::map<QString, std::map<QString, int> > &message = MagStim::mes, bool receipt)
+/*
+Set number of pulses in rTMS pulse train.
+
+        N.B. Changing the NPulses parameter will automatically update the Duration parameter (this cannot exceed 10 s) based on the current Frequency parameter setting.
+
+        Args:
+        newNPulses (int): new number of pulses (Version 9+: 1-6000; Version 7+: ?; Version 5+: 1-1000?)
+        receipt (bool): whether to return occurrence of an error and the automated response from the Rapid unit (defaults to False)
+
+        Returns:
+        If receipt argument is True:
+            :tuple:(error,message):
+                error (int): error code (0 = no error; 1+ = error)
+                message (dict,str): if error is 0 (False) returns a dict containing Rapid instrument status ['instr'] and rMTS setting ['rapid'] dicts, otherwise returns an error string
+        If receipt argument is False:
+            None
+*/
+{
+    this->sequenceValidated = false;
+
+    // Mage sure we have a valid number of pulses value
+    if(newPulses % 1) {
+        return MagStim::PARAMETER_FLOAT_ERR;
+    }
+    else if (0 > newPulses || newPulses > 6000) {
+        return MagStim::PARAMETER_RANGE_ERR;
+    }
+
+    // Send command
+    int error;
+    if(std::get<0>(this->version) >= 9) {
+        error = this->processCommand("D"+..., "instr", 4, message);     // TODO: Bytearray
+    }
+    else {
+        error = this->processCommand("D"+..., "instr", 4, message);     // TODO: Bytearray
+    }
+
+    // If we didn't get an error, update the other parameters accordingly
+    if(error == 0) {
+        std::map<QString, std::map<QString, int> > currentParameters;
+        int updateError = 0;
+        currentParameters = getParameters(updateError);
+        if(updateError == 0) {
+            if(std::get<0>(this->version) >= 9) {
+                if(receipt){
+                    updateError = this->processCommand("["+..., "instrRapid", 4, currentParameters);    // TODO: bytearray
+                }
+                else {
+                    updateError = this->processCommand("["+..., "", 4, currentParameters);              // TODO: bytearray
+                }
+            }
+            else {
+                if(receipt){
+                    updateError = this->processCommand("["+..., "instrRapid", 4, currentParameters);    // TODO: bytearray
+                }
+                else {
+                    updateError = this->processCommand("["+..., "", 4, currentParameters);              // TODO: bytearray
+                }
+            }
+            if(updateError){
+                return MagStim::PARAMETER_UPDATE_ERR;
+            }
+        }
+        else {
+            return MagStim::PARAMETER_ACQUISTION_ERR;
+        }
+    }
+    if(receipt){
+        return error;
+    }
+}
+
+int Rapid::setDuration(float newDuration, std::map<QString, std::map<QString, int> > &message = MagStim::mes, bool receipt)
+/*
+Set duration of rTMS pulse train.
+
+        N.B. Changing the Duration parameter will automatically update the NPulses parameter based on the current Frequency parameter setting.
+
+        Args:
+        newDuration (int/float): new duration of pulse train in seconds (Version 9+: 1-600; Version 7+: ?; Version 5+: 1-10?); decimal values are allowed for durations up to 30s
+        receipt (bool): whether to return occurrence of an error and the automated response from the Rapid unit (defaults to False)
+
+        Returns:
+        If receipt argument is True:
+            :tuple:(error,message):
+                error (int): error code (0 = no error; 1+ = error)
+                message (dict,str): if error is 0 (False) returns a dict containing Rapid instrument status ['instr'] and rMTS setting ['rapid'] dicts, otherwise returns an error string
+        If receipt argument is False:
+            None
+*/
+{
+    this->sequenceValidated = false;
+
+    // Convert to tenths of a second
+    newDuration *= 10;
+    int helpDuration = int(newDuration);
+    // Make sure we have a valid duration value
+    if (helpDuration % 1) {
+        return MagStim::PARAMETER_PRECISION_ERR;
+    }
+    if(std::get<0>(this->version) >= 9) {
+        if (0 > newDuration || newDuration > 9999) {
+            return MagStim::PARAMETER_RANGE_ERR;
+        }
+    }
+    else if (0 > newDuration || newDuration > 999) {
+        return MagStim::PARAMETER_RANGE_ERR;
+    }
+
+    int error;
+    if(std::get<0>(this->version) >= 9) {
+        error = this->processCommand("["+..., "instrRapid", 4, message);            // TODO: bytearray
+    }
+    else {
+        error = this->processCommand("["+..., "instrRapid", 4, message);            // TODO: bytearray
+    }
+    if(error == 0) {
+        std::map<QString, std::map<QString, int> > currentParameters;
+        int updateError = 0;
+        currentParameters = getParameters(updateError);
+        if(updateError == 0) {
+            if(std::get<0>(this->version) >= 9) {
+                updateError = this->processCommand("D"+..., "instrRapid", 4, currentParameters);    // TODO: bytearray
+            }
+        }
+        else {
+            updateError = this->processCommand("D"+..., "instrRapid", 4, currentParameters);    // TODO: bytearray
+        }
+        if(updateError){
+            return MagStim::PARAMETER_UPDATE_ERR;
+        }
+    }
+    else {
+        return MagStim::PARAMETER_ACQUISTION_ERR;
+    }
+    if(receipt){
+        return error;
+    }
+}
+
+void Rapid::getParameters(std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error  = MagStim::er)
+/*
+Request current parameter settings from the Rapid.
+
+        Returns:
+        :tuple:(error,message):
+            error (int): error code (0 = no error; 1+ = error)
+            message (dict,str): if error is 0 (False) returns a dict containing Rapid instrument status ['instr'], rMTS setting ['rapid'],
+            and parameter setting ['rapidParam'] dicts, otherwise returns an error string
+*/
+{
+    int helpNumber = this->parameterReturnBytes;
+    error = this->processCommand("\\@", "rapidParam", helpNumber, message);
+}
+
+int Rapid::setPower(int newPower, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error  = MagStim::er, bool receipt, bool delay)
+{
+    this->sequenceValidated = false;
+
+    // Make sure we have a valid power value
+    if(newPower % 1) {
+        return MagStim::PARAMETER_FLOAT_ERR;
+    }
+    else {
+        if(this->isEnhanced()) {
+            if(0 > newPower || newPower > 110) {
+                return MagStim::PARAMETER_RANGE_ERR;
+            }
+            else if (0 > newPower || newPower > 100) {
+                return MagStim::PARAMETER_RANGE_ERR;
+            }
+        }
+    }
+
+    MagStim::setPower(); //TODO: setPower in MagStim is needed
 }
 
 void Rapid::fire(int &error = MagStim::er)
@@ -452,6 +630,30 @@ Validate the energy consumption for the current rTMS parameters for the Rapid.
     else {
         this->sequenceValidated = true;
         return 0; //in python with "Sequence valid."
+    }
+}
+
+int Rapid::getSystemStatur(std::map<QString, std::map<QString, int> > &message)
+/*
+et system status from the Rapid. Available only on software version of 9 or later.
+
+        Returns:
+        :tuple:(error,message):
+            error (int): error code (0 = no error; 1+ = error)
+            message (dict,str): if error is 0 (False) returns a dict containing Rapid instrument status ['instr'],
+            rMTS setting ['rapid'], and extended instrument status ['extInstr'] dicts, otherwise returns an error string
+*/
+{
+    if () {         //HO:TODO: if this.version is None, how to implement it in c++?
+        return MagStim::GET_SYSTEM_STATUS_ERR;
+    }
+    else if (std::get<0>(this->version) >= 9) {
+        int error;
+        error = this->processCommand("x@", "systemRapid", 6, message);
+        return error;
+    }
+    else {
+        return MagStim::SYSTEM_STATUS_VERSION_ERR;
     }
 }
 
