@@ -7,11 +7,13 @@
 
 class serialportcontroller : public QThread
 {
+    Q_OBJECT
+
 public:
     serialportcontroller(QString serialConnection, std::queue<float> serialWriteQueue, std::queue<float> serialReadQueue);
     void run() override;
-private:
 
+private:
     QSerialPort port;
     std::queue<float> serialWriteQueue;
     std::queue<float> serialReadQueue;

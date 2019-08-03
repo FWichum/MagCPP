@@ -15,9 +15,12 @@
 #include <map>
 #include <QByteArray>
 #include "connectionrobot.h"
+#include <QObject>
 
-class MagStim
+class MagStim : public QObject
 {
+    Q_OBJECT
+
 public:
     MagStim(QString serialConnection);
     //FW: TODO Destruktor!?
