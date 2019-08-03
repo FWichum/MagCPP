@@ -341,7 +341,7 @@ int Rapid::setFreqeuncy(float newFrequency, std::map<QString, std::map<QString, 
     // Convert to tenths of a Hz
     newFrequency *= 10;
     int helpFreq = int(newFrequency);
-    // Make sure we have a valid freqeuncy value
+    // Make sure we have a valid freqeuncy value    
     if (helpFreq - newFrequency != 0) {         //HO: TODO: is there a better way to do it?
         return MagStim::PARAMETER_PRECISION_ERR;
     }
@@ -368,8 +368,20 @@ int Rapid::setFreqeuncy(float newFrequency, std::map<QString, std::map<QString, 
         int updateError = 0;
         getParameters(currentParameters, updateError);
         if(updateError == 0) {
-            updateError = this->processCommand("D", "instrRapid", 4, currentParameters); // HO: TODO: bytearray(str(int(new...))
-            if (updateError) {
+            int duration = currentParameters["rapidParam"]["duration"];
+            int frequency = currentParameters["rapidParam"]["frequency"];
+            QString string1 = QString::number(duration*frequency).rightJustified(5, '0');
+            QString string2 = QString::number(duration*frequency).rightJustified(4, '0');
+            QString string3 = "D";
+            if(std::get<0>(this->version) >= 9){
+                QString string = string3 + string1;
+                updateError = this->processCommand(string, "instrRapid", 4, currentParameters);
+            }
+            else {
+                QString string = string3 + string2;
+                updateError = this->processCommand(string, "instrRapid", 4, currentParameters);
+            }
+                if (updateError) {
                 return MagStim::PARAMETER_UPDATE_ERR;
             }
         }
@@ -663,7 +675,7 @@ Fire the stimulator. This overrides the base Magstim method in order to check wh
     else {
         std::map<QString, std::map<QString, int>> message;
         int error;
-        return MagStim::fire(message, error); //HO: TODO: not sure if it is okay to return a (void) fnuction in a void fuction
+        MagStim::fire(message, error);
     }
 }
 
