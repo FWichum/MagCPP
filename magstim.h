@@ -75,7 +75,7 @@ protected:
     static std::tuple<int, int, int> ver;
     static std::map<QString, std::map<QString, int>> mes;
 
-    std::queue<std::map<QByteArray, QString, int>> sendQueue;
+    std::queue<float> sendQueue;
     std::queue<float> receiveQueue;
     std::queue<float> robotQueue;
     connectionRobot *robot;
