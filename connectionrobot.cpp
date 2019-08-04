@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-connectionRobot::connectionRobot(std::queue<float> serialWriteQueue, std::queue<float> updateRobotQueue)
+connectionRobot::connectionRobot(std::queue<std::map<QByteArray, QString, int>> serialWriteQueue, std::queue<float> updateRobotQueue)
 {
     this->serialWriteQueue = serialWriteQueue;
     this->updateRobotQueue = updateRobotQueue;

@@ -4,18 +4,21 @@
 #include <QtSerialPort/QSerialPort>
 #include <queue>
 #include <QThread>
+#include <QByteArray>
+#include <QString>
+#include <map>
 
 class serialPortController : public QThread
 {
     Q_OBJECT
 
 public:
-    serialPortController(QString serialConnection, std::queue<float> serialWriteQueue, std::queue<float> serialReadQueue);
+    serialPortController(QString serialConnection, std::queue<std::map<QByteArray, QString, int>> serialWriteQueue, std::queue<float> serialReadQueue);
     void run() override;
 
 private:
     QSerialPort port;
-    std::queue<float> serialWriteQueue;
+    std::queue<std::map<QByteArray, QString, int>> serialWriteQueue;
     std::queue<float> serialReadQueue;
     QString address;
 
