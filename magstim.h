@@ -15,6 +15,7 @@
 #include <map>
 #include <QByteArray>
 #include "connectionrobot.h"
+#include "serialportcontroller.h"
 #include <QObject>
 
 class MagStim : public QObject
@@ -78,6 +79,7 @@ protected:
     std::queue<float> receiveQueue;
     std::queue<float> robotQueue;
     connectionRobot *robot;
+    serialPortController *connection;
     // connection.daemon = true; //FW: TODO
     // connectionRobot robot;
     // robot.daemon = true; //FW: TODO

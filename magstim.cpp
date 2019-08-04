@@ -10,6 +10,7 @@ MagStim::MagStim(QString serialConnection) //:
     this->robot = new connectionRobot(this->sendQueue, this->robotQueue);
     // FW: TODO signals
     this->connect(serialConnection.toStdString());
+    this->connection = new serialPortController(serialConnection, this->sendQueue, this->receiveQueue);
     // connection.daemon = true; //FW: TODO
     // robot.daemon = true; //FW: TODO
     this->connected = false;

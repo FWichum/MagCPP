@@ -4,14 +4,14 @@
 #include <QIODevice>
 
 
-serialportcontroller::serialportcontroller(QString serialConnection, std::queue<float> serialWriteQueue, std::queue<float> serialReadQueue)
+serialPortController::serialPortController(QString serialConnection, std::queue<float> serialWriteQueue, std::queue<float> serialReadQueue)
 {
     this->serialWriteQueue = serialWriteQueue;
     this->serialReadQueue = serialReadQueue;
     this->address = serialConnection;
 }
 
-void serialportcontroller::run()
+void serialPortController::run()
 {
     /*
     Continuously monitor the serialWriteQueue for commands from other Python processes to be sent to the Magstim.
