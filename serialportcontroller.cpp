@@ -4,7 +4,7 @@
 #include <QIODevice>
 
 
-serialPortController::serialPortController(QString serialConnection, std::queue<float> serialWriteQueue, std::queue<float> serialReadQueue)
+serialPortController::serialPortController(QString serialConnection, std::queue<std::tuple<QByteArray, QString, int>> serialWriteQueue, std::queue<float> serialReadQueue)
 {
     this->serialWriteQueue = serialWriteQueue;
     this->serialReadQueue = serialReadQueue;
@@ -36,7 +36,7 @@ void serialPortController::run()
     while (true) {
         //message, reply, readBytes = self._serialWriteQueue.get() //  TODO
         // If the first part of the message is None this signals the process to close the port and stop
-        float message = this->serialWriteQueue.front();     // TODO
+        float message = std::get<QByteArray>(this->serialWriteQueue.front()).toFloat();     // TODO
         // If the first part of the message is None this signals the process to close the port and stop
         if(message == 0) { // TODO
             break;
