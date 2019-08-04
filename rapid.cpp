@@ -655,7 +655,7 @@ Set charge delay duration for the Rapid.
             None
 */
 {
-    if(std::get<0>(this->version) == 0){  //TODO: is none?!
+    if(std::get<0>(this->version) == 0){
         return MagStim::GET_SYSTEM_STATUS_ERR;
     }
     else if(std::get<0>(this->version) < 9) {
@@ -694,7 +694,7 @@ Get current charge delay duration for the Rapid.
                 charge delay duration ['chargeDelay'] value, otherwise returns an error string
 */
 {
-    if(std::get<0>(this->version)){  //TODO: is none?!
+    if(std::get<0>(this->version) == 0){
         return MagStim::GET_SYSTEM_STATUS_ERR;
     }
     else if(std::get<0>(this->version) < 9) {
@@ -799,7 +799,7 @@ et system status from the Rapid. Available only on software version of 9 or late
             rMTS setting ['rapid'], and extended instrument status ['extInstr'] dicts, otherwise returns an error string
 */
 {
-    if () {         //HO:TODO: if this.version is None, how to implement it in c++?
+    if (std::get<0>(this->version) == 0) {
         return MagStim::GET_SYSTEM_STATUS_ERR;
     }
     else if (std::get<0>(this->version) >= 9) {
