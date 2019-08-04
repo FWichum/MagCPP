@@ -361,7 +361,8 @@ int Rapid::setFreqeuncy(float newFrequency, std::map<QString, std::map<QString, 
         }
     }
     // Send command
-    error = this->processCommand("B", "instr", 4, message); // HO: TODO: bytearray(str(int(new...))
+    QString string = QString::number(newFrequency).rightJustified(4,'0');
+    error = this->processCommand("B"+string, "instr", 4, message);
     // If we didn't get an error, update the other parameters accordingly
     if (error == 0){
         std::map<QString, std::map<QString, int> > currentParameters;
@@ -425,7 +426,7 @@ Set number of pulses in rTMS pulse train.
 
     // Send command
     int error;
-    QString string1 = QString::number(newPulses).rightJustified(5, '0');        // TODO: to ASCII??
+    QString string1 = QString::number(newPulses).rightJustified(5, '0');
     QString string2 = QString::number(newPulses).rightJustified(4, '0');
     QString string3 = "D";
     if(std::get<0>(this->version) >= 9) {
@@ -444,7 +445,7 @@ Set number of pulses in rTMS pulse train.
         getParameters(currentParameters, updateError);
         int nPulses = currentParameters["rapidParam"]["nPulses"];
         int frequency = currentParameters["rapidParam"]["frequency"];
-        QString string1 = QString::number(nPulses/frequency).rightJustified(4, '0');    // TODO: to ASCII??
+        QString string1 = QString::number(nPulses/frequency).rightJustified(4, '0');
         QString string2 = QString::number(nPulses/frequency).rightJustified(3, '0');
         QString string3 = "[";
         if(updateError == 0) {
@@ -517,30 +518,42 @@ Set duration of rTMS pulse train.
     }
 
     int error;
+    QString string1 = QString::number(newDuration).rightJustified(4, '0');
+    QString string2 = QString::number(newDuration).rightJustified(3, '0');
+    QString string3 = "[";
     if(std::get<0>(this->version) >= 9) {
-        error = this->processCommand("["+..., "instrRapid", 4, message);            // TODO: bytearray
+        QString string = string3 + string1;
+        error = this->processCommand(string, "instrRapid", 4, message);
     }
     else {
-        error = this->processCommand("["+..., "instrRapid", 4, message);            // TODO: bytearray
+        QString string = string3 + string2;
+        error = this->processCommand(string, "instrRapid", 4, message);
     }
     if(error == 0) {
         std::map<QString, std::map<QString, int> > currentParameters;
         int updateError = 0;
         getParameters(currentParameters, updateError);
+        int duration = currentParameters["rapidParam"]["duration"];
+        int frequency = currentParameters["rapidParam"]["frequency"];
+        QString string1 = QString::number(duration*frequency).rightJustified(5, '0');
+        QString string2 = QString::number(duration*frequency).rightJustified(4, '0');
+        QString string3 = "D";
         if(updateError == 0) {
             if(std::get<0>(this->version) >= 9) {
-                updateError = this->processCommand("D"+..., "instrRapid", 4, currentParameters);    // TODO: bytearray
+                QString string = string3 + string1;
+                updateError = this->processCommand(string, "instrRapid", 4, currentParameters);
+            }
+            else {
+                QString string = string3 + string2;
+                updateError = this->processCommand(string, "instrRapid", 4, currentParameters);
+            }
+            if(updateError){
+                return MagStim::PARAMETER_UPDATE_ERR;
             }
         }
         else {
-            updateError = this->processCommand("D"+..., "instrRapid", 4, currentParameters);    // TODO: bytearray
+            return MagStim::PARAMETER_ACQUISTION_ERR;
         }
-        if(updateError){
-            return MagStim::PARAMETER_UPDATE_ERR;
-        }
-    }
-    else {
-        return MagStim::PARAMETER_ACQUISTION_ERR;
     }
     if(receipt){
         return error;
@@ -613,11 +626,16 @@ Set charge delay duration for the Rapid.
     if(newDelay % 1){
         return MagStim::PARAMETER_FLOAT_ERR;
     }
+    QString string1 = QString::number(newDelay).rightJustified(5, '0');
+    QString string2 = QString::number(newDelay).rightJustified(4, '0');
+    QString string3 = "n";
     if(std::get<0>(this->version) >= 10){
-        error = this->processCommand("n"+..., "systemRapid", 6, message); // TODO: bytearray
+        QString string = string3 + string1;
+        error = this->processCommand(string, "systemRapid", 6, message);
     }
     else {
-        error = this->processCommand("n"+..., "instrRapid", 4, message);    // TODO: bytearray
+        QString string = string3 + string2;
+        error = this->processCommand(string, "instrRapid", 4, message);
     }
     if(receipt) {
         return error;
