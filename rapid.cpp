@@ -576,6 +576,26 @@ Request current parameter settings from the Rapid.
 }
 
 int Rapid::setPower(int newPower, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error  = MagStim::er, bool receipt, bool delay)
+/*
+Set power level for the Rapid.
+
+        N.B. Allow 100 ms per unit drop in power, or 10 ms per unit increase in power.
+
+             Changing the power level can result in automatic updating of the Frequency parameter (if in rTMS mode)
+
+        Args:
+        newPower (int): new power level (0-100; or 0-110 if enhanced-power mode is enabled)
+        receipt (bool): whether to return occurrence of an error and the automated response from the Rapid unit (defaults to False)
+        delay (bool): enforce delay to allow Rapid time to change Power (defaults to False)
+
+        Returns:
+        If receipt argument is True:
+            :tuple:(error,message):
+                error (int): error code (0 = no error; 1+ = error)
+                message (dict,str): if error is 0 (False) returns a dict containing a Rapid instrument status ['instr'] dict, otherwise returns an error string
+        If receipt argument is False:
+            None
+*/
 {
     this->sequenceValidated = false;
 
@@ -594,7 +614,28 @@ int Rapid::setPower(int newPower, std::map<QString, std::map<QString, int> > &me
         }
     }
 
-    MagStim::setPower(); //TODO: setPower in MagStim is needed
+    MagStim::setPower(newPower, delay = false, error, "@");             // TODO: Message is missing
+    if(error == 0) {
+        std::map<QString, std::map<QString, int> > currentParameters;
+        int updateError = 0;
+        getParameters(currentParameters, updateError);
+        if(updateError == 0){
+            if(currentParameters["rapid"]["singlePulseMode"] == false) {
+                int maxFrequency;                                                           // HO: TODO: MAX_FREQUENCY
+                if(currentParameters["rapidParam"]["frequency"] > maxFrequency) {
+                    if(setFreqeuncy(maxFrequency) != 0){
+                        return MagStim::PARAMETER_UPDATE_ERR;
+                    }
+                }
+            }
+        }
+        else {
+           return MagStim::PARAMETER_ACQUISTION_ERR;
+        }
+    }
+    if(receipt) {
+        return error;
+    }
 }
 
 int Rapid::setChargeDelay(int newDelay, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error  = MagStim::er, bool receipt)
@@ -614,7 +655,7 @@ Set charge delay duration for the Rapid.
             None
 */
 {
-    if(std::get<0>(this->version)){  //TODO: is none?!
+    if(std::get<0>(this->version) == 0){  //TODO: is none?!
         return MagStim::GET_SYSTEM_STATUS_ERR;
     }
     else if(std::get<0>(this->version) < 9) {

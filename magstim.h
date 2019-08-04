@@ -29,7 +29,7 @@ public:
     virtual std::tuple<int, int, int> parseMagstimResponse_version(std::list<int> responseString);
     virtual void remoteControl(bool enable, std::map<QString, std::map<QString, int> > &message, int &error);
     virtual std::map<QString, std::map<QString, int> > getParameters(int &error);
-    virtual void setPower();
+    virtual void setPower(int newPower, bool delay, int &error, QString commandByte);
     virtual std::map<QString, std::map<QString, int> > getTemperature();
     virtual void poke();
     virtual void arm();
