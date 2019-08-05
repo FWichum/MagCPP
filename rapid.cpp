@@ -95,7 +95,7 @@ int Rapid::getErrorCode()
 {
     std::tuple<int, int, int> vers;
 
-    return this->processCommand("I@", "eror", 6, vers);
+    return this->processCommand("I@", "error", 6, vers);
 
 }
 
@@ -621,7 +621,7 @@ Set power level for the Rapid.
         getParameters(currentParameters, updateError);
         if(updateError == 0){
             if(currentParameters["rapid"]["singlePulseMode"] == false) {
-                int maxFrequency;                                                           // HO: TODO: MAX_FREQUENCY
+                int maxFrequency = this->MAX_FREQUENCY[this->voltage][this->super][currentParameters["rapidParam"]["power"]];                                                           // HO: TODO: MAX_FREQUENCY
                 if(currentParameters["rapidParam"]["frequency"] > maxFrequency) {
                     if(setFreqeuncy(maxFrequency) != 0){
                         return MagStim::PARAMETER_UPDATE_ERR;
