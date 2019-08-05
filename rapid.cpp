@@ -66,7 +66,8 @@ std::tuple<int,int,int> Rapid::getVersion(int &er=MagStim::er)
        */
 {
     std::tuple<int, int, int> vers;
-    er = this->processCommand("ND", "version", 0, vers); // HO: TODO: 0 or NONE?!
+    int helper;
+    er = this->processCommand("ND", "version", helper, vers);
    // If we didn't receive an error, update the version number and the number of bytes that will be returned by a getParameters() command
     if (er == 0) {
         this->version = vers;
@@ -115,7 +116,7 @@ void Rapid::connect(int &er=MagStim::er)
     */
 
 {
-    std::ignore = MagStim::connect("COM1");// HO: TODO: right port
+    std::ignore = MagStim::connect();// FIXME: port number for MagStim::connect(port)
     std::ignore = this->getVersion(er);
     if (er) {
         this->disconnect();
@@ -259,7 +260,8 @@ int Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, int> >
             error = this->processCommand("Q@", "instr", 3, message);
             }
             else {
-                error = this->processCommand("Q@", "", 3, message);
+                QString empty;
+                error = this->processCommand("Q@", empty, 3, message);
             }
         }
         else {
@@ -267,7 +269,8 @@ int Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, int> >
             error = this->processCommand("R@", "instr", 3, message);
             }
             else {
-                error = this->processCommand("R@", "", 3, message);
+                QString empty;
+                error = this->processCommand("R@", empty, 3, message);
             }
         }
     }
@@ -342,7 +345,7 @@ int Rapid::setFreqeuncy(float newFrequency, std::map<QString, std::map<QString, 
     newFrequency *= 10;
     int helpFreq = int(newFrequency);
     // Make sure we have a valid freqeuncy value    
-    if (helpFreq - newFrequency != 0) {         //HO: TODO: is there a better way to do it?
+    if (helpFreq - newFrequency != 0) {         // FIXME: comparing float and int
         return MagStim::PARAMETER_PRECISION_ERR;
     }
     std::map<QString, std::map<QString, int> > currentParameters;
@@ -352,10 +355,7 @@ int Rapid::setFreqeuncy(float newFrequency, std::map<QString, std::map<QString, 
         return MagStim::PARAMETER_ACQUISTION_ERR;
     }
     else {
-        int maxFrequency;
-        // HO: TODO: maxFrequncy from Rapid::MAX_FREQUENCY???
-        //int power = currentParameters["rapidParam"]["power"];
-        //Rapid::MAX_FREQUENCY[this->voltage][currentParameters["rapidParam"]["power"]];
+        int maxFrequency = this->MAX_FREQUENCY[this->voltage][this->super][currentParameters["rapidParam"]["power"]];   // FIXME: in python there are not all arguments in MAX_FREQUENCY
         if (newFrequency < 0 || newFrequency > maxFrequency){
             return MagStim::PARAMETER_RANGE_ERR;
         }
@@ -621,7 +621,7 @@ Set power level for the Rapid.
         getParameters(currentParameters, updateError);
         if(updateError == 0){
             if(currentParameters["rapid"]["singlePulseMode"] == false) {
-                int maxFrequency = this->MAX_FREQUENCY[this->voltage][this->super][currentParameters["rapidParam"]["power"]];                                                           // HO: TODO: MAX_FREQUENCY
+                int maxFrequency = this->MAX_FREQUENCY[this->voltage][this->super][currentParameters["rapidParam"]["power"]];
                 if(currentParameters["rapidParam"]["frequency"] > maxFrequency) {
                     if(setFreqeuncy(maxFrequency) != 0){
                         return MagStim::PARAMETER_UPDATE_ERR;
