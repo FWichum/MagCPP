@@ -61,6 +61,9 @@ void Rapid::setupSerialPort(QString serialConnection)
     if (serialConnection.toLower() == "virtual") {
 
     }
+    else {
+        // FIXME: wait for serialPortController
+    }
 }
 
 std::tuple<int,int,int> Rapid::getVersion(int &er=MagStim::er)

@@ -10,6 +10,7 @@ public:
     float getRapidMinWaitTime(int power, int nPulses, float frequency);
     float getRapidMaxOnTime(int power, float frequency);
     float getRapidMaxContinuousOperationsFrequency(int power);
+    void setupSerialPort(QString serialConnection);
     std::tuple<int, int, int> getVersion(int &er);
     int getErrorCode();
     void connect(int &er);
