@@ -56,6 +56,13 @@ float Rapid::getRapidMaxContinuousOperationsFrequency(int power)
     return a / b;
 }
 
+void Rapid::setupSerialPort(QString serialConnection)
+{
+    if (serialConnection.toLower() == "virtual") {
+
+    }
+}
+
 std::tuple<int,int,int> Rapid::getVersion(int &er=MagStim::er)
        /*
        Get Magstim software version number. This is needed when obtaining parameters from the Magstim.
