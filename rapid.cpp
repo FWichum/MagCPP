@@ -31,6 +31,9 @@ Rapid::Rapid(QString serialConnection) :
 }
 
 float Rapid::getRapidMinWaitTime(int power, int nPulses, float frequency)
+/*
+Calculate minimum wait time between trains for given power, frequency, and number of pulses.
+*/
 {
     float minWaitTime = 0.5;
     float calcWaitTime = (nPulses * ((frequency * this->JOULES[power]) - float(1050.0)));
@@ -43,6 +46,10 @@ float Rapid::getRapidMinWaitTime(int power, int nPulses, float frequency)
 }
 
 float Rapid::getRapidMaxOnTime(int power, float frequency)
+/*
+Calculate maximum train duration for given power and frequency. If greater than 60 seconds,
+will allow for continuous operation for up to 6000 pulses.
+*/
 {
     float PulseNum = 63000.0;
     float FreqPow = frequency * this->JOULES[power];
@@ -50,6 +57,9 @@ float Rapid::getRapidMaxOnTime(int power, float frequency)
 }
 
 float Rapid::getRapidMaxContinuousOperationsFrequency(int power)
+/*
+Calculate maximum frequency that will allow for continuous operation (up to 6000 pulses).
+*/
 {
     float a = 1050.0;
     float b = this->JOULES[power];
@@ -270,8 +280,7 @@ int Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, int> >
             error = this->processCommand("Q@", "instr", 3, message);
             }
             else {
-                QString empty;
-                error = this->processCommand("Q@", empty, 3, message);
+                error = this->processCommand("Q@", "", 3, message);
             }
         }
         else {
@@ -279,8 +288,7 @@ int Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, int> >
             error = this->processCommand("R@", "instr", 3, message);
             }
             else {
-                QString empty;
-                error = this->processCommand("R@", empty, 3, message);
+                error = this->processCommand("R@", "", 3, message);
             }
         }
     }
@@ -346,6 +354,11 @@ void Rapid::enhancedPowerMode(bool enable, std::map<QString, std::map<QString, i
         }
     }
     return;
+}
+
+bool Rapid::isEnhanced()
+{
+    //FIXME
 }
 
 int Rapid::setFreqeuncy(float newFrequency, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error = MagStim::er, bool receipt)
@@ -426,7 +439,7 @@ Set number of pulses in rTMS pulse train.
 {
     this->sequenceValidated = false;
 
-    // Mage sure we have a valid number of pulses value
+    // Make sure we have a valid number of pulses value
     if(newPulses % 1) {
         return MagStim::PARAMETER_FLOAT_ERR;
     }
