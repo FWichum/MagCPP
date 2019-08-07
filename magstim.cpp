@@ -284,7 +284,7 @@ void MagStim::poke()
 
 void MagStim::arm(bool delay = false, std::map<QString, std::map<QString, int>> &message = MagStim::mes, int &error = MagStim::er)
 {
-    error = this->processCommand("EB", "instr", 3, mes);
+    error = this->processCommand("EB", "instr", 3, message);
     if (delay) {
         // sleep
     }
