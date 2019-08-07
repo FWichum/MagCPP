@@ -83,7 +83,7 @@ protected:
     // connectionRobot robot;
     // robot.daemon = true; //FW: TODO
     bool connected;
-    // connectionCommand = (b'Q@n', None, 3) //FW: TODO
+    std::tuple<QByteArray, QString, int> connectionCommand;
     // auto queryCommand; //FW: TODO
     int parameterReturnByte;
 

@@ -15,7 +15,7 @@ MagStim::MagStim(QString serialConnection) //:
     // connection.daemon = true; //FW: TODO
     // robot.daemon = true; //FW: TODO
     this->connected = false;
-    // connectionCommand = (b'Q@n', None, 3) //FW: TODO
+    this->connectionCommand = std::make_tuple(QString("Q@n").toUtf8(),"", 3);
     // auto queryCommand = std::bind(this->remoteControl, true, true);//FW: TODO
 }
 
@@ -165,7 +165,7 @@ void MagStim::connect(int &error = MagStim::er)
         this->remoteControl(true,mes,error);
         if (!error) { //FW: FIXME
             this->connected = true;
-            this->robot->setCommand(); // FW: TODO
+            this->robot->setCommand(this->connectionCommand);
             // this->robot->start(); // FW: TODO
             this->robot->run();
         } else {
