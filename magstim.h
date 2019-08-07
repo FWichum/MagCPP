@@ -26,7 +26,7 @@ public:
     MagStim(QString serialConnection);
     //FW: TODO Destruktor!?
 
-    virtual bool connect(std::string port);
+    virtual void connect(int &error);
     virtual void disconnect();
     virtual bool get_status();
     virtual std::map<QString, std::map<QString, int>> parseMagstimResponse(std::list<int> responseString, QString responseType);

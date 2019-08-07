@@ -48,7 +48,7 @@ void serialPortController::run()
         }
         //TODO  was für Werte gibt es in Message?
         // If the first part of the message is a 1 this signals the process to trigger a quick fire using the RTS pin
-        if((int)message == 1) {
+        else if((int)message == 1) {
             this->port.setRequestToSend(true);
         }
         // If the first part of the message is a -1 this signals the process to reset the RTS pin

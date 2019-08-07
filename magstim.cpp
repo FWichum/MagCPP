@@ -9,7 +9,6 @@ MagStim::MagStim(QString serialConnection) //:
 {
     this->robot = new connectionRobot(this->sendQueue, this->robotQueue);
     // FW: TODO signals
-    this->connect(serialConnection.toStdString());
     this->connection = new serialPortController(serialConnection, this->sendQueue, this->receiveQueue);
     QObject::connect(this->connection, &serialPortController::updateSerialReadQueue, this, &MagStim::updateReceiveQueue);
     QObject::connect(this, &MagStim::updateSendQueue, this->connection, &serialPortController::updateSerialWriteQueue);
@@ -152,19 +151,33 @@ std::tuple<int, int, int> MagStim::parseMagstimResponse_version(std::list<int> r
     return magstimResponse;
 }
 
-bool MagStim::connect(std::string port)
+void MagStim::connect(int &error = MagStim::er)
+/*
+ * Connect to the Magstim.
+ * This starts the serial port controller, as well as a process that constantly keeps in
+ * contact with the Magstim so as not to lose control.
+ */
 {
-
-    //FIXME: get portnumber from portlist
-    bool connected=false;
-    cp_num=0;
-    connected=RS232_OpenComport(cp_num,bdrate,mode);
-    //Check if connection was established
-    if(connected){
-        return true;
-    }
-    else {
-        return false;
+    if (!this->connected) {
+        this->connection->start();
+        this->connection->run();
+        std::map<QString, std::map<QString, int>> mes;
+        this->remoteControl(true,mes,error);
+        if (!error) { //FW: FIXME
+            this->connected = true;
+            this->robot->setCommand(); // FW: TODO
+            // this->robot->start(); // FW: TODO
+            this->robot->run();
+        } else {
+            QByteArray qb;
+            QString s;
+            int i;
+            this->sendQueue.push(std::make_tuple(qb,s,i));
+            if (this->connection->isRunning()) {
+                //FW: TODO join()
+            }
+            //Raise MaigstimError
+        }
     }
 }
 
