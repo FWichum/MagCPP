@@ -186,7 +186,7 @@ void MagStim::disconnect(int &error = MagStim::er)
     if (this->connected) {
         std::map<QString, std::map<QString, int>> message;
         this->disarm(message, error);
-        this->robotQueue.push(0); // FW: TODO is this neeeded?
+        // this->robotQueue.push(0); // FW: TODO is this neeeded?
         emit updateRobotQueue(0);
         if (this->robot->isRunning()) {
             this->robot->wait(); // FW: FIXME join()
@@ -361,13 +361,13 @@ void MagStim::fire(std::map<QString, std::map<QString, int> > &message = MagStim
 
 void MagStim::resetQuickFire()
 {
-    this->sendQueue.push(std::make_tuple(QByteArray::number(-1), "", 0)); // FW: TODO is this needed?
+    // this->sendQueue.push(std::make_tuple(QByteArray::number(-1), "", 0)); // FW: TODO is this needed?
     emit updateSendQueue(std::make_tuple(QByteArray::number(-1), "", 0));
 }
 
 void MagStim::quickFire()
 {
-    this->sendQueue.push(std::make_tuple(QByteArray::number(1), "", 0)); // FW: TODO is this needed?
+    // this->sendQueue.push(std::make_tuple(QByteArray::number(1), "", 0)); // FW: TODO is this needed?
     emit updateSendQueue(std::make_tuple(QByteArray::number(1), "", 0));
 }
 
@@ -390,7 +390,7 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
         std::tuple<QByteArray,QString, int> info;
         QByteArray qb = comString + calcCRC(comString); // FW: FIXME most likely
         info = std::make_tuple(qb, receiptType, readBytes);
-        this->sendQueue.push(info);  // FW: TODO is this needed?
+        // this->sendQueue.push(info);  // FW: TODO is this needed?
         emit updateSendQueue(info);
         if (!receiptType.isEmpty()) {
             int error = std::get<int>(this->receiveQueue.front());
@@ -414,16 +414,16 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
         }
         if (this->connected) {
             if (comString.at(0) == (char)0x82) {
-                this->robotQueue.push(-1); // FW: TODO is this neeeded?
+                // this->robotQueue.push(-1); // FW: TODO is this neeeded?
                 emit updateRobotQueue(0);
             } else if (comString.left(2).contains("EA") ) {
-                this->robotQueue.push(1); // FW: TODO is this neeeded?
+                // this->robotQueue.push(1); // FW: TODO is this neeeded?
                 emit updateRobotQueue(0);
             } else if (comString.left(2).contains("EB") ) {
-                this->robotQueue.push(2); // FW: TODO is this neeeded?
+                // this->robotQueue.push(2); // FW: TODO is this neeeded?
                 emit updateRobotQueue(0);
             }  else {
-                this->robotQueue.push(0); // FW: TODO is this neeeded?
+                // this->robotQueue.push(0); // FW: TODO is this neeeded?
                 emit updateRobotQueue(0);
             }
         }

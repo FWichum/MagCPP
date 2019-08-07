@@ -42,7 +42,7 @@ void connectionRobot::run()
         this->nextPokeTime = defaultTimer() + pokeLatency;
         // While waiting for next poll...
         if (defaultTimer() >= this->nextPokeTime) {
-            this->serialWriteQueue.push(this->connectionCommand); // FW: TODO is this needed?
+            // this->serialWriteQueue.push(this->connectionCommand); // FW: TODO is this needed?
             emit this->updateSerialWriteQueue(this->connectionCommand);
         } else do { // FW: C++ Version of While-Else:
             // ...check to see if there has been an update send from the parent magstim object

@@ -88,16 +88,16 @@ void serialPortController::run()
                             bmessage.append(c);
                         }
                         if (reply.toInt()) {
-                            this->serialReadQueue.push(std::make_tuple(0, bmessage)); //FW: TODO need this?
+                            // this->serialReadQueue.push(std::make_tuple(0, bmessage)); //FW: TODO need this?
                             emit updateSerialReadQueue(std::make_tuple(0, bmessage));
                         }
                     }
                 } catch (...) { // FW: FIXME
-                    this->serialReadQueue.push(std::make_tuple(serialPortController::SERIAL_READ_ERROR, bmessage)); //FW: TODO need this?
+                    // this->serialReadQueue.push(std::make_tuple(serialPortController::SERIAL_READ_ERROR, bmessage)); //FW: TODO need this?
                     emit updateSerialReadQueue(std::make_tuple(serialPortController::SERIAL_READ_ERROR, bmessage));
                 }
             } catch (...) { //FW: FIXME
-                this->serialReadQueue.push(std::make_tuple(serialPortController::SERIAL_WRITE_ERROR, bmessage)); //FW: TODO need this?
+                // this->serialReadQueue.push(std::make_tuple(serialPortController::SERIAL_WRITE_ERROR, bmessage)); //FW: TODO need this?
                 emit updateSerialReadQueue(std::make_tuple(serialPortController::SERIAL_WRITE_ERROR, bmessage));
             }
         }
