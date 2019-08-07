@@ -27,7 +27,7 @@ public:
     //FW: TODO Destruktor!?
 
     virtual void connect(int &error);
-    virtual void disconnect();
+    virtual void disconnect(int &error);
     virtual bool get_status();
     virtual std::map<QString, std::map<QString, int>> parseMagstimResponse(std::list<int> responseString, QString responseType);
     virtual std::tuple<int, int, int> parseMagstimResponse_version(std::list<int> responseString);

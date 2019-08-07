@@ -181,9 +181,15 @@ void MagStim::connect(int &error = MagStim::er)
     }
 }
 
-void MagStim::disconnect()
+void MagStim::disconnect(int &error = MagStim::er)
 {
-    RS232_CloseComport(cp_num);
+    if (this->connected) {
+        std::map<QString, std::map<QString, int>> message;
+        this->disarm(message, error);
+        this->robotQueue.push(0); // FW: FIXME
+        // FW: TODO
+
+    }
 }
 
 bool MagStim::encode_command(uint8_t *destination, uint8_t *data)
