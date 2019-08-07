@@ -94,6 +94,12 @@ protected:
     uint8_t command[13]={};
     char mode[4]={'8','N','1',0};
     uint8_t stat_command[10]={0x40,0x30,0x30,0x4D,0x30,0x30,0x34,0x44,0x0D,0x0A}; // stimmt noch nicht
+
+public slots:
+    void updateReceiveQueue(std::tuple<int, QByteArray> info);
+
+signals:
+    void updateSendQueue(const std::tuple<QByteArray, QString, int> &info);
 };
 
 #endif // MAGSTIM_H

@@ -23,8 +23,11 @@ private:
     const int SERIAL_WRITE_ERROR = 1; // SERIAL_WRITE_ERR: Could not send the command.
     const int SERIAL_READ_ERROR  = 2; // SERIAL_READ_ERR:  Could not read the magstim response.
 
+public slots:
+    void updateSerialWriteQueue(std::tuple<QByteArray, QString, int> info);
+
 signals:
-    void resultReady(const QString &s);
+    void updateSerialReadQueue(const std::tuple<int, QByteArray> &info);
 };
 
 #endif // SERIALPORTCONTROLLER_H

@@ -11,6 +11,8 @@ MagStim::MagStim(QString serialConnection) //:
     // FW: TODO signals
     this->connect(serialConnection.toStdString());
     this->connection = new serialPortController(serialConnection, this->sendQueue, this->receiveQueue);
+    QObject::connect(this->connection, &serialPortController::updateSerialReadQueue, this, &MagStim::updateReceiveQueue);
+    QObject::connect(this, &MagStim::updateSendQueue, this->connection, &serialPortController::updateSerialWriteQueue);
     // connection.daemon = true; //FW: TODO
     // robot.daemon = true; //FW: TODO
     this->connected = false;
@@ -192,6 +194,11 @@ bool MagStim::encode_command(uint8_t *destination, uint8_t *data)
         destination[9]= hexstring[0];
         destination[10]= hexstring[1];
         return true;
+}
+
+void MagStim::updateReceiveQueue(std::tuple<int, QByteArray> info)
+{
+
 }
 
 bool MagStim::get_status()
