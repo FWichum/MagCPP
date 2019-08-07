@@ -218,7 +218,7 @@ std::map<QString, std::map<QString, int> >MagStim::getParameters(int &error = Ma
     return mes;
 }
 
-void MagStim::setPower(int newPower, bool delay=false, int &error = MagStim::er, QString commandByte = "@")
+void MagStim::setPower(int newPower, bool delay=false, int &error = MagStim::er, QString commandByte = "@", std::map<QString, std::map<QString, int>> &message = MagStim::mes)
 {
     // Make sure we have a valid power value
     if (newPower <= 0 || newPower >= 100) {
@@ -226,33 +226,25 @@ void MagStim::setPower(int newPower, bool delay=false, int &error = MagStim::er,
         return;
     }
     // If enforcing power change delay, grab current parameters
-    std::map<QString, std::map<QString, int> > mes;
     int priorPower = 0;
     if (delay) {
-        mes = this->getParameters(error);
+        message = this->getParameters(error);
         if (error) {
             return;
         }
-  // If enforcing power change delay, grab current parameters
-       //std::map<QString, std::map<QString, int> > mes;
-       int priorPower = 0;
-       if (delay) {
-           mes = this->getParameters(error);
-           if (error) {
-               return;
        //FW: FIXME!!!
        try {
            if (commandByte == "@") {
-               priorPower = mes["bistimParam"]["PowerA"];
+               priorPower = message["bistimParam"]["PowerA"];
            } else {
-               priorPower = mes["bistimParam"]["PowerB"];
+               priorPower = message["bistimParam"]["PowerB"];
             }
         } catch (...) {
             try {
-                priorPower = mes["rapidParam"]["power"];
+                priorPower = message["rapidParam"]["power"];
             } catch (...) {
                 try {
-                    priorPower = mes["magstimParam"]["power"];
+                    priorPower = message["magstimParam"]["power"];
                 } catch (...) {
 
                 }
@@ -264,7 +256,7 @@ void MagStim::setPower(int newPower, bool delay=false, int &error = MagStim::er,
     if (delay) {
         receiptType = "instr";
     }
-    error = this->processCommand(commandString, receiptType, 3, mes);
+    error = this->processCommand(commandString, receiptType, 3, message);
 
     // If we're meant to delay (and we were able to change the power), then enforce if prior power settings are available
     if (delay && !error) {

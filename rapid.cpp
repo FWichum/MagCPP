@@ -17,7 +17,7 @@ Rapid::Rapid(QString serialConnection, int superRapid, QString unlockCode, int v
     } else {
         this->version = std::make_tuple(0,0,0); // FW: Is it right to set to (0,0,0)?
     }
-    // TODO UnlockCode
+    // FIXME if UnlockCode is provided ...
     this->parameterReturnBytes = NAN;
     this->sequenceValidated = false;
     this->repetitiveMode = false;
@@ -69,10 +69,10 @@ Calculate maximum frequency that will allow for continuous operation (up to 6000
 void Rapid::setupSerialPort(QString serialConnection)
 {
     if (serialConnection.toLower() == "virtual") {
-
+         // FW: TODO in case of virtual
     }
     else {
-        // FIXME: wait for serialPortController
+       MagStim::setupSerialPort(serialConnection);
     }
 }
 
@@ -234,7 +234,7 @@ int Rapid::rTMSMode(bool enable, std::map<QString, std::map<QString, int>> &mess
 }
 
 
-int Rapid::ignoreCoilSafetySwitch(bool receipt)
+int Rapid::ignoreCoilSafetySwitch(bool receipt = false)
 /*
 This allows the stimulator to ignore the state of coil safety interlock switch.
 
@@ -250,15 +250,11 @@ This allows the stimulator to ignore the state of coil safety interlock switch.
             None
 */
 {
-    if (receipt) {
-        return this->processCommand("b@", "instr", 3, mes);
-    }
-    else {
-        return this->processCommand("b@", "", 3, mes);
-    }
+    std::map<QString, std::map<QString, int>> mes;
+    return this->processCommand("b@", "instr", 3, mes);
 }
 
-int Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error = MagStim::er, bool receipt)
+void Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error = MagStim::er, bool receipt)
 /*
     Enable/Disable remote control of stimulator. Disabling remote control will first disarm the Magstim unit.
 
@@ -296,10 +292,7 @@ int Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, int> >
     }
     else {
         if(enable){
-            QString a = this->unlockCode;
-            a = a.toLatin1();
-            QString b = "Q";
-            QString string = b+a;
+            QString string = this->unlockCode.toLatin1() + "Q";
             if(receipt) {
                 error = this->processCommand(string, "instr", 3, message);
             }
@@ -360,10 +353,11 @@ void Rapid::enhancedPowerMode(bool enable, std::map<QString, std::map<QString, i
 
 bool Rapid::isEnhanced()
 {
+    return true;
     //FIXME
 }
 
-int Rapid::setFreqeuncy(float newFrequency, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error = MagStim::er, bool receipt)
+int Rapid::setFrequency(float newFrequency, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error = MagStim::er, bool receipt)
 {
     this->sequenceValidated = false;
     // Convert to tenths of a Hz
@@ -600,7 +594,7 @@ Request current parameter settings from the Rapid.
     error = this->processCommand("\\@", "rapidParam", helpNumber, message);
 }
 
-int Rapid::setPower(int newPower, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error  = MagStim::er, bool receipt, bool delay)
+void Rapid::setPower(int newPower, bool delay = false, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error  = MagStim::er)
 /*
 Set power level for the Rapid.
 
@@ -626,40 +620,41 @@ Set power level for the Rapid.
 
     // Make sure we have a valid power value
     if(newPower % 1) {
-        return MagStim::PARAMETER_FLOAT_ERR;
+        error = MagStim::PARAMETER_FLOAT_ERR;
+        return;
     }
     else {
         if(this->isEnhanced()) {
             if(0 > newPower || newPower > 110) {
-                return MagStim::PARAMETER_RANGE_ERR;
+                error = MagStim::PARAMETER_RANGE_ERR;
+                return;
             }
             else if (0 > newPower || newPower > 100) {
-                return MagStim::PARAMETER_RANGE_ERR;
+                error = MagStim::PARAMETER_RANGE_ERR;
+                return;
             }
         }
     }
-
-    MagStim::setPower(newPower, delay = false, error, "@", message);             // TODO: Message is missing
+   // MagStim::setPower(newPower, delay, error, "@", message);
     if(error == 0) {
         std::map<QString, std::map<QString, int> > currentParameters;
         int updateError = 0;
-        getParameters(currentParameters, updateError);
+        this->getParameters(currentParameters, updateError);
         if(updateError == 0){
             if(currentParameters["rapid"]["singlePulseMode"] == false) {
                 int maxFrequency = this->MAX_FREQUENCY[this->voltage][this->super][currentParameters["rapidParam"]["power"]];
                 if(currentParameters["rapidParam"]["frequency"] > maxFrequency) {
-                    if(setFreqeuncy(maxFrequency) != 0){
-                        return MagStim::PARAMETER_UPDATE_ERR;
+                    if(this->setFrequency(maxFrequency, message, error) != 0){ //FW: FIXME message & error
+                        error = MagStim::PARAMETER_UPDATE_ERR;
+                        return;
                     }
                 }
             }
         }
         else {
-           return MagStim::PARAMETER_ACQUISTION_ERR;
+           error = MagStim::PARAMETER_ACQUISTION_ERR;
+           return;
         }
-    }
-    if(receipt) {
-        return error;
     }
 }
 

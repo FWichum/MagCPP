@@ -16,15 +16,15 @@ public:
     void connect(int &er);
     void disconnect();
     int rTMSMode(bool enable, std::map<QString,std::map<QString, int>> &message , bool receipt = false);
-    int ignoreCoilSafetySwitch(bool receipt = false);
-    int remoteControl(bool enable, std::map<QString, std::map<QString, int>> &message, int &error, bool receipt = false);
+    int ignoreCoilSafetySwitch(bool receipt);
+    void remoteControl(bool enable, std::map<QString, std::map<QString, int>> &message, int &error, bool receipt = false);
     void enhancedPowerMode(bool enable, std::map<QString, std::map<QString, int>> &message, int &error, bool receipt = false);
     bool isEnhanced();  // HO: TODO: QueryCommand is needed
-    int setFreqeuncy(float newFrequency, std::map<QString, std::map<QString, int>> &message, int &error, bool receipt = false);
+    int setFrequency(float newFrequency, std::map<QString, std::map<QString, int>> &message, int &error, bool receipt = false);
     int setNPulses(int newPulses, std::map<QString, std::map<QString, int>> &message, bool receipt = false);
     int setDuration(float newDuration, std::map<QString, std::map<QString, int>> &message, bool receipt = false);
     void getParameters(std::map<QString, std::map<QString, int>> &message, int &error);
-    int setPower(int newPower, std::map<QString, std::map<QString, int>> &message, int &error, bool receipt = false, bool delay = false);
+    void setPower(int newPower, bool delay, std::map<QString, std::map<QString, int> > &message, int &error);
     int setChargeDelay(int newDelay, std::map<QString, std::map<QString, int>> &message, int &error, bool receipt = false);
     int getChargeDelay(std::map<QString, std::map<QString, int>> &message, int &error);
     void fire(int &error);
