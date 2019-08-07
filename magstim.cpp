@@ -192,38 +192,9 @@ void MagStim::disconnect(int &error = MagStim::er)
     }
 }
 
-bool MagStim::encode_command(uint8_t *destination, uint8_t *data)
-{
-    //Muss noch angepasst werden
-    destination[4]=*data;
-        destination[5]=*++data;
-        destination[6]=*++data;
-
-        std::stringstream test;
-        std::string hexstring;
-        test<<std::setbase(16);
-        test<<std::uppercase;
-        test<<(0xff&(destination[0]+destination[1]+
-                destination[2]+destination[3]+
-                destination[4]+destination[5]+
-                destination[6]+destination[7]+
-                destination[8]));
-        //std::cout<<test.str();
-        hexstring+=test.str();
-        destination[9]= hexstring[0];
-        destination[10]= hexstring[1];
-        return true;
-}
-
 void MagStim::updateReceiveQueue(std::tuple<int, QByteArray> info)
 {
     this->receiveQueue.push(info);
-}
-
-bool MagStim::get_status()
-{
-    RS232_SendBuf(cp_num,stat_command,10);
-    return true; //FW FIXME
 }
 
 void MagStim::remoteControl(bool enable, std::map<QString, std::map<QString, int>> &message = MagStim::mes, int &error = MagStim::er)
