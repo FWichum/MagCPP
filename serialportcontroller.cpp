@@ -4,7 +4,7 @@
 #include <QIODevice>
 
 
-serialPortController::serialPortController(QString serialConnection, std::queue<std::tuple<QByteArray, QString, int>> serialWriteQueue, std::queue<float> serialReadQueue)
+serialPortController::serialPortController(QString serialConnection, std::queue<std::tuple<QByteArray, QString, int>> serialWriteQueue, std::queue<std::tuple<int, QByteArray> > serialReadQueue)
 {
     this->serialWriteQueue = serialWriteQueue;
     this->serialReadQueue = serialReadQueue;
@@ -91,14 +91,14 @@ void serialPortController::run()
                             bmessage.append(c);
                         }
                         if (reply.toInt()) {
-                            this->serialReadQueue.push(0); // FW: std::make_tuple(0, bmessage);
+                            this->serialReadQueue.push(std::make_tuple(0, bmessage)); // FW: std::make_tuple(0, bmessage);
                         }
                     }
                 } catch (...) { // FW: FIXME
-                    this->serialReadQueue.push(serialPortController::SERIAL_READ_ERROR); //FW: TODO tuple
+                    this->serialReadQueue.push(std::make_tuple(serialPortController::SERIAL_READ_ERROR, bmessage));
                 }
             } catch (...) { //FW: FIXME
-                this->serialReadQueue.push(serialPortController::SERIAL_WRITE_ERROR); //FW: TODO tuple
+                this->serialReadQueue.push(std::make_tuple(serialPortController::SERIAL_WRITE_ERROR, bmessage));
             }
         }
     }
