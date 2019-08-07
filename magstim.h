@@ -15,28 +15,31 @@
 #include <map>
 #include <QByteArray>
 #include "connectionrobot.h"
+#include "serialportcontroller.h"
+#include <QObject>
 
-class MagStim
+class MagStim : public QObject
 {
+    Q_OBJECT
+
 public:
     MagStim(QString serialConnection);
     //FW: TODO Destruktor!?
 
-    virtual bool connect(std::string port);
-    virtual void disconnect();
-    virtual bool get_status();
+    virtual void connect(int &error);
+    virtual void disconnect(int &error);
     virtual std::map<QString, std::map<QString, int>> parseMagstimResponse(std::list<int> responseString, QString responseType);
     virtual std::tuple<int, int, int> parseMagstimResponse_version(std::list<int> responseString);
     virtual void remoteControl(bool enable, std::map<QString, std::map<QString, int> > &message, int &error);
-    virtual std::map<QString, std::map<QString, int> > getParameters();
-    virtual void setPower();
-    virtual std::map<QString, std::map<QString, int> > getTemperature();
+    virtual std::map<QString, std::map<QString, int> > getParameters(int &error);
+    virtual void setPower(int newPower, bool delay, int &error, QString commandByte);
+    virtual std::map<QString, std::map<QString, int> > getTemperature(int &error);
     virtual void poke();
-    virtual void arm();
+    virtual void arm(bool delay, std::map<QString, std::map<QString, int> > &message, int &error);
     virtual void disarm(std::map<QString, std::map<QString, int> > &message, int &error);
-    virtual void isArmed();
-    virtual void isUnderControl();
-    virtual void isReadyToFire();
+    virtual bool isArmed();
+    virtual bool isUnderControl();
+    virtual bool isReadyToFire();
     virtual void fire(std::map<QString, std::map<QString, int> > &message, int &error);
     virtual void resetQuickFire();
     virtual void quickFire();
@@ -71,23 +74,25 @@ protected:
     static std::tuple<int, int, int> ver;
     static std::map<QString, std::map<QString, int>> mes;
 
-    std::queue<float> sendQueue;
-    std::queue<float> receiveQueue;
+    std::queue<std::tuple<QByteArray, QString, int>> sendQueue;
+    std::queue<std::tuple<int, QByteArray>> receiveQueue;
     std::queue<float> robotQueue;
+    connectionRobot *robot;
+    serialPortController *connection;
     // connection.daemon = true; //FW: TODO
-    connectionRobot robot;
+    // connectionRobot robot;
     // robot.daemon = true; //FW: TODO
     bool connected;
-    // connectionCommand = (b'Q@n', None, 3) //FW: TODO
+    std::tuple<QByteArray, QString, int> connectionCommand;
     // auto queryCommand; //FW: TODO
     int parameterReturnByte;
 
-    int bdrate=19200;
-    bool encode_command(uint8_t *destination, uint8_t *data);
-    int cp_num=16;
-    uint8_t command[13]={};
-    char mode[4]={'8','N','1',0};
-    uint8_t stat_command[10]={0x40,0x30,0x30,0x4D,0x30,0x30,0x34,0x44,0x0D,0x0A}; // stimmt noch nicht
+public slots:
+    void updateReceiveQueue(std::tuple<int, QByteArray> info);
+
+signals:
+    void updateSendQueue(const std::tuple<QByteArray, QString, int> &info);
+    void updateRobotQueue(const float &info);
 };
 
 #endif // MAGSTIM_H

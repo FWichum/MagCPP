@@ -5,6 +5,7 @@
 #-------------------------------------------------
 
 QT       += core gui
+QT       += serialport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -31,7 +32,6 @@ SOURCES += \
         magstimerror.cpp \
         main.cpp \
         rapid.cpp \
-        rs232.c \
         serialportcontroller.cpp
 
 HEADERS += \
@@ -40,7 +40,6 @@ HEADERS += \
         magstim.h \
         magstimerror.h \
         rapid.h \
-        rs232.h \
         serialportcontroller.h
 
 FORMS +=

@@ -99,7 +99,7 @@ void Rapid::connect(int &er=MagStim::er)
     */
 
 {
-    std::ignore = MagStim::connect("COM1");// HO: TODO: right port
+    MagStim::connect(er);
     std::ignore = this->getVersion(er);
     if (er) {
         this->disconnect();
@@ -116,7 +116,9 @@ void Rapid::disconnect()
     //Just some housekeeping before we call the base magstim class method disconnect
     this->sequenceValidated = false;
     this->repetitiveMode = false;
-    return MagStim::disconnect();
+    int i;
+    MagStim::disconnect(i);
+    return;
 }
 
 
