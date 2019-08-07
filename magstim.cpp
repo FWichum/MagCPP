@@ -8,14 +8,16 @@ MagStim::MagStim(QString serialConnection) //:
    // robot(this->sendQueue, this->robotQueue)
 {
     this->robot = new connectionRobot(this->sendQueue, this->robotQueue);
-    // FW: TODO signals
+    QObject::connect(this->robot, &connectionRobot::updateSerialWriteQueue, this->connection, &serialPortController::updateSerialWriteQueue);
+    QObject::connect(this,  &MagStim::updateRobotQueue, this->robot, &connectionRobot::updateUpdateRobotQueue);
+
     this->connection = new serialPortController(serialConnection, this->sendQueue, this->receiveQueue);
     QObject::connect(this->connection, &serialPortController::updateSerialReadQueue, this, &MagStim::updateReceiveQueue);
     QObject::connect(this, &MagStim::updateSendQueue, this->connection, &serialPortController::updateSerialWriteQueue);
     // connection.daemon = true; //FW: TODO
     // robot.daemon = true; //FW: TODO
     this->connected = false;
-    // connectionCommand = (b'Q@n', None, 3) //FW: TODO
+    this->connectionCommand = std::make_tuple(QString("Q@n").toUtf8(),"", 3);
     // auto queryCommand = std::bind(this->remoteControl, true, true);//FW: TODO
 }
 
@@ -165,7 +167,7 @@ void MagStim::connect(int &error = MagStim::er)
         this->remoteControl(true,mes,error);
         if (!error) { //FW: FIXME
             this->connected = true;
-            this->robot->setCommand(); // FW: TODO
+            this->robot->setCommand(this->connectionCommand);
             // this->robot->start(); // FW: TODO
             this->robot->run();
         } else {
@@ -186,7 +188,8 @@ void MagStim::disconnect(int &error = MagStim::er)
     if (this->connected) {
         std::map<QString, std::map<QString, int>> message;
         this->disarm(message, error);
-        this->robotQueue.push(0); // FW: FIXME
+        this->robotQueue.push(0); // FW: FIXME // FW: TODO is this neeeded?
+        emit updateRobotQueue(0);
         // FW: TODO
 
     }
@@ -284,7 +287,7 @@ void MagStim::poke()
 
 void MagStim::arm(bool delay = false, std::map<QString, std::map<QString, int>> &message = MagStim::mes, int &error = MagStim::er)
 {
-    error = this->processCommand("EB", "instr", 3, mes);
+    error = this->processCommand("EB", "instr", 3, message);
     if (delay) {
         // sleep
     }
@@ -402,13 +405,17 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
         }
         if (this->connected) {
             if (comString.at(0) == (char)0x82) {
-                this->robotQueue.push(-1);
+                this->robotQueue.push(-1); // FW: TODO is this neeeded?
+                emit updateRobotQueue(0);
             } else if (comString.left(2).contains("EA") ) {
-                this->robotQueue.push(1);
+                this->robotQueue.push(1); // FW: TODO is this neeeded?
+                emit updateRobotQueue(0);
             } else if (comString.left(2).contains("EB") ) {
-                this->robotQueue.push(2);
+                this->robotQueue.push(2); // FW: TODO is this neeeded?
+                emit updateRobotQueue(0);
             }  else {
-                this->robotQueue.push(0);
+                this->robotQueue.push(0); // FW: TODO is this neeeded?
+                emit updateRobotQueue(0);
             }
         }
         std::string s = reply.toStdString();
