@@ -6,14 +6,17 @@
 #include <tuple>
 #include <QByteArray>
 #include <QString>
+#include <QThread>
 
-class connectionRobot
+class connectionRobot : public QThread
 {
+     Q_OBJECT
+
 public:
     connectionRobot(std::queue<std::tuple<QByteArray, QString, int>> serialWriteQueue, std::queue<float> updateRobotQueue);
-    void run();
+    void run() override;
     clock_t defaultTimer();
-    void setCommand(); //FW: TODO which Type? What is this?
+    void setCommand(std::tuple<QByteArray, QString, int> connectionCommand);
 
 private:
     std::queue<std::tuple<QByteArray, QString, int>> serialWriteQueue;
@@ -21,7 +24,13 @@ private:
     bool stopped;
     bool paused;
     double nextPokeTime;
-    // FW: TODO connectionCommand
+    std::tuple<QByteArray, QString, int> connectionCommand;
+
+public slots:
+    void updateUpdateRobotQueue(const float info);
+
+signals:
+    void updateSerialWriteQueue(const std::tuple<QByteArray, QString, int> info);
 };
 
 #endif // CONNECTIONROBOT_H
