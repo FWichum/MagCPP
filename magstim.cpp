@@ -4,10 +4,14 @@
 #include <QRegExp>
 #include <QStringList>
 
-MagStim::MagStim(QString serialConnection) :
-    robot(this->sendQueue, this->robotQueue)
+MagStim::MagStim(QString serialConnection) //:
+   // robot(this->sendQueue, this->robotQueue)
 {
-    this->connect(serialConnection.toStdString());
+    this->robot = new connectionRobot(this->sendQueue, this->robotQueue);
+    // FW: TODO signals
+    this->connection = new serialPortController(serialConnection, this->sendQueue, this->receiveQueue);
+    QObject::connect(this->connection, &serialPortController::updateSerialReadQueue, this, &MagStim::updateReceiveQueue);
+    QObject::connect(this, &MagStim::updateSendQueue, this->connection, &serialPortController::updateSerialWriteQueue);
     // connection.daemon = true; //FW: TODO
     // robot.daemon = true; //FW: TODO
     this->connected = false;
@@ -147,54 +151,50 @@ std::tuple<int, int, int> MagStim::parseMagstimResponse_version(std::list<int> r
     return magstimResponse;
 }
 
-bool MagStim::connect(std::string port)
+void MagStim::connect(int &error = MagStim::er)
+/*
+ * Connect to the Magstim.
+ * This starts the serial port controller, as well as a process that constantly keeps in
+ * contact with the Magstim so as not to lose control.
+ */
 {
-
-    //FIXME: get portnumber from portlist
-    bool connected=false;
-    cp_num=0;
-    connected=RS232_OpenComport(cp_num,bdrate,mode);
-    //Check if connection was established
-    if(connected){
-        return true;
+    if (!this->connected) {
+        this->connection->start();
+        this->connection->run();
+        std::map<QString, std::map<QString, int>> mes;
+        this->remoteControl(true,mes,error);
+        if (!error) { //FW: FIXME
+            this->connected = true;
+            this->robot->setCommand(); // FW: TODO
+            // this->robot->start(); // FW: TODO
+            this->robot->run();
+        } else {
+            QByteArray qb;
+            QString s;
+            int i;
+            this->sendQueue.push(std::make_tuple(qb,s,i));
+            if (this->connection->isRunning()) {
+                //FW: TODO join()
+            }
+            //Raise MaigstimError
+        }
     }
-    else {
-        return false;
+}
+
+void MagStim::disconnect(int &error = MagStim::er)
+{
+    if (this->connected) {
+        std::map<QString, std::map<QString, int>> message;
+        this->disarm(message, error);
+        this->robotQueue.push(0); // FW: FIXME
+        // FW: TODO
+
     }
 }
 
-void MagStim::disconnect()
+void MagStim::updateReceiveQueue(std::tuple<int, QByteArray> info)
 {
-    RS232_CloseComport(cp_num);
-}
-
-bool MagStim::encode_command(uint8_t *destination, uint8_t *data)
-{
-    //Muss noch angepasst werden
-    destination[4]=*data;
-        destination[5]=*++data;
-        destination[6]=*++data;
-
-        std::stringstream test;
-        std::string hexstring;
-        test<<std::setbase(16);
-        test<<std::uppercase;
-        test<<(0xff&(destination[0]+destination[1]+
-                destination[2]+destination[3]+
-                destination[4]+destination[5]+
-                destination[6]+destination[7]+
-                destination[8]));
-        //std::cout<<test.str();
-        hexstring+=test.str();
-        destination[9]= hexstring[0];
-        destination[10]= hexstring[1];
-        return true;
-}
-
-bool MagStim::get_status()
-{
-    RS232_SendBuf(cp_num,stat_command,10);
-    return true; //FW FIXME
+    this->receiveQueue.push(info);
 }
 
 void MagStim::remoteControl(bool enable, std::map<QString, std::map<QString, int>> &message = MagStim::mes, int &error = MagStim::er)
@@ -379,6 +379,7 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
     if (this->connected || comString.at(0) == (char)81 || comString.at(0) == (char)82 || comString.at(0) == (char)74 || comString.at(0) == (char)70 || comString.contains("EA") || ( comString.at(0) == (char)92 && this->parameterReturnByte != 0 )  ) {
         std::tuple<QByteArray,QString, int> test;
         //this->sendQueue.push(test);    -------------------- <QByteArray, QString, int>
+        emit updateSendQueue(test);
         if (!receiptType.isEmpty()) {
             // error, reply = self.receiveQueue.get()  ------ <int, QByteArray>
             int error = 0;
