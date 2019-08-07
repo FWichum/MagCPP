@@ -116,7 +116,9 @@ void Rapid::disconnect()
     //Just some housekeeping before we call the base magstim class method disconnect
     this->sequenceValidated = false;
     this->repetitiveMode = false;
-    return MagStim::disconnect();
+    int i;
+    MagStim::disconnect(i);
+    return;
 }
 
 
