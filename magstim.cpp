@@ -8,7 +8,9 @@ MagStim::MagStim(QString serialConnection) //:
    // robot(this->sendQueue, this->robotQueue)
 {
     this->robot = new connectionRobot(this->sendQueue, this->robotQueue);
-    // FW: TODO signals
+    QObject::connect(this->robot, &connectionRobot::updateSerialWriteQueue, this->connection, &serialPortController::updateSerialWriteQueue);
+    QObject::connect(this,  &MagStim::updateRobotQueue, this->robot, &connectionRobot::updateUpdateRobotQueue);
+
     this->connection = new serialPortController(serialConnection, this->sendQueue, this->receiveQueue);
     QObject::connect(this->connection, &serialPortController::updateSerialReadQueue, this, &MagStim::updateReceiveQueue);
     QObject::connect(this, &MagStim::updateSendQueue, this->connection, &serialPortController::updateSerialWriteQueue);
