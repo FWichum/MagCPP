@@ -30,11 +30,9 @@ void serialPortController::run()
     // Make sure the RTS pin is set to off
     this->port.setRequestToSend(false);
 
-    //double writetimeout = 0.3; //waitForBytesWritten(300);  TODO
     this->port.waitForBytesWritten(300);
 
     while (true) {
-        //message, reply, readBytes = self._serialWriteQueue.get() //  TODO
         // If the first part of the message is None this signals the process to close the port and stop
         QByteArray bmessage = std::get<QByteArray>(this->serialWriteQueue.front());
         float message = bmessage.toFloat();
@@ -43,10 +41,9 @@ void serialPortController::run()
         this->serialWriteQueue.pop();
         char *c;
         // If the first part of the message is None this signals the process to close the port and stop
-        if((int)message == 0) { // TODO
+        if((int)message == 0) {
             break;
         }
-        //TODO  was für Werte gibt es in Message?
         // If the first part of the message is a 1 this signals the process to trigger a quick fire using the RTS pin
         else if((int)message == 1) {
             this->port.setRequestToSend(true);
@@ -58,7 +55,7 @@ void serialPortController::run()
         // Otherwise, the message is a command string
         else {
             // There shouldn't be any rubbish in the input buffer, but check and clear it just in case
-            // if(this->port.readBufferSize()!= 0) {           // TODO funktioniert das überhaupt so? wird es benötigt?
+            // if(this->port.readBufferSize()!= 0) {    // FIXME funktioniert das überhaupt so? wird es benötigt?
             this->port.clear(QSerialPort::AllDirections);
             try {
                 // Try writing to the port
