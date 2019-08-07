@@ -81,10 +81,9 @@ clock_t connectionRobot::defaultTimer()
     return clock();
 }
 
-void connectionRobot::setCommand()
+void connectionRobot::setCommand(std::tuple<QByteArray, QString, int> connectionCommand)
 {
-    // Test.
-    // FW: TODO
+    this->connectionCommand = connectionCommand;
 }
 
 void connectionRobot::updateUpdateRobotQueue(const float info)

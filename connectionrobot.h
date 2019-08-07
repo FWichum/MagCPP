@@ -16,7 +16,7 @@ public:
     connectionRobot(std::queue<std::tuple<QByteArray, QString, int>> serialWriteQueue, std::queue<float> updateRobotQueue);
     void run() override;
     clock_t defaultTimer();
-    void setCommand(); //FW: TODO which Type? What is this?
+    void setCommand(std::tuple<QByteArray, QString, int> connectionCommand);
 
 private:
     std::queue<std::tuple<QByteArray, QString, int>> serialWriteQueue;
@@ -24,7 +24,7 @@ private:
     bool stopped;
     bool paused;
     double nextPokeTime;
-    // FW: TODO connectionCommand
+    std::tuple<QByteArray, QString, int> connectionCommand;
 
 public slots:
     void updateUpdateRobotQueue(const float info);
