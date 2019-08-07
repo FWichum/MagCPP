@@ -8,7 +8,7 @@ connectionRobot::connectionRobot(std::queue<std::tuple<QByteArray, QString, int>
     this->stopped = false;
     this->paused = true;
     this->nextPokeTime = NAN;
-    // this->connectionCommand = NAN; //FW: TODO
+    this->connectionCommand = std::make_tuple("","",0); //FW: TODO
 }
 
 void connectionRobot::run()
