@@ -11,14 +11,12 @@ MagStim::MagStim(QString serialConnection) //:
     QObject::connect(this->robot, &connectionRobot::updateSerialWriteQueue, this->connection, &serialPortController::updateSerialWriteQueue);
     QObject::connect(this,  &MagStim::updateRobotQueue, this->robot, &connectionRobot::updateUpdateRobotQueue);
 
-    this->connection = new serialPortController(serialConnection, this->sendQueue, this->receiveQueue);
-    QObject::connect(this->connection, &serialPortController::updateSerialReadQueue, this, &MagStim::updateReceiveQueue);
-    QObject::connect(this, &MagStim::updateSendQueue, this->connection, &serialPortController::updateSerialWriteQueue);
-    // connection.daemon = true; //FW: TODO
-    // robot.daemon = true; //FW: TODO
+    this->setupSerialPort(serialConnection);
+    // connection.daemon = true; //FW: TODO daemon
+    // robot.daemon = true; //FW: TODO daemon
     this->connected = false;
     this->connectionCommand = std::make_tuple(QString("Q@n").toUtf8(),"", 3);
-    // auto queryCommand = std::bind(this->remoteControl, true, true);//FW: TODO
+    // auto queryCommand = std::bind(this->remoteControl, true, true);//FW: TODO queryCommand
 }
 
 std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::list<int> responseString, QString responseType)
@@ -78,25 +76,25 @@ std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::li
         if (responseString.size() == 20) {
             std::map<QString, int> rapidParam;
             rapidParam["power"]     = rs.mid(0,2).toInt();
-            rapidParam["frequency"] = rs.mid(3,6).toInt(); //FW: TODO
+            rapidParam["frequency"] = rs.mid(3,6).toInt(); //FW: TODO /10
             rapidParam["nPulses"]   = rs.mid(7,11).toInt();
-            rapidParam["duration"]  = rs.mid(12,15).toInt(); //FW: TODO
-            rapidParam["wait"]      = rs.mid(16,19).toInt(); //FW: TODO
+            rapidParam["duration"]  = rs.mid(12,15).toInt(); //FW: TODO /10
+            rapidParam["wait"]      = rs.mid(16,19).toInt(); //FW: TODO /10
             magstimResponse["rapidParam"]= rapidParam;
         } else {
             std::map<QString, int> rapidParam;      // responseString 38 50 57 48 = als chr --> 029
-            //FW: TODO      // Power = 29     WICHTIG = 0:3 heißt 0:2
+            // Power = 29     WICHTIG = 0:3 heißt 0:2
             rapidParam["power"]     = rs.mid(0,2).toInt();
-            rapidParam["frequency"] = rs.mid(3,6).toInt(); //FW: TODO
+            rapidParam["frequency"] = rs.mid(3,6).toInt(); //FW: TODO /10
             rapidParam["nPulses"]   = rs.mid(7,10).toInt();
-            rapidParam["duration"]  = rs.mid(11,13).toInt(); //FW: TODO
-            rapidParam["wait"]      = rs.mid(14,rs.length()-1).toInt(); //FW: TODO
+            rapidParam["duration"]  = rs.mid(11,13).toInt(); //FW: TODO /10
+            rapidParam["wait"]      = rs.mid(14,rs.length()-1).toInt(); //FW: TODO /10
             magstimResponse["rapidParam"]= rapidParam;
         }
     } else if (responseType == "magstimTemp") {
         std::map<QString, int> magstimTemp;
-        magstimTemp["coil1Temp"]   = rs.mid(0,2).toInt(); //FW: TODO
-        magstimTemp["coil2Temp"]   = rs.mid(2,5).toInt(); //FW: TODO
+        magstimTemp["coil1Temp"]   = rs.mid(0,2).toInt(); //FW: TODO /10
+        magstimTemp["coil2Temp"]   = rs.mid(2,5).toInt(); //FW: TODO /10
         magstimResponse["magstimTemp"]= magstimTemp;
     } else if (responseType == "systemRapid") {
         int temp = responseString.front();
@@ -110,7 +108,7 @@ std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::li
         magstimResponse["extInstr"]= extInstr;
     } else if (responseType == "error") {
         std::map<QString, int> currentErrorCode;
-        currentErrorCode["currentErrorCode"]  = rs.mid(0,rs.length()-2).toInt(); //FW: TODO
+        currentErrorCode["currentErrorCode"]  = rs.mid(0,rs.length()-2).toInt();
         magstimResponse["currentErrorCode"]= currentErrorCode;
     } else if (responseType == "instrCharge") {
         std::map<QString, int> chargeDelay;
@@ -165,10 +163,10 @@ void MagStim::connect(int &error = MagStim::er)
         this->connection->run();
         std::map<QString, std::map<QString, int>> mes;
         this->remoteControl(true,mes,error);
-        if (!error) { //FW: FIXME
+        if (!error) {
             this->connected = true;
             this->robot->setCommand(this->connectionCommand);
-            // this->robot->start(); // FW: TODO
+            this->robot->start();
             this->robot->run();
         } else {
             QByteArray qb;
@@ -176,7 +174,7 @@ void MagStim::connect(int &error = MagStim::er)
             int i;
             this->sendQueue.push(std::make_tuple(qb,s,i));
             if (this->connection->isRunning()) {
-                //FW: TODO join()
+                 this->connection->wait(); //FW: FIXME join()
             }
             //Raise MaigstimError
         }
@@ -188,10 +186,16 @@ void MagStim::disconnect(int &error = MagStim::er)
     if (this->connected) {
         std::map<QString, std::map<QString, int>> message;
         this->disarm(message, error);
-        this->robotQueue.push(0); // FW: FIXME // FW: TODO is this neeeded?
+        this->robotQueue.push(0); // FW: TODO is this neeeded?
         emit updateRobotQueue(0);
-        // FW: TODO
-
+        if (this->robot->isRunning()) {
+            this->robot->wait(); // FW: FIXME join()
+        }
+        this->remoteControl(false,message, error);
+        this->sendQueue.push(std::make_tuple("","",NULL));
+        if (this->connection->isRunning()) {
+             this->connection->wait(); // FW: FXME join()
+        }
     }
 }
 
@@ -358,35 +362,41 @@ void MagStim::fire(std::map<QString, std::map<QString, int> > &message = MagStim
 
 void MagStim::resetQuickFire()
 {
-
+    this->sendQueue.push(std::make_tuple(QByteArray::number(-1), "", 0)); // FW: TODO is this needed?
+    emit updateSendQueue(std::make_tuple(QByteArray::number(-1), "", 0));
 }
 
 void MagStim::quickFire()
 {
-
+    this->sendQueue.push(std::make_tuple(QByteArray::number(1), "", 0)); // FW: TODO is this needed?
+    emit updateSendQueue(std::make_tuple(QByteArray::number(1), "", 0));
 }
 
 void MagStim::setupSerialPort(QString serialConnection)
 {
-
+    // FW: TODO in case of virtual load virtual
+    this->connection = new serialPortController(serialConnection, this->sendQueue, this->receiveQueue);
+    QObject::connect(this->connection, &serialPortController::updateSerialReadQueue, this, &MagStim::updateReceiveQueue);
+    QObject::connect(this, &MagStim::updateSendQueue, this->connection, &serialPortController::updateSerialWriteQueue);
 }
 
 int MagStim::processCommand(QString commandString, QString receiptType, int readBytes, std::tuple<int, int, int> &version, std::map<QString, std::map<QString, int>> &message)
 {
     // FW: Main Changes for C++
-    // TODO: Return Error oder Tuple oder ... Referenz verwenden!?
     // commandString "/@"
     // EB --> 69 66
     QByteArray comString = commandString.toLocal8Bit();
     QByteArray reply;
     if (this->connected || comString.at(0) == (char)81 || comString.at(0) == (char)82 || comString.at(0) == (char)74 || comString.at(0) == (char)70 || comString.contains("EA") || ( comString.at(0) == (char)92 && this->parameterReturnByte != 0 )  ) {
-        std::tuple<QByteArray,QString, int> test;
-        //this->sendQueue.push(test);    -------------------- <QByteArray, QString, int>
-        emit updateSendQueue(test);
+        std::tuple<QByteArray,QString, int> info;
+        QByteArray qb = comString + calcCRC(comString); // FW: FIXME most likely
+        info = std::make_tuple(qb, receiptType, readBytes);
+        this->sendQueue.push(info);  // FW: TODO is this needed?
+        emit updateSendQueue(info);
         if (!receiptType.isEmpty()) {
-            // error, reply = self.receiveQueue.get()  ------ <int, QByteArray>
-            int error = 0;
-            reply = "Test"; // FW: TODO
+            int error = std::get<int>(this->receiveQueue.front());
+            reply = std::get<QByteArray>(this->receiveQueue.front());
+            this->receiveQueue.pop();
             if (error) {
                 return error; // FW: Change for C++ Reasons to just error
             } else {
