@@ -92,6 +92,7 @@ public slots:
 
 signals:
     void updateSendQueue(const std::tuple<QByteArray, QString, int> &info);
+    void updateRobotQueue(const float &info);
 };
 
 #endif // MAGSTIM_H

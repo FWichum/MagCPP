@@ -8,9 +8,10 @@
 #include <QString>
 #include <QThread>
 
-class connectionRobot : QThread
+class connectionRobot : public QThread
 {
      Q_OBJECT
+
 public:
     connectionRobot(std::queue<std::tuple<QByteArray, QString, int>> serialWriteQueue, std::queue<float> updateRobotQueue);
     void run() override;
@@ -24,6 +25,10 @@ private:
     bool paused;
     double nextPokeTime;
     // FW: TODO connectionCommand
+
+public slots:
+    void updateUpdateRobotQueue(const float info);
+    void updateSerialWriteQueue(const std::tuple<QByteArray, QString, int> info);
 };
 
 #endif // CONNECTIONROBOT_H

@@ -86,3 +86,13 @@ void connectionRobot::setCommand()
     // Test.
     // FW: TODO
 }
+
+void connectionRobot::updateUpdateRobotQueue(const float info)
+{
+    this->updateRobotQueue.push(info);
+}
+
+void connectionRobot::updateSerialWriteQueue(const std::tuple<QByteArray, QString, int> info)
+{
+    this->serialWriteQueue.push(info);
+}
