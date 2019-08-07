@@ -198,7 +198,7 @@ bool MagStim::encode_command(uint8_t *destination, uint8_t *data)
 
 void MagStim::updateReceiveQueue(std::tuple<int, QByteArray> info)
 {
-
+    this->receiveQueue.push(info);
 }
 
 bool MagStim::get_status()
@@ -302,6 +302,7 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
     if (this->connected || comString.at(0) == (char)81 || comString.at(0) == (char)82 || comString.at(0) == (char)74 || comString.at(0) == (char)70 || comString.contains("EA") || ( comString.at(0) == (char)92 && this->parameterReturnByte != 0 )  ) {
         std::tuple<QByteArray,QString, int> test;
         //this->sendQueue.push(test);    -------------------- <QByteArray, QString, int>
+        emit updateSendQueue(test);
         if (!receiptType.isEmpty()) {
             // error, reply = self.receiveQueue.get()  ------ <int, QByteArray>
             int error = 0;
