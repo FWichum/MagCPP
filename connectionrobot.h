@@ -28,6 +28,8 @@ private:
 
 public slots:
     void updateUpdateRobotQueue(const float info);
+
+signals:
     void updateSerialWriteQueue(const std::tuple<QByteArray, QString, int> info);
 };
 
