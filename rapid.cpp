@@ -637,7 +637,7 @@ Set power level for the Rapid.
         }
     }
 
-    MagStim::setPower(newPower, delay = false, error, "@");             // TODO: Message is missing
+    MagStim::setPower(newPower, delay = false, error, "@", message);             // TODO: Message is missing
     if(error == 0) {
         std::map<QString, std::map<QString, int> > currentParameters;
         int updateError = 0;
