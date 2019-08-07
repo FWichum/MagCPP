@@ -136,7 +136,7 @@ void Rapid::connect(int &er=MagStim::er)
     */
 
 {
-    std::ignore = MagStim::connect();// FIXME: port number for MagStim::connect(port)
+    MagStim::connect(er);
     std::ignore = this->getVersion(er);
     if (er) {
         this->disconnect();
@@ -153,7 +153,9 @@ void Rapid::disconnect()
     //Just some housekeeping before we call the base magstim class method disconnect
     this->sequenceValidated = false;
     this->repetitiveMode = false;
-    return MagStim::disconnect();
+    int i;
+    MagStim::disconnect(i);
+    return;
 }
 
 int Rapid::rTMSMode(bool enable, std::map<QString, std::map<QString, int>> &message = MagStim::mes, bool receipt)
@@ -864,6 +866,3 @@ void Rapid::setDefault()
     this->MAX_FREQUENCY = rapid["maxFrequency"].as<std::map<int, std::map<int, std::map<int, int>>>>();
     this->JOULES = rapid["joules"].as<std::map<int, float>>();
 }
-
-
-
