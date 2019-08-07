@@ -99,7 +99,7 @@ void Rapid::connect(int &er=MagStim::er)
     */
 
 {
-    std::ignore = MagStim::connect("COM1");// HO: TODO: right port
+    MagStim::connect(er);
     std::ignore = this->getVersion(er);
     if (er) {
         this->disconnect();
