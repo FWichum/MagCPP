@@ -4,7 +4,8 @@
 #include <QRegExp>
 #include <QStringList>
 
-MagStim::MagStim(QString serialConnection) //:
+MagStim::MagStim(QString serialConnection, QObject* parent)
+: QObject(parent)
    // robot(this->sendQueue, this->robotQueue)
 {
     this->robot = new connectionRobot(this->sendQueue, this->robotQueue);
@@ -413,6 +414,14 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
 //            this->receiveQueue.pop(); // FW: FIXME
 
 
+            // TEsting if it is safe to get the first item in the queue
+            if(this->receiveQueue.size() > 0) {
+                qInfo() << "MagStim::processCommand - receiveQueue has" << this->receiveQueue.size() << "entries.";
+                reply = std::get<1>(this->receiveQueue.front());
+                this->receiveQueue.pop(); // FW: FIXME
+            } else {
+                qWarning() << "MagStim::processCommand - receiveQueue is empty.";
+            }
 
             if (error) {
                 return error; // FW: Change for C++ Reasons to just error

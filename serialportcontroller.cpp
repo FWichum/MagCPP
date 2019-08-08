@@ -5,7 +5,9 @@
 
 #include <iostream>
 
-serialPortController::serialPortController(QString serialConnection, std::queue<std::tuple<QByteArray, QString, int>> serialWriteQueue, std::queue<std::tuple<int, QByteArray> > serialReadQueue)
+serialPortController::serialPortController(QString serialConnection,
+                                           std::queue<std::tuple<QByteArray, QString, int>> serialWriteQueue,
+                                           std::queue<std::tuple<int, QByteArray> > serialReadQueue)
 {
     this->serialWriteQueue = serialWriteQueue;
     this->serialReadQueue = serialReadQueue;
@@ -39,6 +41,9 @@ void serialPortController::run()
     this->port.setRequestToSend(false);
     this->port.waitForBytesWritten(300);
     while (true) {
+        // This locker will lock the mutex until it is destroyed, i.e. when this function call goes out of scope
+        QMutexLocker(&mutex);
+
         // If the first part of the message is None this signals the process to close the port and stop
         int readBytes = std::get<2>(this->serialWriteQueue.front());
         QString reply = std::get<1>(this->serialWriteQueue.front());
@@ -127,6 +132,9 @@ void serialPortController::run()
 
 void serialPortController::updateSerialWriteQueue(std::tuple<QByteArray, QString, int> info)
 {
+    // This locker will lock the mutex until it is destroyed, i.e. when this function call goes out of scope
+    QMutexLocker(&mutex);
+
     std::cout << " upgedaterer SerialWriteQueue" << std::endl;
     this->serialWriteQueue.push(info);
 }

@@ -23,7 +23,7 @@ class MagStim : public QObject
     Q_OBJECT
 
 public:
-    MagStim(QString serialConnection);
+    MagStim(QString serialConnection, QObject* parent = 0);
     //FW: TODO Destruktor!?
 
     virtual void connect(int &error);

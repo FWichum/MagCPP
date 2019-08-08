@@ -7,12 +7,15 @@
 #include <QByteArray>
 #include <QString>
 #include <QThread>
+#include <QMutexLocker>
+#include <QMutex>
 
 class connectionRobot : public QThread
 {
      Q_OBJECT
 
 public:
+    // Note that all functions except for run, are run in the callers thread
     connectionRobot(std::queue<std::tuple<QByteArray, QString, int>> serialWriteQueue, std::queue<float> updateRobotQueue);
     void run() override;
     clock_t defaultTimer();
@@ -25,6 +28,8 @@ private:
     bool paused;
     double nextPokeTime;
     std::tuple<QByteArray, QString, int> connectionCommand;
+    QMutex mutex;
+
 
 public slots:
     void updateUpdateRobotQueue(const float info);

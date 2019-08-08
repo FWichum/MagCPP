@@ -1,6 +1,7 @@
 #include "connectionrobot.h"
 #include <cmath>
 
+
 connectionRobot::connectionRobot(std::queue<std::tuple<QByteArray, QString, int>> serialWriteQueue, std::queue<float> updateRobotQueue)
 {
     this->serialWriteQueue = serialWriteQueue;
@@ -18,6 +19,9 @@ void connectionRobot::run()
     // This sends an "enable remote control" command to the serial port controller every 500ms (if armed) or 5000 ms (if disarmed); only runs once the stimulator is armed
     double pokeLatency = 5;
     while (true) {
+        // This locker will lock the mutex until it is destroyed, i.e. when one while loop is over
+        QMutexLocker(&mutex);
+
         // If the robot is currently paused, wait until we get a None (stop) or a non-negative number (start/resume) in the queue
         while (this->paused) {
             float message = this->updateRobotQueue.front(); // FW: TODO ist float der richtige Typ? Mit int ist NAN nicht möglich :/
@@ -86,10 +90,16 @@ clock_t connectionRobot::defaultTimer()
 
 void connectionRobot::setCommand(std::tuple<QByteArray, QString, int> connectionCommand)
 {
+    // This locker will lock the mutex until it is destroyed, i.e. when this function call goes out of scope
+    QMutexLocker(&mutex);
+
     this->connectionCommand = connectionCommand;
 }
 
 void connectionRobot::updateUpdateRobotQueue(const float info)
 {
+    // This locker will lock the mutex until it is destroyed, i.e. when this function call goes out of scope
+    QMutexLocker(&mutex);
+
     this->updateRobotQueue.push(info);
 }
