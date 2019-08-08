@@ -215,7 +215,7 @@ int Rapid::rTMSMode(bool enable, std::map<QString, std::map<QString, int>> &mess
             this->repetitiveMode = true;
             std::map<QString, std::map<QString, int> > mes;
             int updateError = 0;
-            getParameters(mes, updateError);
+            mes = getParameters(updateError);
             if (updateError == 0) {
                 if (mes["rapidParam"]["frequency"] == 0) {
                     updateError = this->processCommand("B0010", "instrRapid", 4, mes);
@@ -258,7 +258,7 @@ This allows the stimulator to ignore the state of coil safety interlock switch.
     return this->processCommand("b@", "instr", 3, mes);
 }
 
-void Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error = MagStim::er, bool receipt)
+void Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error = MagStim::er)
 /*
     Enable/Disable remote control of stimulator. Disabling remote control will first disarm the Magstim unit.
 
@@ -275,42 +275,23 @@ void Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, int> 
                 None
 */
 {
+    std::cout << "Rapid remoteControl" << std::endl;
     this->sequenceValidated = false;
     if (this->unlockCode.isEmpty()) {
         if(enable){
-            if(receipt) {
             error = this->processCommand("Q@", "instr", 3, message);
-            }
-            else {
-                error = this->processCommand("Q@", "", 3, message);
-            }
         }
         else {
-            if(receipt) {
             error = this->processCommand("R@", "instr", 3, message);
-            }
-            else {
-                error = this->processCommand("R@", "", 3, message);
-            }
         }
     }
     else {
         if(enable){
-            QString string = this->unlockCode.toLatin1() + "Q";
-            if(receipt) {
-                error = this->processCommand(string, "instr", 3, message);
-            }
-            else {
-                error = this->processCommand(string, "", 3, message);
-            }
+            QString string = this->unlockCode.toLatin1().append("Q");
+            error = this->processCommand(string, "instr", 3, message);
         }
         else {
-            if(receipt) {
-                error = this->processCommand("R@", "instr", 3, message);
-            }
-            else {
-                error = this->processCommand("R@", "", 3, message);
-            }
+            error = this->processCommand("R@", "instr", 3, message);
         }
     }
 }
@@ -373,7 +354,7 @@ int Rapid::setFrequency(float newFrequency, std::map<QString, std::map<QString, 
     }
     std::map<QString, std::map<QString, int> > currentParameters;
     int updateError = 0;
-    getParameters(currentParameters, updateError);
+    currentParameters = getParameters(updateError);
     if (updateError) {
         return MagStim::PARAMETER_ACQUISTION_ERR;
     }
@@ -390,7 +371,7 @@ int Rapid::setFrequency(float newFrequency, std::map<QString, std::map<QString, 
     if (error == 0){
         std::map<QString, std::map<QString, int> > currentParameters;
         int updateError = 0;
-        getParameters(currentParameters, updateError);
+        currentParameters = getParameters(updateError);
         if(updateError == 0) {
             int duration = currentParameters["rapidParam"]["duration"];
             int frequency = currentParameters["rapidParam"]["frequency"];
@@ -465,7 +446,7 @@ Set number of pulses in rTMS pulse train.
     if(error == 0) {
         std::map<QString, std::map<QString, int> > currentParameters;
         int updateError = 0;
-        getParameters(currentParameters, updateError);
+        currentParameters = getParameters(updateError);
         int nPulses = currentParameters["rapidParam"]["nPulses"];
         int frequency = currentParameters["rapidParam"]["frequency"];
         QString string1 = QString::number(nPulses/frequency).rightJustified(4, '0');
@@ -555,7 +536,7 @@ Set duration of rTMS pulse train.
     if(error == 0) {
         std::map<QString, std::map<QString, int> > currentParameters;
         int updateError = 0;
-        getParameters(currentParameters, updateError);
+        currentParameters = getParameters(updateError);
         int duration = currentParameters["rapidParam"]["duration"];
         int frequency = currentParameters["rapidParam"]["frequency"];
         QString string1 = QString::number(duration*frequency).rightJustified(5, '0');
@@ -583,7 +564,7 @@ Set duration of rTMS pulse train.
     }
 }
 
-void Rapid::getParameters(std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error  = MagStim::er)
+std::map<QString, std::map<QString, int> > Rapid::getParameters(int &error  = MagStim::er)
 /*
 Request current parameter settings from the Rapid.
 
@@ -594,8 +575,10 @@ Request current parameter settings from the Rapid.
             and parameter setting ['rapidParam'] dicts, otherwise returns an error string
 */
 {
+    std::map<QString, std::map<QString, int> > message;
     int helpNumber = this->parameterReturnBytes;
     error = this->processCommand("\\@", "rapidParam", helpNumber, message);
+    return message;
 }
 
 void Rapid::setPower(int newPower, bool delay = false, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error  = MagStim::er)
@@ -643,7 +626,7 @@ Set power level for the Rapid.
     if(error == 0) {
         std::map<QString, std::map<QString, int> > currentParameters;
         int updateError = 0;
-        this->getParameters(currentParameters, updateError);
+        currentParameters = this->getParameters(updateError);
         if(updateError == 0){
             if(currentParameters["rapid"]["singlePulseMode"] == false) {
                 int maxFrequency = this->MAX_FREQUENCY[this->voltage][this->super][currentParameters["rapidParam"]["power"]];
@@ -799,7 +782,7 @@ Validate the energy consumption for the current rTMS parameters for the Rapid.
         TimeHelp = 60;
     }
 
-    getParameters(parameters, error);
+    parameters = getParameters(error);
     if (error) {
         return MagStim::PARAMETER_ACQUISTION_ERR;
     }

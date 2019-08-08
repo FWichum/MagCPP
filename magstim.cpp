@@ -166,7 +166,7 @@ void MagStim::connect(int &error = MagStim::er)
 //        this->connection->run();
                 std::cout << "Connection started" << std::endl;
         std::map<QString, std::map<QString, int>> mes;
-        this->remoteControl(true,mes,error);
+        remoteControl(true,mes,error);
             std::cout << "Remote? Error :" << error << std::endl;
         if (!error) {
             this->connected = true;
@@ -196,7 +196,7 @@ void MagStim::disconnect(int &error = MagStim::er)
         if (this->robot->isRunning()) {
             this->robot->wait(); // FW: FIXME join()
         }
-        this->remoteControl(false,message, error);
+        remoteControl(false,message, error);
         this->sendQueue.push(std::make_tuple("","",NULL));
         if (this->connection->isRunning()) {
              this->connection->wait(); // FW: FXME join()
@@ -213,7 +213,7 @@ void MagStim::updateReceiveQueue(std::tuple<int, QByteArray> info)
 void MagStim::remoteControl(bool enable, std::map<QString, std::map<QString, int>> &message = MagStim::mes, int &error = MagStim::er)
 {
     QString str = "instr";
-        std::cout << "RemoteControl" << std::endl;
+        std::cout << "Magstim RemoteControl" << std::endl;
     if (enable) {
         error = this->processCommand("Q@", str, 3, message);
     } else {
@@ -240,7 +240,7 @@ void MagStim::setPower(int newPower, bool delay=false, int &error = MagStim::er,
     // If enforcing power change delay, grab current parameters
     int priorPower = 0;
     if (delay) {
-        message = this->getParameters(error);
+        message = getParameters(error);
         if (error) {
             return;
         }
@@ -317,7 +317,7 @@ bool MagStim::isArmed()
 {
     int error;
     std::map<QString, std::map<QString, int>> mes;
-    this->remoteControl(true,mes,error);
+    remoteControl(true,mes,error);
     if (error) {
         return false;
     }
@@ -333,7 +333,7 @@ bool MagStim::isUnderControl()
 {
     int error;
     std::map<QString, std::map<QString, int>> mes;
-    this->remoteControl(true,mes,error);
+    remoteControl(true,mes,error);
     if (error) {
         return false;
     }
@@ -349,7 +349,7 @@ bool MagStim::isReadyToFire()
 {
     int error;
     std::map<QString, std::map<QString, int>> mes;
-    this->remoteControl(true,mes,error);
+    remoteControl(true,mes,error);
     if (error) {
         return false;
     }
