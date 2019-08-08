@@ -1,7 +1,7 @@
 #include "rapid.h"
 #include "rapid.h"
 
-#include "yaml/include/yaml-cpp/yaml.h"
+//#include "yaml/include/yaml-cpp/yaml.h"
 #include <QDir>
 #include <QFile>
 
@@ -843,12 +843,12 @@ void Rapid::setDefault()
     QString file = QDir::currentPath() + "/rapid_config.yaml";
 
     if (QFile::exists(file)) {
-        YAML::Node config = YAML::LoadFile(file.toStdString());
-        this->DEFAULT_RAPID_TYPE = config["defaultRapidType"].as<int>();
-        this->DEFAULT_VOLTAGE = config["defaultVoltage"].as<int>();
-        this->DEFAULT_UNLOCK_CODE = QString::fromStdString(config["unlockCode"].as<std::string>());
-        this->ENFORCE_ENERGY_SAFETY = config["enforceEnergySafety"].as<bool>();
-        this->DEFAULT_VIRTUAL_VERSION = std::make_tuple(5,0,0); //FIXME: config["virtualVersionNumber"].as<std::tuple<int, int, int>>();
+//        YAML::Node config = YAML::LoadFile(file.toStdString());
+//        this->DEFAULT_RAPID_TYPE = config["defaultRapidType"].as<int>();
+//        this->DEFAULT_VOLTAGE = config["defaultVoltage"].as<int>();
+//        this->DEFAULT_UNLOCK_CODE = QString::fromStdString(config["unlockCode"].as<std::string>());
+//        this->ENFORCE_ENERGY_SAFETY = config["enforceEnergySafety"].as<bool>();
+//        this->DEFAULT_VIRTUAL_VERSION = std::make_tuple(5,0,0); //FIXME: config["virtualVersionNumber"].as<std::tuple<int, int, int>>();
     } else {
         this->DEFAULT_RAPID_TYPE = 0;
         this->DEFAULT_VOLTAGE = 240;
@@ -857,7 +857,7 @@ void Rapid::setDefault()
         this->DEFAULT_VIRTUAL_VERSION = std::make_tuple(5,0,0);
     }
     file = QDir::currentPath() + "/rapid_system_info.yaml";
-    YAML::Node rapid = YAML::LoadFile(file.toStdString());
-    this->MAX_FREQUENCY = rapid["maxFrequency"].as<std::map<int, std::map<int, std::map<int, int>>>>();
-    this->JOULES = rapid["joules"].as<std::map<int, float>>();
+//    YAML::Node rapid = YAML::LoadFile(file.toStdString());
+//    this->MAX_FREQUENCY = rapid["maxFrequency"].as<std::map<int, std::map<int, std::map<int, int>>>>();
+//    this->JOULES = rapid["joules"].as<std::map<int, float>>();
 }

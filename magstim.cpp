@@ -8,8 +8,6 @@ MagStim::MagStim(QString serialConnection) //:
    // robot(this->sendQueue, this->robotQueue)
 {
     this->robot = new connectionRobot(this->sendQueue, this->robotQueue);
-    QObject::connect(this->robot, &connectionRobot::updateSerialWriteQueue, this->connection, &serialPortController::updateSerialWriteQueue);
-    QObject::connect(this,  &MagStim::updateRobotQueue, this->robot, &connectionRobot::updateUpdateRobotQueue);
 
     this->setupSerialPort(serialConnection);
     // connection.daemon = true; //FW: TODO daemon
@@ -17,6 +15,9 @@ MagStim::MagStim(QString serialConnection) //:
     this->connected = false;
     this->connectionCommand = std::make_tuple(QString("Q@n").toUtf8(),"", 3);
     // auto queryCommand = std::bind(this->remoteControl, true, true);//FW: TODO queryCommand
+
+    QObject::connect(this->robot, &connectionRobot::updateSerialWriteQueue, this->connection, &serialPortController::updateSerialWriteQueue);
+    QObject::connect(this,  &MagStim::updateRobotQueue, this->robot, &connectionRobot::updateUpdateRobotQueue);
 }
 
 std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::list<int> responseString, QString responseType)
@@ -158,16 +159,20 @@ void MagStim::connect(int &error = MagStim::er)
  * contact with the Magstim so as not to lose control.
  */
 {
+        std::cout << "Start connection()" << std::endl;
     if (!this->connected) {
-        this->connection->start();
-        this->connection->run();
+            std::cout << "Try connecting" << std::endl;
+        this->connection->start(QThread::Priority::InheritPriority);
+//        this->connection->run();
+                std::cout << "Connection started" << std::endl;
         std::map<QString, std::map<QString, int>> mes;
         this->remoteControl(true,mes,error);
+            std::cout << "Remote? Error :" << error << std::endl;
         if (!error) {
             this->connected = true;
             this->robot->setCommand(this->connectionCommand);
-            this->robot->start();
-            this->robot->run();
+            this->robot->start(QThread::Priority::TimeCriticalPriority);
+//            this->robot->run();
         } else {
             QByteArray qb;
             QString s;
@@ -201,17 +206,20 @@ void MagStim::disconnect(int &error = MagStim::er)
 
 void MagStim::updateReceiveQueue(std::tuple<int, QByteArray> info)
 {
+    std::cout << "upgedatete ReciveQueue" << std::endl;
     this->receiveQueue.push(info);
 }
 
 void MagStim::remoteControl(bool enable, std::map<QString, std::map<QString, int>> &message = MagStim::mes, int &error = MagStim::er)
 {
     QString str = "instr";
+        std::cout << "RemoteControl" << std::endl;
     if (enable) {
         error = this->processCommand("Q@", str, 3, message);
     } else {
         error = this->processCommand("R@", str, 3, message);
     }
+        std::cout << "Ende RemoteControl" << std::endl;
     return;
 }
 
@@ -384,18 +392,28 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
     // FW: Main Changes for C++
     // commandString "/@"
     // EB --> 69 66
+    std::cout << "ProcessCommand" << std::endl;
     QByteArray comString = commandString.toLocal8Bit();
     QByteArray reply;
     if (this->connected || comString.at(0) == (char)81 || comString.at(0) == (char)82 || comString.at(0) == (char)74 || comString.at(0) == (char)70 || comString.contains("EA") || ( comString.at(0) == (char)92 && this->parameterReturnByte != 0 )  ) {
         std::tuple<QByteArray,QString, int> info;
-        QByteArray qb = comString + calcCRC(comString); // FW: FIXME most likely
+        QByteArray qb = comString.append(calcCRC(comString)); // FW: FIXME most likely // before: comString + calcCRC(comString)
         info = std::make_tuple(qb, receiptType, readBytes);
         // this->sendQueue.push(info);  // FW: TODO is this needed?
         emit updateSendQueue(info);
         if (!receiptType.isEmpty()) {
-            int error = std::get<int>(this->receiveQueue.front());
-            reply = std::get<QByteArray>(this->receiveQueue.front());
-            this->receiveQueue.pop();
+            int error = std::get<0>(this->receiveQueue.front());
+            std::cout << "Error :" << error << std::endl;
+
+
+            // FW: TODO ENTFERNEN
+            char foolo [3] = {(char) 81,(char) 137,(char) 37};
+            reply = QByteArray::fromRawData(foolo,3);
+//            reply = std::get<1>(this->receiveQueue.front());
+//            this->receiveQueue.pop(); // FW: FIXME
+
+
+
             if (error) {
                 return error; // FW: Change for C++ Reasons to just error
             } else {
@@ -407,7 +425,7 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
                     return MagStim::COMMAND_CONFLICT_ERR;
                 } else if (reply.at(0) != comString.at(0)) {
                     return MagStim::INVALID_CONFIRMATION_ERR;
-                } else if (calcCRC(reply.mid(0,reply.length()-2)) != reply.at(reply.length()-1)) { //TODO check
+                } else if (calcCRC(reply.mid(0,reply.length()-1)) != reply.at(reply.length()-1)) { //TODO check
                     return MagStim::CRC_MISMATCH_ERR;
                 }
             }
@@ -465,7 +483,7 @@ char MagStim::calcCRC(QByteArray command)
 {
     // Convert command string to sum of ASCII/byte values
     int commandSum = 0;
-    for (int i = 1 ; i< command.length() ; i++) {
+    for (int i = 0 ; i< command.length() ; i++) {
         commandSum += command.at(i);
     }
     // Convert command sum to binary, then invert and return 8-bit character value

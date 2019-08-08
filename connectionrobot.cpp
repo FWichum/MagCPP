@@ -9,10 +9,12 @@ connectionRobot::connectionRobot(std::queue<std::tuple<QByteArray, QString, int>
     this->paused = true;
     this->nextPokeTime = NAN;
     this->connectionCommand = std::make_tuple("","",0); //FW: TODO
+//    this->moveToThread(this);
 }
 
 void connectionRobot::run()
 {
+//    this->exec();
     // This sends an "enable remote control" command to the serial port controller every 500ms (if armed) or 5000 ms (if disarmed); only runs once the stimulator is armed
     double pokeLatency = 5;
     while (true) {
