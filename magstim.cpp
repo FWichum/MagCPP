@@ -433,13 +433,13 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
         if (this->connected) {
             if (comString.at(0) == (char)0x82) {
                 // this->robotQueue.push(-1); // FW: TODO is this neeeded?
-                emit updateRobotQueue(0);
+                emit updateRobotQueue(-1);
             } else if (comString.left(2).contains("EA") ) {
                 // this->robotQueue.push(1); // FW: TODO is this neeeded?
-                emit updateRobotQueue(0);
+                emit updateRobotQueue(1);
             } else if (comString.left(2).contains("EB") ) {
                 // this->robotQueue.push(2); // FW: TODO is this neeeded?
-                emit updateRobotQueue(0);
+                emit updateRobotQueue(2);
             }  else {
                 // this->robotQueue.push(0); // FW: TODO is this neeeded?
                 emit updateRobotQueue(0);
