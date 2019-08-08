@@ -85,9 +85,11 @@ std::tuple<int,int,int> Rapid::getVersion(int &er=MagStim::er)
            message (tuple): if error is 0 (False) returns a tuple containing the version number (in (Major,Minor,Patch) format), otherwise returns an error string
        */
 {
+    std::cout << "Rapid GetVersion" << std::endl;
     std::tuple<int, int, int> vers;
     int helper;
     er = this->processCommand("ND", "version", helper, vers);
+    std::cout << "Version :" << std::get<0>(vers) << std::get<1>(vers)<< std::get<2>(vers) << std::endl;
    // If we didn't receive an error, update the version number and the number of bytes that will be returned by a getParameters() command
     if (er == 0) {
         this->version = vers;
@@ -136,8 +138,10 @@ void Rapid::connect(int &er=MagStim::er)
     */
 
 {
+    std::cout << "Rapid connect" << std::endl;
     MagStim::connect(er);
     std::ignore = this->getVersion(er);
+    std::cout << "Rapid connect Error :"<< er << std::endl;
     if (er) {
         this->disconnect();
         throw new std::string("Could not determine software version of Rapid. Disconnecting.");
