@@ -2,7 +2,7 @@
 #include <cmath>
 
 
-connectionRobot::connectionRobot(std::queue<std::tuple<QByteArray, QString, int>> serialWriteQueue, std::queue<float> updateRobotQueue)
+ConnectionRobot::ConnectionRobot(std::queue<std::tuple<QByteArray, QString, int>> serialWriteQueue, std::queue<float> updateRobotQueue)
 {
     this->serialWriteQueue = serialWriteQueue;
     this->updateRobotQueue = updateRobotQueue;
@@ -13,7 +13,7 @@ connectionRobot::connectionRobot(std::queue<std::tuple<QByteArray, QString, int>
 //    this->moveToThread(this);
 }
 
-void connectionRobot::run()
+void ConnectionRobot::run()
 {
 //    this->exec();
     // This sends an "enable remote control" command to the serial port controller every 500ms (if armed) or 5000 ms (if disarmed); only runs once the stimulator is armed
@@ -82,13 +82,13 @@ void connectionRobot::run()
     return;
 }
 
-clock_t connectionRobot::defaultTimer()
+clock_t ConnectionRobot::defaultTimer()
 {
     // FW: TODO switch for each System !?
     return clock();
 }
 
-void connectionRobot::setCommand(std::tuple<QByteArray, QString, int> connectionCommand)
+void ConnectionRobot::setCommand(std::tuple<QByteArray, QString, int> connectionCommand)
 {
     // This locker will lock the mutex until it is destroyed, i.e. when this function call goes out of scope
     QMutexLocker(&mutex);
@@ -96,7 +96,7 @@ void connectionRobot::setCommand(std::tuple<QByteArray, QString, int> connection
     this->connectionCommand = connectionCommand;
 }
 
-void connectionRobot::updateUpdateRobotQueue(const float info)
+void ConnectionRobot::updateUpdateRobotQueue(const float info)
 {
     // This locker will lock the mutex until it is destroyed, i.e. when this function call goes out of scope
     QMutexLocker(&mutex);

@@ -8,7 +8,7 @@ MagStim::MagStim(QString serialConnection, QObject* parent)
 : QObject(parent)
    // robot(this->sendQueue, this->robotQueue)
 {
-    this->robot = new connectionRobot(this->sendQueue, this->robotQueue);
+    this->robot = new ConnectionRobot(this->sendQueue, this->robotQueue);
 
     this->setupSerialPort(serialConnection);
     // connection.daemon = true; //FW: TODO daemon
@@ -17,8 +17,10 @@ MagStim::MagStim(QString serialConnection, QObject* parent)
     this->connectionCommand = std::make_tuple(QString("Q@n").toUtf8(),"", 3);
     // auto queryCommand = std::bind(this->remoteControl, true, true);//FW: TODO queryCommand
 
-    QObject::connect(this->robot, &connectionRobot::updateSerialWriteQueue, this->connection, &serialPortController::updateSerialWriteQueue);
-    QObject::connect(this,  &MagStim::updateRobotQueue, this->robot, &connectionRobot::updateUpdateRobotQueue);
+    QObject::connect(this->robot, &ConnectionRobot::updateSerialWriteQueue,
+                     this->connection, &SerialPortController::updateSerialWriteQueue);
+    QObject::connect(this,  &MagStim::updateRobotQueue,
+                     this->robot, &ConnectionRobot::updateUpdateRobotQueue);
 }
 
 std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::list<int> responseString, QString responseType)
@@ -383,9 +385,9 @@ void MagStim::quickFire()
 void MagStim::setupSerialPort(QString serialConnection)
 {
     // FW: TODO in case of virtual load virtual
-    this->connection = new serialPortController(serialConnection, this->sendQueue, this->receiveQueue);
-    QObject::connect(this->connection, &serialPortController::updateSerialReadQueue, this, &MagStim::updateReceiveQueue);
-    QObject::connect(this, &MagStim::updateSendQueue, this->connection, &serialPortController::updateSerialWriteQueue);
+    this->connection = new SerialPortController(serialConnection, this->sendQueue, this->receiveQueue);
+    QObject::connect(this->connection, &SerialPortController::updateSerialReadQueue, this, &MagStim::updateReceiveQueue);
+    QObject::connect(this, &MagStim::updateSendQueue, this->connection, &SerialPortController::updateSerialWriteQueue);
 }
 
 int MagStim::processCommand(QString commandString, QString receiptType, int readBytes, std::tuple<int, int, int> &version, std::map<QString, std::map<QString, int>> &message)

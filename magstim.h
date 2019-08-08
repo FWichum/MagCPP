@@ -77,10 +77,10 @@ protected:
     std::queue<std::tuple<QByteArray, QString, int>> sendQueue;
     std::queue<std::tuple<int, QByteArray>> receiveQueue;
     std::queue<float> robotQueue;
-    connectionRobot *robot;
-    serialPortController *connection;
+    ConnectionRobot *robot;
+    SerialPortController *connection;
     // connection.daemon = true; //FW: TODO
-    // connectionRobot robot;
+    // ConnectionRobot robot;
     // robot.daemon = true; //FW: TODO
     bool connected;
     std::tuple<QByteArray, QString, int> connectionCommand;

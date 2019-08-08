@@ -9,12 +9,12 @@
 #include <QMutex>
 
 
-class serialPortController : public QThread
+class SerialPortController : public QThread
 {
     Q_OBJECT
 
 public:
-    serialPortController(QString serialConnection,
+    SerialPortController(QString serialConnection,
                          std::queue<std::tuple<QByteArray, QString, int>> serialWriteQueue,
                          std::queue<std::tuple<int, QByteArray>> serialReadQueue);
     void run() override;
