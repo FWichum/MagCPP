@@ -94,5 +94,6 @@ signals:
     void updateSendQueue(const std::tuple<QByteArray, QString, int> &info);
     void updateRobotQueue(const float &info);
 };
-
+//Q_DECLARE_METATYPE(tuple::std::tuple<QByteArray, QString, int>);
+Q_DECLARE_METATYPE(std::tuple<>);
 #endif // MAGSTIM_H
