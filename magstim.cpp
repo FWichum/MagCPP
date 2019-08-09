@@ -8,6 +8,9 @@ MagStim::MagStim(QString serialConnection, QObject* parent)
 : QObject(parent)
    // robot(this->sendQueue, this->robotQueue)
 {
+    qRegisterMetaType<std::tuple<QByteArray, QString, int>>("std::tuple<QByteArray, QString, int>");
+    qRegisterMetaType<std::tuple<int, QByteArray>>("std::tuple<int, QByteArray>");
+
     this->robot = new ConnectionRobot(this->sendQueue, this->robotQueue);
 
     this->setupSerialPort(serialConnection);

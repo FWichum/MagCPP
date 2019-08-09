@@ -113,7 +113,7 @@ void SerialPortController::run()
                             porto.read(c,1);
                             bmessage.append(c);
                         }
-                        if (reply.toInt()) {
+                        if (!reply.isEmpty()) {
                             // this->serialReadQueue.push(std::make_tuple(0, bmessage)); //FW: TODO need this?
                             emit updateSerialReadQueue(std::make_tuple(0, bmessage));
                         }
