@@ -13,7 +13,7 @@ SerialPortController::SerialPortController(QString serialConnection,
     this->serialWriteQueue = serialWriteQueue;
     this->serialReadQueue = serialReadQueue;
     this->address = serialConnection;
-    this->moveToThread(this);
+//    this->moveToThread(this);
 }
 
 void SerialPortController::run()
