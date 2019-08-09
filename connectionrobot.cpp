@@ -10,7 +10,7 @@ ConnectionRobot::ConnectionRobot(std::queue<std::tuple<QByteArray, QString, int>
     this->paused = true;
     this->nextPokeTime = NAN;
     this->connectionCommand = std::make_tuple("","",0); //FW: TODO
-//    this->moveToThread(this);
+    this->moveToThread(this);
 }
 
 void ConnectionRobot::run()
@@ -20,7 +20,8 @@ void ConnectionRobot::run()
     double pokeLatency = 5;
     while (true) {
         // This locker will lock the mutex until it is destroyed, i.e. when one while loop is over
-        QMutexLocker(&mutex);
+        QMutexLocker locker(&mutex);
+        locker.relock();
 
         // If the robot is currently paused, wait until we get a None (stop) or a non-negative number (start/resume) in the queue
         while (this->paused) {
@@ -77,7 +78,7 @@ void ConnectionRobot::run()
                 }
             }
         } while (defaultTimer() < this->nextPokeTime);
-
+        locker.unlock();
     }
     return;
 }
@@ -91,15 +92,17 @@ clock_t ConnectionRobot::defaultTimer()
 void ConnectionRobot::setCommand(std::tuple<QByteArray, QString, int> connectionCommand)
 {
     // This locker will lock the mutex until it is destroyed, i.e. when this function call goes out of scope
-    QMutexLocker(&mutex);
-
+    QMutexLocker locker(&mutex);
+    locker.relock();
     this->connectionCommand = connectionCommand;
+    locker.unlock();
 }
 
 void ConnectionRobot::updateUpdateRobotQueue(const float info)
 {
     // This locker will lock the mutex until it is destroyed, i.e. when this function call goes out of scope
-    QMutexLocker(&mutex);
-
+    QMutexLocker locker(&mutex);
+    locker.relock();
     this->updateRobotQueue.push(info);
+    locker.unlock();
 }

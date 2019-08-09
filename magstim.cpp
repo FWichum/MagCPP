@@ -165,7 +165,7 @@ void MagStim::connect(int &error = MagStim::er)
         std::cout << "Start connection()" << std::endl;
     if (!this->connected) {
             std::cout << "Try connecting" << std::endl;
-        this->connection->start(QThread::Priority::InheritPriority);
+            this->connection->start(QThread::Priority::TimeCriticalPriority);
 //        this->connection->run();
                 std::cout << "Connection started" << std::endl;
         std::map<QString, std::map<QString, int>> mes;
@@ -418,11 +418,11 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
 
             // TEsting if it is safe to get the first item in the queue
             if(this->receiveQueue.size() > 0) {
-                qInfo() << "MagStim::processCommand - receiveQueue has" << this->receiveQueue.size() << "entries.";
+                std::cout << "MagStim::processCommand - receiveQueue has" << this->receiveQueue.size() << "entries." << std::endl;
                 reply = std::get<1>(this->receiveQueue.front());
                 this->receiveQueue.pop(); // FW: FIXME
             } else {
-                qWarning() << "MagStim::processCommand - receiveQueue is empty.";
+                std::cout << "MagStim::processCommand - receiveQueue is empty." << std::endl;
             }
 
             if (error) {

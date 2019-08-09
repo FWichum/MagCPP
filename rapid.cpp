@@ -278,6 +278,7 @@ void Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, int> 
     std::cout << "Rapid remoteControl" << std::endl;
     this->sequenceValidated = false;
     if (this->unlockCode.isEmpty()) {
+        std::cout << "UnlockCode is empty!" << std::endl;
         if(enable){
             error = this->processCommand("Q@", "instr", 3, message);
         }
