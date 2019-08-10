@@ -13,7 +13,7 @@ SerialPortController::SerialPortController(QString serialConnection,
     this->serialWriteQueue = serialWriteQueue;
     this->serialReadQueue = serialReadQueue;
     this->address = serialConnection;
-    //    this->moveToThread(this);
+//        this->moveToThread(this);
 }
 
 void SerialPortController::run()
@@ -47,7 +47,6 @@ void SerialPortController::run()
 //        std::cout << "Er rennt noch" << std::endl;
         // This locker will lock the mutex until it is destroyed, i.e. when this function call goes out of scope
         QMutexLocker locker(&mutex);
-        locker.relock();
 
 
 
@@ -123,7 +122,7 @@ void SerialPortController::run()
                             }
                             if (!reply.isEmpty()) {
                                 // this->serialReadQueue.push(std::make_tuple(0, bmessage)); //FW: TODO need this?
-                                std::cout << "SPC Reply is not empty! Size :"<< bmessage.size() << std::endl;
+                                std::cout << "SPC Reply is not empty! Size of QByteArray :"<< bmessage.size() << std::endl;
                                 emit updateSerialReadQueue(std::make_tuple(0, bmessage));
                             }
                         }
@@ -139,21 +138,18 @@ void SerialPortController::run()
 
                 }
             }
-            locker.unlock();
         }
     }
     // If we get here, it's time to shutdown the serial port controller
     std::cout << "Close Port" << std::endl;
     porto.close();
-    return;
+//    exec();
 }
 
-void SerialPortController::updateSerialWriteQueue(std::tuple<QByteArray, QString, int> info)
+void SerialPortController::updateSerialWriteQueue(sendInfo info)
 {
     // This locker will lock the mutex until it is destroyed, i.e. when this function call goes out of scope
     QMutexLocker locker(&mutex);
-    locker.relock();
     std::cout << " upgedaterer SerialWriteQueue" << std::endl;
     this->serialWriteQueue.push(info);
-    locker.unlock();
 }

@@ -9,6 +9,12 @@
 #include <QThread>
 #include <QMutexLocker>
 #include <QMutex>
+#include "serialportcontroller.h"
+
+typedef std::tuple<QByteArray, QString, int> sendInfo;
+typedef std::tuple<int, QByteArray> reciveInfo;
+//Q_DECLARE_METATYPE(sendInfo);
+//Q_DECLARE_METATYPE(reciveInfo);
 
 class ConnectionRobot : public QThread
 {
@@ -35,7 +41,7 @@ public slots:
     void updateUpdateRobotQueue(const float info);
 
 signals:
-    void updateSerialWriteQueue(const std::tuple<QByteArray, QString, int> info);
+    void updateSerialWriteQueue(const sendInfo info);
 };
 
 #endif // CONNECTIONROBOT_H

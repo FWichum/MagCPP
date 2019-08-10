@@ -8,6 +8,10 @@
 #include <QMutexLocker>
 #include <QMutex>
 
+typedef std::tuple<QByteArray, QString, int> sendInfo;
+typedef std::tuple<int, QByteArray> reciveInfo;
+Q_DECLARE_METATYPE(sendInfo);
+Q_DECLARE_METATYPE(reciveInfo);
 
 class SerialPortController : public QThread
 {
@@ -30,10 +34,10 @@ private:
     const int SERIAL_READ_ERROR  = 2; // SERIAL_READ_ERR:  Could not read the magstim response.
 
 public slots:
-    void updateSerialWriteQueue(std::tuple<QByteArray, QString, int> info);
+    void updateSerialWriteQueue(sendInfo info);
 
 signals:
-    void updateSerialReadQueue(const std::tuple<int, QByteArray> &info);
+    void updateSerialReadQueue(const reciveInfo &info);
 };
 
 #endif // SERIALPORTCONTROLLER_H

@@ -17,6 +17,12 @@
 #include "connectionrobot.h"
 #include "serialportcontroller.h"
 #include <QObject>
+#include <QMetaType>
+
+typedef std::tuple<QByteArray, QString, int> sendInfo;
+typedef std::tuple<int, QByteArray> reciveInfo;
+//Q_DECLARE_METATYPE(sendInfo);
+//Q_DECLARE_METATYPE(reciveInfo);
 
 class MagStim : public QObject
 {
@@ -88,12 +94,13 @@ protected:
     int parameterReturnByte;
 
 public slots:
-    void updateReceiveQueue(std::tuple<int, QByteArray> info);
+    void updateReceiveQueue(reciveInfo info);
 
 signals:
-    void updateSendQueue(const std::tuple<QByteArray, QString, int> &info);
+    void updateSendQueue(const sendInfo &info);
     void updateRobotQueue(const float &info);
 };
+
 //Q_DECLARE_METATYPE(tuple::std::tuple<QByteArray, QString, int>);
 Q_DECLARE_METATYPE(std::tuple<>);
 #endif // MAGSTIM_H

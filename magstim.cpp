@@ -210,7 +210,7 @@ void MagStim::disconnect(int &error = MagStim::er)
     }
 }
 
-void MagStim::updateReceiveQueue(std::tuple<int, QByteArray> info)
+void MagStim::updateReceiveQueue(reciveInfo info)
 {
     std::cout << "upgedatete ReciveQueue" << std::endl;
     this->receiveQueue.push(info);
@@ -402,12 +402,15 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
     QByteArray comString = commandString.toLocal8Bit();
     QByteArray reply;
     if (this->connected || comString.at(0) == (char)81 || comString.at(0) == (char)82 || comString.at(0) == (char)74 || comString.at(0) == (char)70 || comString.contains("EA") || ( comString.at(0) == (char)92 && this->parameterReturnByte != 0 )  ) {
-        std::tuple<QByteArray,QString, int> info;
+        sendInfo info;
         QByteArray qb = comString.append(calcCRC(comString)); // FW: FIXME most likely // before: comString + calcCRC(comString)
         info = std::make_tuple(qb, receiptType, readBytes);
         // this->sendQueue.push(info);  // FW: TODO is this needed?
         emit updateSendQueue(info);
         if (!receiptType.isEmpty()) {
+            while (receiveQueue.size() == 0) {
+
+            }
             int error = std::get<0>(this->receiveQueue.front());
             std::cout << "Error :" << error << std::endl;
 
