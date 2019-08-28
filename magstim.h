@@ -18,6 +18,7 @@
 #include "serialportcontroller.h"
 #include <QObject>
 #include <QMetaType>
+#include <QEventLoop>
 
 typedef std::tuple<QByteArray, QString, int> sendInfo;
 typedef std::tuple<int, QByteArray> reciveInfo;
@@ -85,6 +86,7 @@ protected:
     std::queue<float> robotQueue;
     ConnectionRobot *robot;
     SerialPortController *connection;
+    QEventLoop loop;
     // connection.daemon = true; //FW: TODO
     // ConnectionRobot robot;
     // robot.daemon = true; //FW: TODO
@@ -99,6 +101,7 @@ public slots:
 signals:
     void updateSendQueue(const sendInfo &info);
     void updateRobotQueue(const float &info);
+    void readInfo();
 };
 
 //Q_DECLARE_METATYPE(tuple::std::tuple<QByteArray, QString, int>);

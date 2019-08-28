@@ -5,8 +5,8 @@
 #include <QStringList>
 
 MagStim::MagStim(QString serialConnection, QObject* parent)
-: QObject(parent)
-   // robot(this->sendQueue, this->robotQueue)
+    : QObject(parent)
+    // robot(this->sendQueue, this->robotQueue)
 {
     qRegisterMetaType<std::tuple<QByteArray, QString, int>>("std::tuple<QByteArray, QString, int>");
     qRegisterMetaType<std::tuple<int, QByteArray>>("std::tuple<int, QByteArray>");
@@ -24,6 +24,8 @@ MagStim::MagStim(QString serialConnection, QObject* parent)
                      this->connection, &SerialPortController::updateSerialWriteQueue);
     QObject::connect(this,  &MagStim::updateRobotQueue,
                      this->robot, &ConnectionRobot::updateUpdateRobotQueue);
+    QObject::connect(this, &MagStim::readInfo,
+                     &this->loop, &QEventLoop::quit);
 }
 
 std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::list<int> responseString, QString responseType)
@@ -165,27 +167,27 @@ void MagStim::connect(int &error = MagStim::er)
  * contact with the Magstim so as not to lose control.
  */
 {
-        std::cout << "Start connection()" << std::endl;
+    std::cout << "Start connection()" << std::endl;
     if (!this->connected) {
-            std::cout << "Try connecting" << std::endl;
-            this->connection->start(QThread::Priority::TimeCriticalPriority);
-//        this->connection->run();
-                std::cout << "Connection started" << std::endl;
+        std::cout << "Try connecting" << std::endl;
+        this->connection->start(QThread::Priority::TimeCriticalPriority);
+        //        this->connection->run();
+        std::cout << "Connection started" << std::endl;
         std::map<QString, std::map<QString, int>> mes;
         remoteControl(true,mes,error);
-            std::cout << "Remote? Error :" << error << std::endl;
+        std::cout << "Remote? Error :" << error << std::endl;
         if (!error) {
             this->connected = true;
             this->robot->setCommand(this->connectionCommand);
             this->robot->start(QThread::Priority::TimeCriticalPriority);
-//            this->robot->run();
+            //            this->robot->run();
         } else {
             QByteArray qb;
             QString s;
             int i;
             this->sendQueue.push(std::make_tuple(qb,s,i));
             if (this->connection->isRunning()) {
-                 this->connection->wait(); //FW: FIXME join()
+                this->connection->wait(); //FW: FIXME join()
             }
             //Raise MaigstimError
         }
@@ -205,7 +207,7 @@ void MagStim::disconnect(int &error = MagStim::er)
         remoteControl(false,message, error);
         this->sendQueue.push(std::make_tuple("","",NULL));
         if (this->connection->isRunning()) {
-             this->connection->wait(); // FW: FXME join()
+            this->connection->wait(); // FW: FXME join()
         }
     }
 }
@@ -214,18 +216,19 @@ void MagStim::updateReceiveQueue(reciveInfo info)
 {
     std::cout << "upgedatete ReciveQueue" << std::endl;
     this->receiveQueue.push(info);
+    emit readInfo();
 }
 
 void MagStim::remoteControl(bool enable, std::map<QString, std::map<QString, int>> &message = MagStim::mes, int &error = MagStim::er)
 {
     QString str = "instr";
-        std::cout << "Magstim RemoteControl" << std::endl;
+    std::cout << "Magstim RemoteControl" << std::endl;
     if (enable) {
         error = this->processCommand("Q@", str, 3, message);
     } else {
         error = this->processCommand("R@", str, 3, message);
     }
-        std::cout << "Ende RemoteControl" << std::endl;
+    std::cout << "Ende RemoteControl" << std::endl;
     return;
 }
 
@@ -250,12 +253,12 @@ void MagStim::setPower(int newPower, bool delay=false, int &error = MagStim::er,
         if (error) {
             return;
         }
-       //FW: FIXME!!!
-       try {
-           if (commandByte == "@") {
-               priorPower = message["bistimParam"]["PowerA"];
-           } else {
-               priorPower = message["bistimParam"]["PowerB"];
+        //FW: FIXME!!!
+        try {
+            if (commandByte == "@") {
+                priorPower = message["bistimParam"]["PowerA"];
+            } else {
+                priorPower = message["bistimParam"]["PowerB"];
             }
         } catch (...) {
             try {
@@ -285,7 +288,7 @@ void MagStim::setPower(int newPower, bool delay=false, int &error = MagStim::er,
                 // FW: TODO sleep
             }
         } else {
-          error = MagStim::PARAMETER_UPDATE_ERR;
+            error = MagStim::PARAMETER_UPDATE_ERR;
         }
     }
 }
@@ -398,7 +401,7 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
     // FW: Main Changes for C++
     // commandString "/@"
     // EB --> 69 66
-    std::cout << "ProcessCommand" << std::endl;
+    std::cout << "ProcessCommand: " << commandString.toStdString() << std::endl;
     QByteArray comString = commandString.toLocal8Bit();
     QByteArray reply;
     if (this->connected || comString.at(0) == (char)81 || comString.at(0) == (char)82 || comString.at(0) == (char)74 || comString.at(0) == (char)70 || comString.contains("EA") || ( comString.at(0) == (char)92 && this->parameterReturnByte != 0 )  ) {
@@ -408,9 +411,9 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
         // this->sendQueue.push(info);  // FW: TODO is this needed?
         emit updateSendQueue(info);
         if (!receiptType.isEmpty()) {
-            while (receiveQueue.size() == 0) {
-
-            }
+            std::cout <<"Ab jetzt wartet ProcessCommand..." << std::endl;
+            loop.exec();
+            std::cout << "...Warten beendet" << std::endl;
             int error = std::get<0>(this->receiveQueue.front());
             std::cout << "Error :" << error << std::endl;
 
@@ -418,13 +421,13 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
             // FW: TODO ENTFERNEN
             char foolo [3] = {(char) 81,(char) 137,(char) 37};
             reply = QByteArray::fromRawData(foolo,3);
-//            reply = std::get<1>(this->receiveQueue.front());
-//            this->receiveQueue.pop(); // FW: FIXME
+            //            reply = std::get<1>(this->receiveQueue.front());
+            //            this->receiveQueue.pop(); // FW: FIXME
 
 
             // TEsting if it is safe to get the first item in the queue
             if(this->receiveQueue.size() > 0) {
-                std::cout << "MagStim::processCommand - receiveQueue has" << this->receiveQueue.size() << "entries." << std::endl;
+                std::cout << "MagStim::processCommand - receiveQueue has " << this->receiveQueue.size() << " entries." << std::endl;
                 reply = std::get<1>(this->receiveQueue.front());
                 this->receiveQueue.pop(); // FW: FIXME
             } else {
