@@ -57,10 +57,10 @@ void SerialPortController::run()
         QString reply;
         QByteArray bmessage;
         float message;
-        if (serialWriteQueue.size() > 0) {
+        if (!serialWriteQueue.empty()) {
             int readBytes = std::get<2>(this->serialWriteQueue.front());
             QString reply = std::get<1>(this->serialWriteQueue.front());
-            std::cout << "Qstring und int gelesen" << std::endl;
+            std::cout << "Qstring und int gelesen: "<< reply.toStdString() <<" & "<< readBytes << std::endl;
             QByteArray bmessage = std::get<0>(this->serialWriteQueue.front());
 //            bmessage.chop(1);
             message = bmessage.toFloat();
@@ -114,7 +114,7 @@ void SerialPortController::run()
                             // In these cases, just grab the CRC - otherwise, everything is ok so carry on reading the rest of the message
                             if (bmessage.at(1) != '?' && bmessage.at(1) != 'S') {
                                 std::cout << "ReadBytes: " << readBytes << std::endl;
-                                porto.read(c,1); // FW: FIXME readBytes-2
+                                porto.read(c,readBytes-2); // FW: FIXME readBytes-2
                                 bmessage.append(c);
                             } else {
                                 porto.read(c,1);
@@ -123,6 +123,8 @@ void SerialPortController::run()
                             if (!reply.isEmpty()) {
                                 // this->serialReadQueue.push(std::make_tuple(0, bmessage)); //FW: TODO need this?
                                 std::cout << "SPC Reply is not empty! Size of QByteArray :"<< bmessage.size() << std::endl;
+                                QString s_data = QString::fromLocal8Bit(bmessage.data());
+                                std::cout << "Gelesen : " << s_data.toStdString() << std::endl;
                                 emit updateSerialReadQueue(std::make_tuple(0, bmessage));
                             }
                         }

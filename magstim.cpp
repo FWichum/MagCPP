@@ -185,10 +185,13 @@ void MagStim::connect(int &error = MagStim::er)
             QByteArray qb;
             QString s;
             int i;
-            this->sendQueue.push(std::make_tuple(qb,s,i));
+//            this->sendQueue.push(std::make_tuple(qb,s,i));
+            emit updateSendQueue(std::make_tuple(qb,s,i));
+//            loop.exec();
             if (this->connection->isRunning()) {
                 this->connection->wait(); //FW: FIXME join()
             }
+            std::cout << "Magstim ERROR!" << std::endl;
             //Raise MaigstimError
         }
     }
@@ -407,6 +410,7 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
     if (this->connected || comString.at(0) == (char)81 || comString.at(0) == (char)82 || comString.at(0) == (char)74 || comString.at(0) == (char)70 || comString.contains("EA") || ( comString.at(0) == (char)92 && this->parameterReturnByte != 0 )  ) {
         sendInfo info;
         QByteArray qb = comString.append(calcCRC(comString)); // FW: FIXME most likely // before: comString + calcCRC(comString)
+        std::cout << "ReadBytes in processCommand : " << readBytes << std::endl;
         info = std::make_tuple(qb, receiptType, readBytes);
         // this->sendQueue.push(info);  // FW: TODO is this needed?
         emit updateSendQueue(info);
@@ -417,22 +421,9 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
             int error = std::get<0>(this->receiveQueue.front());
             std::cout << "Error :" << error << std::endl;
 
-
-            // FW: TODO ENTFERNEN
-            char foolo [3] = {(char) 81,(char) 137,(char) 37};
-            reply = QByteArray::fromRawData(foolo,3);
-            //            reply = std::get<1>(this->receiveQueue.front());
-            //            this->receiveQueue.pop(); // FW: FIXME
-
-
-            // TEsting if it is safe to get the first item in the queue
-            if(this->receiveQueue.size() > 0) {
-                std::cout << "MagStim::processCommand - receiveQueue has " << this->receiveQueue.size() << " entries." << std::endl;
-                reply = std::get<1>(this->receiveQueue.front());
-                this->receiveQueue.pop(); // FW: FIXME
-            } else {
-                std::cout << "MagStim::processCommand - receiveQueue is empty." << std::endl;
-            }
+            std::cout << "MagStim::processCommand - receiveQueue has " << this->receiveQueue.size() << " entries." << std::endl;
+            reply = std::get<1>(this->receiveQueue.front());
+            this->receiveQueue.pop(); // FW: FIXME
 
             if (error) {
                 return error; // FW: Change for C++ Reasons to just error
@@ -444,6 +435,7 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
                 } else if (reply.at(1) == (char)83) {
                     return MagStim::COMMAND_CONFLICT_ERR;
                 } else if (reply.at(0) != comString.at(0)) {
+                    std::cout << reply.at(0) << " & " <<comString.at(0) << std::endl;
                     return MagStim::INVALID_CONFIRMATION_ERR;
                 } else if (calcCRC(reply.mid(0,reply.length()-1)) != reply.at(reply.length()-1)) { //TODO check
                     return MagStim::CRC_MISMATCH_ERR;
