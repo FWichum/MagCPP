@@ -41,7 +41,7 @@ void SerialPortController::run()
     porto.setFlowControl(QSerialPort::NoFlowControl);
     // Make sure the RTS pin is set to off
     porto.setRequestToSend(false);
-    porto.waitForBytesWritten(300);
+//    porto.waitForBytesWritten(300);
 
     while (true) {
 //        std::cout << "Er rennt noch" << std::endl;
@@ -65,7 +65,7 @@ void SerialPortController::run()
 //            bmessage.chop(1);
             message = bmessage.toFloat();
             this->serialWriteQueue.pop();
-            char *c;
+            char c = 1;
             std::cout << "Message :" << message << " isnan " << (int) std::isnan(message) << std::endl;
             // If the first part of the message is None this signals the process to close the port and stop
             if(std::isnan(message)) {
@@ -87,37 +87,52 @@ void SerialPortController::run()
             // Otherwise, the message is a command string
             else {
                 // There shouldn't be any rubbish in the input buffer, but check and clear it just in case
-                // if(porto.readBufferSize()!= 0) {    // FIXME funktioniert das überhaupt so? wird es benötigt?
-                porto.clear(QSerialPort::AllDirections);
+                if(porto.readBufferSize()!= 0) {    // FIXME funktioniert das überhaupt so? wird es benötigt?
+                    porto.clear(QSerialPort::AllDirections);
+//                      porto.flush();
+                }
                 try {
                     // Try writing to the port
+                    std::cout << "Serial Port Error: " << porto.error() << std::endl;
                     porto.write(bmessage);
+                    bool ok = porto.waitForBytesWritten(300);
+                    std::cout << "Wait for 300 : " << (int) ok << std::endl;
                     // Read response (this gets a little confusing, as I don't want to rely on timeout to know if there's an error)
                     try {
-                        porto.read(c,1);
-                        bmessage = (c);
+                        porto.waitForReadyRead(300);
+                        int i = porto.read(&c,1);
+                        std::cout << "Lesefehler (1): " << i << std::endl;
+                        std::cout << "Serial Port Error: " << porto.error() << std::endl;
+                        bmessage = (&c);
+//                        bmessage = porto.readAll();
+//                        std::cout << "Zuerst gelesen: " << c << " / " << (int) c << std::endl;
                         if (bmessage.at(0) == 'N') {
                             while((int) bmessage.back() > 0) {
-                                porto.read(c,1);
+                                int i = porto.read(&c,1);
+                                std::cout << "Lesefehler (2x): " << i << std::endl;
                                 bmessage.append(c);
                             }
                             // After the end of the version number, read one more byte to grab the CRC
-                            porto.read(c,1);
+                            int i = porto.read(&c,1);
+                            std::cout << "Lesefehler (3): " << i << std::endl;
                             bmessage.append(c);
                             // If the first byte is not '?', then the message was understood
                             // so carry on reading in the response (if it was a '?', then this will be the only returned byte).
                         } else if (bmessage.at(0) != '?') {
                             // Read the second byte
-                            porto.read(c,1);
+                            int i = porto.read(&c,1);
+                            std::cout << "Lesefehler (4): " << i << std::endl;
                             bmessage.append(c);
                             // If the second returned byte is a '?' or 'S', then the data value supplied either wasn't acceptable ('?') or the command conflicted with the current settings ('S'),
                             // In these cases, just grab the CRC - otherwise, everything is ok so carry on reading the rest of the message
                             if (bmessage.at(1) != '?' && bmessage.at(1) != 'S') {
                                 std::cout << "ReadBytes: " << readBytes << std::endl;
-                                porto.read(c,readBytes-2); // FW: FIXME readBytes-2
+                                int i = porto.read(&c,readBytes-2); // FW: FIXME readBytes-2
+                                std::cout << "Lesefehler (6): " << i << std::endl;
                                 bmessage.append(c);
                             } else {
-                                porto.read(c,1);
+                                int i = porto.read(&c,1);
+                                std::cout << "Lesefehler (7): " << i << std::endl;
                                 bmessage.append(c);
                             }
                             if (!reply.isEmpty()) {
