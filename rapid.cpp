@@ -140,11 +140,13 @@ void Rapid::connect(int &er=MagStim::er)
 {
     std::cout << "Rapid connect" << std::endl;
     MagStim::connect(er);
-    std::ignore = this->getVersion(er);
-    std::cout << "Rapid connect Error :"<< er << std::endl;
-    if (er) {
-        this->disconnect();
-        throw new std::string("Could not determine software version of Rapid. Disconnecting.");
+    if (!er) {
+        std::ignore = this->getVersion(er);
+        std::cout << "Rapid connect Error :"<< er << std::endl;
+        if (er) {
+            this->disconnect();
+            throw new std::string("Could not determine software version of Rapid. Disconnecting.");
+        }
     }
 }
 

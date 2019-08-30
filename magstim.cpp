@@ -183,7 +183,7 @@ void MagStim::connect(int &error = MagStim::er)
             //            this->robot->run();
         } else {
             QByteArray qb;
-            QString s;
+            QString s = "closePort";
             int i;
 //            this->sendQueue.push(std::make_tuple(qb,s,i));
             emit updateSendQueue(std::make_tuple(qb,s,i));
@@ -208,7 +208,8 @@ void MagStim::disconnect(int &error = MagStim::er)
             this->robot->wait(); // FW: FIXME join()
         }
         remoteControl(false,message, error);
-        this->sendQueue.push(std::make_tuple("","",NULL));
+//        this->sendQueue.push(std::make_tuple("","closePort",NULL));
+        emit updateSendQueue(std::make_tuple("","closePort",NULL));
         if (this->connection->isRunning()) {
             this->connection->wait(); // FW: FXME join()
         }

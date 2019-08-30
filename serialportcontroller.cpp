@@ -66,9 +66,8 @@ void SerialPortController::run()
             message = bmessage.toFloat();
             this->serialWriteQueue.pop();
             char c = 1;
-            std::cout << "Message :" << message << " isnan " << (int) std::isnan(message) << std::endl;
             // If the first part of the message is None this signals the process to close the port and stop
-            if(std::isnan(message)) {
+            if(reply.contains("closePort")) {
                 std::cout << "1" << std::endl;
                 break;
             }
