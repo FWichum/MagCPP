@@ -228,9 +228,9 @@ void MagStim::remoteControl(bool enable, std::map<QString, std::map<QString, int
     QString str = "instr";
     std::cout << "Magstim RemoteControl" << std::endl;
     if (enable) {
-        error = this->processCommand("Q@", str, 3, message);
+        error = this->processCommand("Q@\r\n", str, 3, message);
     } else {
-        error = this->processCommand("R@", str, 3, message);
+        error = this->processCommand("R@\r\n", str, 3, message);
     }
     std::cout << "Ende RemoteControl" << std::endl;
     return;
@@ -239,7 +239,7 @@ void MagStim::remoteControl(bool enable, std::map<QString, std::map<QString, int
 std::map<QString, std::map<QString, int> >MagStim::getParameters(int &error = MagStim::er)
 {
     std::map<QString, std::map<QString, int> > mes;
-    error = this->processCommand("J@", "magstimParam", 12, mes);
+    error = this->processCommand("J@\r\n", "magstimParam", 12, mes);
     return mes;
 }
 
@@ -281,7 +281,7 @@ void MagStim::setPower(int newPower, bool delay=false, int &error = MagStim::er,
     if (delay) {
         receiptType = "instr";
     }
-    error = this->processCommand(commandString, receiptType, 3, message);
+    error = this->processCommand(commandString + "\r\n", receiptType, 3, message);
 
     // If we're meant to delay (and we were able to change the power), then enforce if prior power settings are available
     if (delay && !error) {
@@ -300,7 +300,7 @@ void MagStim::setPower(int newPower, bool delay=false, int &error = MagStim::er,
 std::map<QString, std::map<QString, int> > MagStim::getTemperature(int &error = MagStim::er)
 {
     std::map<QString, std::map<QString, int> > mes;
-    error = this->processCommand("F@", "magstimTemp", 9, mes);
+    error = this->processCommand("F@\r\n", "magstimTemp", 9, mes);
     return mes;
 }
 
@@ -311,7 +311,7 @@ void MagStim::poke()
 
 void MagStim::arm(bool delay = false, std::map<QString, std::map<QString, int>> &message = MagStim::mes, int &error = MagStim::er)
 {
-    error = this->processCommand("EB", "instr", 3, message);
+    error = this->processCommand("EB\r\n", "instr", 3, message);
     if (delay) {
         // sleep
     }
@@ -321,7 +321,7 @@ void MagStim::arm(bool delay = false, std::map<QString, std::map<QString, int>> 
 void MagStim::disarm(std::map<QString, std::map<QString, int>> &message = MagStim::mes, int &error = MagStim::er)
 {
     QString str = "instr";
-    error = this->processCommand("EA", str, 3, message);
+    error = this->processCommand("EA\r\n", str, 3, message);
     return;
 }
 
@@ -376,7 +376,7 @@ bool MagStim::isReadyToFire()
 void MagStim::fire(std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error = MagStim::er)
 {
     QString str = "instr";
-    error =  this->processCommand("EH", str, 3, message);
+    error =  this->processCommand("EH\r\n", str, 3, message);
     return;
 }
 

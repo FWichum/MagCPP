@@ -29,7 +29,7 @@ void SerialPortController::run()
     // N.B. most of these settings are actually the default in PySerial, but just being careful.
 
     QSerialPort porto;
-    porto.setPortName("COM1");
+    porto.setPortName("/dev/ttyS1");
 
     bool ok = porto.open(QIODevice::ReadWrite);
     std::cout << "Der Port ist offen :" << (int) ok << std::endl;
@@ -62,10 +62,10 @@ void SerialPortController::run()
             QString reply = std::get<1>(this->serialWriteQueue.front());
             std::cout << "Qstring und int gelesen: "<< reply.toStdString() <<" & "<< readBytes << std::endl;
             QByteArray bmessage = std::get<0>(this->serialWriteQueue.front());
-//            bmessage.chop(1);
+ //           bmessage.chop(1);
             message = bmessage.toFloat();
             this->serialWriteQueue.pop();
-            char c = 1;
+            char c = 65;
             // If the first part of the message is None this signals the process to close the port and stop
             if(reply.contains("closePort")) {
                 std::cout << "1" << std::endl;
@@ -93,6 +93,8 @@ void SerialPortController::run()
                 try {
                     // Try writing to the port
                     std::cout << "Serial Port Error: " << porto.error() << std::endl;
+                    QString s_data = QString::fromLocal8Bit(bmessage.data());
+                    std::cout << "Schreiben : " << s_data.toStdString() << std::endl;
                     porto.write(bmessage);
                     bool ok = porto.waitForBytesWritten(300);
                     std::cout << "Wait for 300 : " << (int) ok << std::endl;

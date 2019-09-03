@@ -88,7 +88,7 @@ std::tuple<int,int,int> Rapid::getVersion(int &er=MagStim::er)
     std::cout << "Rapid GetVersion" << std::endl;
     std::tuple<int, int, int> vers;
     int helper;
-    er = this->processCommand("ND", "version", helper, vers);
+    er = this->processCommand("ND\r\n", "version", helper, vers);
     std::cout << "Version :" << std::get<0>(vers) << std::get<1>(vers)<< std::get<2>(vers) << std::endl;
    // If we didn't receive an error, update the version number and the number of bytes that will be returned by a getParameters() command
     if (er == 0) {
@@ -118,7 +118,7 @@ int Rapid::getErrorCode()
 {
     std::tuple<int, int, int> vers;
 
-    return this->processCommand("I@", "error", 6, vers);
+    return this->processCommand("I@\r\n", "error", 6, vers);
 
 }
 
@@ -195,6 +195,7 @@ int Rapid::rTMSMode(bool enable, std::map<QString, std::map<QString, int>> &mess
     */
     this->sequenceValidated = false;
     // Durations of 1 or 0 are used to toggle repetitive mode on and off
+    QString commandString = "";
     if (std::get<0>(this->version) >= 9) {
         if (enable) {
             QString commandString = "0010";
@@ -211,7 +212,7 @@ int Rapid::rTMSMode(bool enable, std::map<QString, std::map<QString, int>> &mess
             QString commandString = "000";
         }
     }
-    int error = this->processCommand("commadString", "instrRapid", 4, message);
+    int error = this->processCommand(commandString + "\r\n", "instrRapid", 4, message);
     if (error == 0) {
         if (enable) {
             this->repetitiveMode = true;
@@ -220,7 +221,7 @@ int Rapid::rTMSMode(bool enable, std::map<QString, std::map<QString, int>> &mess
             mes = getParameters(updateError);
             if (updateError == 0) {
                 if (mes["rapidParam"]["frequency"] == 0) {
-                    updateError = this->processCommand("B0010", "instrRapid", 4, mes);
+                    updateError = this->processCommand("B0010\r\n", "instrRapid", 4, mes);
                     if (updateError) {
                         return MagStim::PARAMETER_UPDATE_ERR;
                     }
@@ -257,7 +258,7 @@ This allows the stimulator to ignore the state of coil safety interlock switch.
 */
 {
     std::map<QString, std::map<QString, int>> mes;
-    return this->processCommand("b@", "instr", 3, mes);
+    return this->processCommand("b@\r\n", "instr", 3, mes);
 }
 
 void Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error = MagStim::er)
@@ -282,19 +283,19 @@ void Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, int> 
     if (this->unlockCode.isEmpty()) {
         std::cout << "UnlockCode is empty!" << std::endl;
         if(enable){
-            error = this->processCommand("Q@", "instr", 3, message);
+            error = this->processCommand("Q@\r\n", "instr", 3, message);
         }
         else {
-            error = this->processCommand("R@", "instr", 3, message);
+            error = this->processCommand("R@\r\n", "instr", 3, message);
         }
     }
     else {
         if(enable){
             QString string = this->unlockCode.toLatin1().append("Q");
-            error = this->processCommand(string, "instr", 3, message);
+            error = this->processCommand(string + "\r\n", "instr", 3, message);
         }
         else {
-            error = this->processCommand("R@", "instr", 3, message);
+            error = this->processCommand("R@\r\n", "instr", 3, message);
         }
     }
 }
@@ -322,18 +323,18 @@ void Rapid::enhancedPowerMode(bool enable, std::map<QString, std::map<QString, i
 {
     if(enable) {
         if(receipt) {
-            error = this->processCommand("^@", "instrRapid", 4, message);
+            error = this->processCommand("^@\r\n", "instrRapid", 4, message);
         }
         else {
-            error = this->processCommand("^@", "", 4, message);
+            error = this->processCommand("^@\r\n", "", 4, message);
         }
        }
     else {
         if(receipt) {
-            error = this->processCommand("_@", "instrRapid", 4, message);
+            error = this->processCommand("_@\r\n", "instrRapid", 4, message);
         }
         else {
-            error = this->processCommand("_@", "", 4, message);
+            error = this->processCommand("_@\r\n", "", 4, message);
         }
     }
     return;
@@ -369,7 +370,7 @@ int Rapid::setFrequency(float newFrequency, std::map<QString, std::map<QString, 
     }
     // Send command
     QString string = QString::number(newFrequency).rightJustified(4,'0');
-    error = this->processCommand("B"+string, "instr", 4, message);
+    error = this->processCommand("B"+string +"\r\n", "instr", 4, message);
     // If we didn't get an error, update the other parameters accordingly
     if (error == 0){
         std::map<QString, std::map<QString, int> > currentParameters;
@@ -383,11 +384,11 @@ int Rapid::setFrequency(float newFrequency, std::map<QString, std::map<QString, 
             QString string3 = "D";
             if(std::get<0>(this->version) >= 9){
                 QString string = string3 + string1;
-                updateError = this->processCommand(string, "instrRapid", 4, currentParameters);
+                updateError = this->processCommand(string + "\r\n", "instrRapid", 4, currentParameters);
             }
             else {
                 QString string = string3 + string2;
-                updateError = this->processCommand(string, "instrRapid", 4, currentParameters);
+                updateError = this->processCommand(string + "\r\n", "instrRapid", 4, currentParameters);
             }
                 if (updateError) {
                 return MagStim::PARAMETER_UPDATE_ERR;
@@ -438,11 +439,11 @@ Set number of pulses in rTMS pulse train.
     QString string3 = "D";
     if(std::get<0>(this->version) >= 9) {
         QString string = string3 + string1;
-        error = this->processCommand(string, "instr", 4, message);
+        error = this->processCommand(string + "\r\n", "instr", 4, message);
     }
     else {
         QString string = string3 + string2;
-        error = this->processCommand(string, "instr", 4, message);
+        error = this->processCommand(string + "\r\n", "instr", 4, message);
     }
 
     // If we didn't get an error, update the other parameters accordingly
@@ -459,19 +460,19 @@ Set number of pulses in rTMS pulse train.
             if(std::get<0>(this->version) >= 9) {
                 QString string = string3 + string1;
                 if(receipt){
-                    updateError = this->processCommand(string, "instrRapid", 4, currentParameters);
+                    updateError = this->processCommand(string + "\r\n", "instrRapid", 4, currentParameters);
                 }
                 else {
-                    updateError = this->processCommand(string, "", 4, currentParameters);
+                    updateError = this->processCommand(string + "\r\n", "", 4, currentParameters);
                 }
             }
             else {
                 QString string = string3 + string2;
                 if(receipt){
-                    updateError = this->processCommand(string, "instrRapid", 4, currentParameters);
+                    updateError = this->processCommand(string + "\r\n", "instrRapid", 4, currentParameters);
                 }
                 else {
-                    updateError = this->processCommand(string, "", 4, currentParameters);
+                    updateError = this->processCommand(string + "\r\n", "", 4, currentParameters);
                 }
             }
             if(updateError){
@@ -530,11 +531,11 @@ Set duration of rTMS pulse train.
     QString string3 = "[";
     if(std::get<0>(this->version) >= 9) {
         QString string = string3 + string1;
-        error = this->processCommand(string, "instrRapid", 4, message);
+        error = this->processCommand(string + "\r\n", "instrRapid", 4, message);
     }
     else {
         QString string = string3 + string2;
-        error = this->processCommand(string, "instrRapid", 4, message);
+        error = this->processCommand(string + "\r\n", "instrRapid", 4, message);
     }
     if(error == 0) {
         std::map<QString, std::map<QString, int> > currentParameters;
@@ -548,11 +549,11 @@ Set duration of rTMS pulse train.
         if(updateError == 0) {
             if(std::get<0>(this->version) >= 9) {
                 QString string = string3 + string1;
-                updateError = this->processCommand(string, "instrRapid", 4, currentParameters);
+                updateError = this->processCommand(string + "\r\n", "instrRapid", 4, currentParameters);
             }
             else {
                 QString string = string3 + string2;
-                updateError = this->processCommand(string, "instrRapid", 4, currentParameters);
+                updateError = this->processCommand(string +"\r\n", "instrRapid", 4, currentParameters);
             }
             if(updateError){
                 return MagStim::PARAMETER_UPDATE_ERR;
@@ -580,7 +581,7 @@ Request current parameter settings from the Rapid.
 {
     std::map<QString, std::map<QString, int> > message;
     int helpNumber = this->parameterReturnBytes;
-    error = this->processCommand("\\@", "rapidParam", helpNumber, message);
+    error = this->processCommand("\\@\r\n", "rapidParam", helpNumber, message);
     return message;
 }
 
@@ -682,11 +683,11 @@ Set charge delay duration for the Rapid.
     QString string3 = "n";
     if(std::get<0>(this->version) >= 10){
         QString string = string3 + string1;
-        error = this->processCommand(string, "systemRapid", 6, message);
+        error = this->processCommand(string + "\r\n", "systemRapid", 6, message);
     }
     else {
         QString string = string3 + string2;
-        error = this->processCommand(string, "instrRapid", 4, message);
+        error = this->processCommand(string + "\r\n", "instrRapid", 4, message);
     }
     if(receipt) {
         return error;
@@ -712,10 +713,10 @@ Get current charge delay duration for the Rapid.
     }
 
     if(std::get<0>(this->version) > 9) {
-        error = this->processCommand("o@", "instrCharge", 8, message);
+        error = this->processCommand("o@\r\n", "instrCharge", 8, message);
     }
     else {
-        error = this->processCommand("o@", "instrCharge", 7, message);
+        error = this->processCommand("o@\r\n", "instrCharge", 7, message);
     }
 }
 
@@ -814,7 +815,7 @@ et system status from the Rapid. Available only on software version of 9 or late
     }
     else if (std::get<0>(this->version) >= 9) {
         int error;
-        error = this->processCommand("x@", "systemRapid", 6, message);
+        error = this->processCommand("x@\r\n", "systemRapid", 6, message);
         return error;
     }
     else {
