@@ -95,7 +95,9 @@ void SerialPortController::run()
                     std::cout << "Serial Port Error: " << porto.error() << std::endl;
                     QString s_data = QString::fromLocal8Bit(bmessage.data());
                     std::cout << "Schreiben : " << s_data.toStdString() << std::endl;
-                    porto.write(bmessage);
+
+                    int i = porto.write(bmessage);
+                    std::cout << "Hat geschrieben : " << i << std::endl;
                     bool ok = porto.waitForBytesWritten(300);
                     std::cout << "Wait for 300 : " << (int) ok << std::endl;
                     // Read response (this gets a little confusing, as I don't want to rely on timeout to know if there's an error)
@@ -136,14 +138,15 @@ void SerialPortController::run()
                                 std::cout << "Lesefehler (7): " << i << std::endl;
                                 bmessage.append(c);
                             }
-                            if (!reply.isEmpty()) {
-                                // this->serialReadQueue.push(std::make_tuple(0, bmessage)); //FW: TODO need this?
-                                std::cout << "SPC Reply is not empty! Size of QByteArray :"<< bmessage.size() << std::endl;
-                                QString s_data = QString::fromLocal8Bit(bmessage.data());
-                                std::cout << "Gelesen : " << s_data.toStdString() << std::endl;
-                                emit updateSerialReadQueue(std::make_tuple(0, bmessage));
-                            }
                         }
+                        if (!reply.isEmpty()) {
+                            // this->serialReadQueue.push(std::make_tuple(0, bmessage)); //FW: TODO need this?
+                            std::cout << "SPC Reply is not empty! Size of QByteArray :"<< bmessage.size() << std::endl;
+                            QString s_data = QString::fromLocal8Bit(bmessage.data());
+                            std::cout << "Gelesen : " << s_data.toStdString() << std::endl;
+                            emit updateSerialReadQueue(std::make_tuple(0, bmessage));
+                        }
+
                     } catch (...) { // FW: FIXME
                         // this->serialReadQueue.push(std::make_tuple(SerialPortController::SERIAL_READ_ERROR, bmessage)); //FW: TODO need this?
                         std::cout << "ReadError" << std::endl;

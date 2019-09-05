@@ -130,10 +130,11 @@ std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::li
 std::tuple<int, int, int> MagStim::parseMagstimResponse_version(std::list<int> responseString)
 //FW: splitted from parseMagstimResponse to handle different return type for responseString == "version"
 {
+    std::cout << "parsemagstimresponse_version" << std::endl;
     // FW: Convert to char except first and last element
-    char foo[4]; //FIXME: responseString.size()-2
+    char foo[responseString.size()-2]; //FIXME: responseString.size()-2 // 4
     std::list<int>::iterator it = responseString.begin();
-    it++;
+    it++; it++;
     int i=0;
     do {
         foo[i] = *it;
@@ -147,7 +148,7 @@ std::tuple<int, int, int> MagStim::parseMagstimResponse_version(std::list<int> r
         int hex = versionList.at(i).toInt(&ok, 10);
         if (!ok)
             versionList[i] = "0";
-        std::cout << versionList.at(i).toStdString() << " ";
+        std::cout << versionList.at(i).toStdString() << " " << std::endl;
     }
     // FW: create tuple;
     std::tuple<int, int, int> magstimResponse;
@@ -311,7 +312,7 @@ void MagStim::poke()
 
 void MagStim::arm(bool delay = false, std::map<QString, std::map<QString, int>> &message = MagStim::mes, int &error = MagStim::er)
 {
-    error = this->processCommand("EB\r\n", "instr", 3, message);
+    error = this->processCommand("EB", "instr", 3, message);
     if (delay) {
         // sleep
     }
@@ -376,7 +377,7 @@ bool MagStim::isReadyToFire()
 void MagStim::fire(std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error = MagStim::er)
 {
     QString str = "instr";
-    error =  this->processCommand("EH\r\n", str, 3, message);
+    error =  this->processCommand("EHn", str, 3, message);
     return;
 }
 
@@ -459,6 +460,7 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
             }
         }
         std::string s = reply.toStdString();
+        std::cout << "processcommand s: " << s << std::endl;
         std::list<int> intlist(s.begin(), s.end());
         if (receiptType == "version") {
             version = this->parseMagstimResponse_version(intlist);
