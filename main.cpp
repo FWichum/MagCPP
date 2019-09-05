@@ -14,19 +14,19 @@ int main(int argc, char *argv[])
     int error=0;
     myMag.connect(error);
     std::map<QString, std::map<QString, int> > xyz;
-    //myMag.setPower(25, true, xyz, error);
-    xyz = myMag.getParameters(error);
 
+
+
+   // myMag.setPower(25, false, xyz, error);
     // myMag.getVersion(error);
-    //myMag.arm(false, xyz, error);
-    myMag.setPower(25, false, xyz, error);
+    myMag.arm(false, xyz, error);
+   // myMag.setPower(25, false, xyz, error);
 
-    // myMag.ignoreCoilSafetySwitch(false);
-    // std::cout << "nach ignoreCoilSW" << std::endl;
-   // QThread::sleep(2);
-   // myMag.quickFire(error);
-   // std::cout << "nach fire" << std::endl;
-
+    //myMag.ignoreCoilSafetySwitch(false);
+    std::cout << "nach ignoreCoilSW" << std::endl;
+    QThread::sleep(2);
+    myMag.quickFire(error);
+    std::cout << "nach fire" << std::endl;
 
     std::cout << "---------------------------" << std::endl;
     std::cout << "Abschluss Fehler :" << error << std::endl;
