@@ -33,6 +33,7 @@ Q_DECLARE_METATYPE(reciveInfo);
 /**
 * The class creates a Thread which has direct control of the serial port. Commands for relaying via the
 * serial port are received from signals.
+*   N.B. Note that all functions except for run, are run in the callers thread
 *
 * @brief Controls the serial port.
 */
