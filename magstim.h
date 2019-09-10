@@ -32,10 +32,25 @@
 #include <QMetaType>
 #include <QEventLoop>
 
-
+//*************************************************************************************************************
+//=============================================================================================================
+// FORWARD DECLARATIONS
+//=============================================================================================================
 
 typedef std::tuple<QByteArray, QString, int> sendInfo;
 typedef std::tuple<int, QByteArray> reciveInfo;
+
+//=============================================================================================================
+/**
+* The base Magstim class. This is used for controlling 200^2 Magstim units, and acts as a parent class for
+* the BiStim^2 and Rapid^2 sub-classes. It also creates two additional processes; one for the purposes
+* of directly controlling the serial port and another for maintaining constant contact with the Magstim.
+*   N.B. This class can effect limited control over BiStim^2 and Rapid^2 units, however some functionality
+*   will not be able to be accessed and return values (including confirmation of commands) may be invalid.
+*   To begin sending commands to the Magstim, and start the additional processes, you must first call connect().
+*
+* @brief The base Magstim class is used for controlling the unit.
+*/
 
 class MagStim : public QObject
 {
