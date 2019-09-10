@@ -10,7 +10,7 @@ ConnectionRobot::ConnectionRobot(std::queue<std::tuple<QByteArray, QString, int>
     this->m_paused = true;
     this->m_nextPokeTime = NAN;
     this->m_connectionCommand = std::make_tuple("","",0); //FW: TODO
-//    this->moveToThread(this);
+    //    this->moveToThread(this);
 }
 
 
@@ -18,9 +18,9 @@ ConnectionRobot::ConnectionRobot(std::queue<std::tuple<QByteArray, QString, int>
 
 void ConnectionRobot::run()
 {
-//    this->exec();
     // This sends an "enable remote control" command to the serial port controller every 500ms (if armed) or 5000 ms (if disarmed); only runs once the stimulator is armed
     double pokeLatency = 5;
+
     while (true) {
         // This locker will lock the mutex until it is destroyed, i.e. when one while loop is over
         QMutexLocker locker(&m_mutex);
@@ -44,21 +44,24 @@ void ConnectionRobot::run()
                 this->m_paused = false;
             }
         }
+
         // Check if we're stopping the robot
         if (this->m_stopped) {
             break;
         }
+
         // Update next poll time to the next poke latency
         this->m_nextPokeTime = defaultTimer() + pokeLatency;
+
         // While waiting for next poll...
         if (defaultTimer() >= this->m_nextPokeTime) {
-            // this->m_serialWriteQueue.push(this->m_connectionCommand); // FW: TODO is this needed?
             emit this->updateSerialWriteQueue(this->m_connectionCommand);
         } else do { // FW: C++ Version of While-Else:
             // ...check to see if there has been an update send from the parent magstim object
             if (!this->m_updateRobotQueue.empty()) {
                 float message = this->m_updateRobotQueue.front();
                 this->m_updateRobotQueue.pop();
+
                 // If the message is None this signals the process to stop
                 if (std::isnan(message)) {  // FW: TODO eventuell
                     this->m_stopped = true;
