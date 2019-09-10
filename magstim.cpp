@@ -36,7 +36,6 @@ MagStim::MagStim(QString serialConnection, QObject* parent)
 
 std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::list<int> responseString, QString responseType)
 {
-    std::cout << "parsemagresp geöffnet" << std::endl;
     std::map<QString, std::map<QString, int>> magstimResponse;
 
     if (responseType == "version") {
@@ -148,7 +147,6 @@ std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::li
 
 std::tuple<int, int, int> MagStim::parseMagstimResponse_version(std::list<int> responseString)
 {
-    std::cout << "parsemagstimresponse_version" << std::endl;
     // Convert to char except first 2 elements
     char foo[responseString.size()-2]; //FIXME: responseString.size()-2 // 4
     std::list<int>::iterator it = responseString.begin();
@@ -167,7 +165,6 @@ std::tuple<int, int, int> MagStim::parseMagstimResponse_version(std::list<int> r
         int hex = versionList.at(i).toInt(&ok, 10);
         if (!ok)
             versionList[i] = "0";
-        std::cout << versionList.at(i).toStdString() << " " << std::endl;
     }
 
     // Fill with zeros to get subsub version
@@ -186,14 +183,11 @@ std::tuple<int, int, int> MagStim::parseMagstimResponse_version(std::list<int> r
 
 void MagStim::connect(int &error = MagStim::er)
 {
-    std::cout << "Start connection()" << std::endl;
     if (!this->m_connected) {
-        std::cout << "Try connecting" << std::endl;
         this->m_connection->start(QThread::Priority::TimeCriticalPriority);
-        std::cout << "Connection started" << std::endl;
+
         std::map<QString, std::map<QString, int>> mes;
         remoteControl(true,mes,error);
-        std::cout << "Remote? Error :" << error << std::endl;
 
         if (!error) {
             this->m_connected = true;
@@ -208,7 +202,6 @@ void MagStim::connect(int &error = MagStim::er)
             if (this->m_connection->isRunning()) {
                 this->m_connection->wait(); //FW: FIXME join()
             }
-            std::cout << "Magstim ERROR!" << std::endl;
             //Raise MaigstimError FIXME
         }
     }
@@ -241,7 +234,6 @@ void MagStim::disconnect(int &error = MagStim::er)
 
 void MagStim::updateReceiveQueue(reciveInfo info)
 {
-    std::cout << "upgedatete ReciveQueue" << std::endl;
     this->m_receiveQueue.push(info);
     emit readInfo();
 }
@@ -252,7 +244,6 @@ void MagStim::updateReceiveQueue(reciveInfo info)
 void MagStim::remoteControl(bool enable, std::map<QString, std::map<QString, int>> &message = MagStim::mes, int &error = MagStim::er)
 {
     QString str = "instr";
-    std::cout << "Magstim RemoteControl" << std::endl;
 
     if (enable) {
         error = this->processCommand("Q@", str, 3, message);
@@ -260,7 +251,6 @@ void MagStim::remoteControl(bool enable, std::map<QString, std::map<QString, int
         error = this->processCommand("R@", str, 3, message);
     }
 
-    std::cout << "Ende RemoteControl" << std::endl;
     return;
 }
 
@@ -271,6 +261,7 @@ std::map<QString, std::map<QString, int> >MagStim::getParameters(int &error = Ma
 {
     std::map<QString, std::map<QString, int> > mes;
     error = this->processCommand("J@", "magstimParam", 12, mes);
+
     return mes;
 }
 
@@ -480,26 +471,20 @@ void MagStim::setupSerialPort(QString serialConnection)
 
 int MagStim::processCommand(QString commandString, QString receiptType, int readBytes, std::tuple<int, int, int> &version, std::map<QString, std::map<QString, int>> &message)
 {
-    std::cout << "ProcessCommand: " << commandString.toStdString() << std::endl;
     QByteArray comString = commandString.toLocal8Bit();
     QByteArray reply;
 
     if (this->m_connected || comString.at(0) == (char)81 || comString.at(0) == (char)82 || comString.at(0) == (char)74 || comString.at(0) == (char)70 || comString.contains("EA") || ( comString.at(0) == (char)92 && this->m_parameterReturnByte != 0 )  ) {
         sendInfo info;
         QByteArray qb = comString.append(calcCRC(comString)); // FW: FIXME most likely // before: comString + calcCRC(comString)
-        std::cout << "ReadBytes in processCommand : " << readBytes << std::endl;
+
         info = std::make_tuple(qb, receiptType, readBytes);
-        // this->m_sendQueue.push(info);  // FW: TODO is this needed?
         emit updateSendQueue(info);
 
         if (!receiptType.isEmpty()) {
-            std::cout <<"Ab jetzt wartet ProcessCommand..." << std::endl;
             m_loop.exec();
-            std::cout << "...Warten beendet" << std::endl;
             int error = std::get<0>(this->m_receiveQueue.front());
-            std::cout << "Error :" << error << std::endl;
 
-            std::cout << "MagStim::processCommand - receiveQueue has " << this->m_receiveQueue.size() << " entries." << std::endl;
             reply = std::get<1>(this->m_receiveQueue.front());
             this->m_receiveQueue.pop(); // FW: FIXME
 
@@ -513,7 +498,6 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
                 } else if (reply.at(1) == (char)83) {
                     return MagStim::COMMAND_CONFLICT_ERR;
                 } else if (reply.at(0) != comString.at(0)) {
-                    std::cout << reply.at(0) << " & " <<comString.at(0) << std::endl;
                     return MagStim::INVALID_CONFIRMATION_ERR;
                 } else if (calcCRC(reply.mid(0,reply.length()-1)) != reply.at(reply.length()-1)) { //TODO check
                     return MagStim::CRC_MISMATCH_ERR;
@@ -523,22 +507,17 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
 
         if (this->m_connected) {
             if (comString.at(0) == (char)0x82) {
-                // this->m_robotQueue.push(-1); // FW: TODO is this neeeded?
                 emit updateRobotQueue(-1);
             } else if (comString.left(2).contains("EA") ) {
-                // this->m_robotQueue.push(1); // FW: TODO is this neeeded?
                 emit updateRobotQueue(1);
             } else if (comString.left(2).contains("EB") ) {
-                // this->m_robotQueue.push(2); // FW: TODO is this neeeded?
                 emit updateRobotQueue(2);
             }  else {
-                // this->m_robotQueue.push(0); // FW: TODO is this neeeded?
                 emit updateRobotQueue(0);
             }
         }
 
         std::string s = reply.toStdString();
-        std::cout << "processcommand s: " << s << std::endl;
         std::list<int> intlist(s.begin(), s.end());
 
         if (receiptType == "version") {
