@@ -64,11 +64,10 @@ public:
     void run() override;
 
 private:
-    QSerialPort port;
-    std::queue<std::tuple<QByteArray, QString, int>> serialWriteQueue;
-    std::queue<std::tuple<int, QByteArray>> serialReadQueue;
-    QString address;
-    QMutex mutex;
+    std::queue<std::tuple<QByteArray, QString, int>> m_serialWriteQueue;      /**< Queue for writing to Magstim */
+    std::queue<std::tuple<int, QByteArray>> m_serialReadQueue;                /**< Queue for reading from Magstim */
+    QString m_address;                                                        /**<  Adress of port */
+    QMutex m_mutex;                                                           /**< To protect data in this thread */
 
     const int SERIAL_WRITE_ERROR = 1; // SERIAL_WRITE_ERR: Could not send the command.
     const int SERIAL_READ_ERROR  = 2; // SERIAL_READ_ERR:  Could not read the magstim response.

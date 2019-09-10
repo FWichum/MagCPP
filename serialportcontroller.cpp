@@ -10,9 +10,9 @@ SerialPortController::SerialPortController(QString serialConnection,
                                            std::queue<std::tuple<QByteArray, QString, int>> serialWriteQueue,
                                            std::queue<std::tuple<int, QByteArray> > serialReadQueue)
 {
-    this->serialWriteQueue = serialWriteQueue;
-    this->serialReadQueue = serialReadQueue;
-    this->address = serialConnection;
+    this->m_serialWriteQueue = serialWriteQueue;
+    this->m_serialReadQueue = serialReadQueue;
+    this->m_address = serialConnection;
 //        this->moveToThread(this);
 }
 
@@ -29,7 +29,7 @@ void SerialPortController::run()
     // N.B. most of these settings are actually the default in PySerial, but just being careful.
 
     QSerialPort porto;
-    porto.setPortName("/dev/ttyS1");
+    porto.setPortName("/dev/ttyS1"); // this->m_adress FIXME
 
     bool ok = porto.open(QIODevice::ReadWrite);
     std::cout << "Der Port ist offen :" << (int) ok << std::endl;
@@ -46,7 +46,7 @@ void SerialPortController::run()
     while (true) {
 //        std::cout << "Er rennt noch" << std::endl;
         // This locker will lock the mutex until it is destroyed, i.e. when this function call goes out of scope
-        QMutexLocker locker(&mutex);
+        QMutexLocker locker(&m_mutex);
 
 
 
@@ -57,14 +57,14 @@ void SerialPortController::run()
         QString reply;
         QByteArray bmessage;
         float message;
-        if (!serialWriteQueue.empty()) {
-            int readBytes = std::get<2>(this->serialWriteQueue.front());
-            QString reply = std::get<1>(this->serialWriteQueue.front());
+        if (!m_serialWriteQueue.empty()) {
+            int readBytes = std::get<2>(this->m_serialWriteQueue.front());
+            QString reply = std::get<1>(this->m_serialWriteQueue.front());
             std::cout << "Qstring und int gelesen: "<< reply.toStdString() <<" & "<< readBytes << std::endl;
-            QByteArray bmessage = std::get<0>(this->serialWriteQueue.front());
+            QByteArray bmessage = std::get<0>(this->m_serialWriteQueue.front());
  //           bmessage.chop(1);
             message = bmessage.toFloat();
-            this->serialWriteQueue.pop();
+            this->m_serialWriteQueue.pop();
             char c = 65;
             // If the first part of the message is None this signals the process to close the port and stop
             if(reply.contains("closePort")) {
@@ -140,7 +140,7 @@ void SerialPortController::run()
                             }
                         }
                         if (!reply.isEmpty()) {
-                            // this->serialReadQueue.push(std::make_tuple(0, bmessage)); //FW: TODO need this?
+                            // this->m_serialReadQueue.push(std::make_tuple(0, bmessage)); //FW: TODO need this?
                             std::cout << "SPC Reply is not empty! Size of QByteArray :"<< bmessage.size() << std::endl;
                             QString s_data = QString::fromLocal8Bit(bmessage.data());
                             std::cout << "Gelesen : " << s_data.toStdString() << std::endl;
@@ -148,12 +148,12 @@ void SerialPortController::run()
                         }
 
                     } catch (...) { // FW: FIXME
-                        // this->serialReadQueue.push(std::make_tuple(SerialPortController::SERIAL_READ_ERROR, bmessage)); //FW: TODO need this?
+                        // this->m_serialReadQueue.push(std::make_tuple(SerialPortController::SERIAL_READ_ERROR, bmessage)); //FW: TODO need this?
                         std::cout << "ReadError" << std::endl;
                         emit updateSerialReadQueue(std::make_tuple(SerialPortController::SERIAL_READ_ERROR, bmessage));
                     }
                 } catch (...) { //FW: FIXME
-                    // this->serialReadQueue.push(std::make_tuple(SerialPortController::SERIAL_WRITE_ERROR, bmessage)); //FW: TODO need this?
+                    // this->m_serialReadQueue.push(std::make_tuple(SerialPortController::SERIAL_WRITE_ERROR, bmessage)); //FW: TODO need this?
                     std::cout << "WriteEror" << std::endl;
                     emit updateSerialReadQueue(std::make_tuple(SerialPortController::SERIAL_WRITE_ERROR, bmessage));
 
@@ -170,7 +170,7 @@ void SerialPortController::run()
 void SerialPortController::updateSerialWriteQueue(sendInfo info)
 {
     // This locker will lock the mutex until it is destroyed, i.e. when this function call goes out of scope
-    QMutexLocker locker(&mutex);
+    QMutexLocker locker(&m_mutex);
     std::cout << " upgedaterer SerialWriteQueue" << std::endl;
-    this->serialWriteQueue.push(info);
+    this->m_serialWriteQueue.push(info);
 }

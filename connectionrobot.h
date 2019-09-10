@@ -80,13 +80,13 @@ public:
     void setCommand(std::tuple<QByteArray, QString, int> connectionCommand);
 
 private:
-    std::queue<std::tuple<QByteArray, QString, int>> serialWriteQueue;
-    std::queue<float> updateRobotQueue;
-    bool stopped;
-    bool paused;
-    double nextPokeTime;
-    std::tuple<QByteArray, QString, int> connectionCommand;
-    QMutex mutex;
+    std::queue<std::tuple<QByteArray, QString, int>> m_serialWriteQueue;    /**< Queue for writing to Magstim */
+    std::queue<float> m_updateRobotQueue;                                   /**< Queue for controlling the connectionRobot */
+    bool m_stopped;                                                         /**< Stop the Robot */
+    bool m_paused;                                                          /**< Pause the Robot */
+    double m_nextPokeTime;                                                  /**< Next time sending a command to the Magstim */
+    std::tuple<QByteArray, QString, int> m_connectionCommand;               /**< Command send to the Magstim */
+    QMutex m_mutex;                                                         /**< To protect data in this thread */
 
 
 public slots:
