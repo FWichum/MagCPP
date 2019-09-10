@@ -224,12 +224,77 @@ public:
 
 
 protected:
+    //=========================================================================================================
+    /**
+    * Interprets responses sent from the Magstim unit.
+    *
+    * @param[in] responseString             TODO Doxygen
+    * @param[in] responseType               TODO Doxygen
+    *
+    * @return TODO Doxygen
+    */
     virtual std::map<QString, std::map<QString, int>> parseMagstimResponse(std::list<int> responseString, QString responseType);
+
+    //=========================================================================================================
+    /**
+    * Interprets responses sent from the Magstim unit.
+    *
+    * @param[in] responseString             TODO Doxygen
+    *
+    * @return version of Magstim unit (X, Y, Z)
+    */
     virtual std::tuple<int, int, int> parseMagstimResponse_version(std::list<int> responseString);
+
+    //=========================================================================================================
+    /**
+    * TODO Doxygen
+    *
+    * @param[in] serialConnection           TODO Doxygen
+    */
     virtual void setupSerialPort(QString serialConnection);
+
+    //=========================================================================================================
+    /**
+    * Overloaded function. Process Magstim command.
+    *
+    * @param[in] commandString              command and data characters making up the command string (N.B. do not include CRC character)
+    * @param[in] receiptType                determines the how the response will be processed
+    * @param[in] readBytes                  number of bytes in the response
+    * @param[in] message                    TODO Doxygen
+    */
     virtual int processCommand(QString commandString, QString receiptType, int readBytes, std::map<QString, std::map<QString, int> > &message);
+
+    //=========================================================================================================
+    /**
+    * Overloaded function. Process Magstim command.
+    *
+    * @param[in] commandString              command and data characters making up the command string (N.B. do not include CRC character)
+    * @param[in] receiptType                determines the how the response will be processed
+    * @param[in] readBytes                  number of bytes in the response
+    * @param[in] version                    version of Magstim unit (X, Y, Z)
+    */
     virtual int processCommand(QString commandString, QString receiptType, int readBytes, std::tuple<int, int, int> &version);
+
+    //=========================================================================================================
+    /**
+    * Overloaded function. Process Magstim command.
+    *
+    * @param[in] commandString              command and data characters making up the command string (N.B. do not include CRC character)
+    * @param[in] receiptType                determines the how the response will be processed
+    * @param[in] readBytes                  number of bytes in the response
+    * @param[in] version                    version of Magstim unit (X, Y, Z)
+    * @param[in] message                    TODO Doxygen
+    */
     virtual int processCommand(QString commandString, QString receiptType, int readBytes, std::tuple<int, int, int> &version, std::map<QString, std::map<QString, int> > &message);
+
+    //=========================================================================================================
+    /**
+    * Calculates checksum for the command string
+    *
+    * @param[in] command                    TODO Doxygen
+    *
+    * @return the CRC checksum
+    */
     virtual char calcCRC(QByteArray command);
 
     static int er;
@@ -251,11 +316,31 @@ protected:
     // auto queryCommand; //FW: TODO
 
 public slots:
+    //=========================================================================================================
+    /**
+    * Updates the recive queue after reading something from Magstim. Emits a signal to allow leaving QEventLoop.
+    *
+    * @param[in] info                       TODO Doxygen
+    */
     void updateReceiveQueue(reciveInfo info);
 
 signals:
+    //=========================================================================================================
+    /**
+    * Updates the send queue. A message will be sent to Magstim unit via SerialPortController.
+    */
     void updateSendQueue(const sendInfo &info);
+
+    //=========================================================================================================
+    /**
+    * TODO Doxygen
+    */
     void updateRobotQueue(const float &info);
+
+    //=========================================================================================================
+    /**
+    * A message from the Magstim unit was read. Allows to leave QEventLoop.
+    */
     void readInfo();
 };
 
