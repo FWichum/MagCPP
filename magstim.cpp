@@ -6,26 +6,26 @@
 
 MagStim::MagStim(QString serialConnection, QObject* parent)
     : QObject(parent)
-    // robot(this->sendQueue, this->robotQueue)
+    // m_robot(this->m_sendQueue, this->m_robotQueue)
 {
     qRegisterMetaType<std::tuple<QByteArray, QString, int>>("std::tuple<QByteArray, QString, int>");
     qRegisterMetaType<std::tuple<int, QByteArray>>("std::tuple<int, QByteArray>");
 
-    this->robot = new ConnectionRobot(this->sendQueue, this->robotQueue);
+    this->m_robot = new ConnectionRobot(this->m_sendQueue, this->m_robotQueue);
 
     this->setupSerialPort(serialConnection);
-    // connection.daemon = true; //FW: TODO daemon
-    // robot.daemon = true; //FW: TODO daemon
-    this->connected = false;
-    this->connectionCommand = std::make_tuple(QString("Q@n").toUtf8(),"", 3);
+    // m_connection.daemon = true; //FW: TODO daemon
+    // m_robot.daemon = true; //FW: TODO daemon
+    this->m_connected = false;
+    this->m_connectionCommand = std::make_tuple(QString("Q@n").toUtf8(),"", 3);
     // auto queryCommand = std::bind(this->remoteControl, true, true);//FW: TODO queryCommand
 
-    QObject::connect(this->robot, &ConnectionRobot::updateSerialWriteQueue,
-                     this->connection, &SerialPortController::updateSerialWriteQueue);
+    QObject::connect(this->m_robot, &ConnectionRobot::updateSerialWriteQueue,
+                     this->m_connection, &SerialPortController::updateSerialWriteQueue);
     QObject::connect(this,  &MagStim::updateRobotQueue,
-                     this->robot, &ConnectionRobot::updateUpdateRobotQueue);
+                     this->m_robot, &ConnectionRobot::updateUpdateRobotQueue);
     QObject::connect(this, &MagStim::readInfo,
-                     &this->loop, &QEventLoop::quit);
+                     &this->m_loop, &QEventLoop::quit);
 }
 
 std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::list<int> responseString, QString responseType)
@@ -170,28 +170,28 @@ void MagStim::connect(int &error = MagStim::er)
  */
 {
     std::cout << "Start connection()" << std::endl;
-    if (!this->connected) {
+    if (!this->m_connected) {
         std::cout << "Try connecting" << std::endl;
-        this->connection->start(QThread::Priority::TimeCriticalPriority);
-        //        this->connection->run();
+        this->m_connection->start(QThread::Priority::TimeCriticalPriority);
+        //        this->m_connection->run();
         std::cout << "Connection started" << std::endl;
         std::map<QString, std::map<QString, int>> mes;
         remoteControl(true,mes,error);
         std::cout << "Remote? Error :" << error << std::endl;
         if (!error) {
-            this->connected = true;
-            this->robot->setCommand(this->connectionCommand);
-            this->robot->start(QThread::Priority::TimeCriticalPriority);
-            //            this->robot->run();
+            this->m_connected = true;
+            this->m_robot->setCommand(this->m_connectionCommand);
+            this->m_robot->start(QThread::Priority::TimeCriticalPriority);
+            //            this->m_robot->run();
         } else {
             QByteArray qb;
             QString s = "closePort";
             int i;
-//            this->sendQueue.push(std::make_tuple(qb,s,i));
+//            this->m_sendQueue.push(std::make_tuple(qb,s,i));
             emit updateSendQueue(std::make_tuple(qb,s,i));
-//            loop.exec();
-            if (this->connection->isRunning()) {
-                this->connection->wait(); //FW: FIXME join()
+//            m_loop.exec();
+            if (this->m_connection->isRunning()) {
+                this->m_connection->wait(); //FW: FIXME join()
             }
             std::cout << "Magstim ERROR!" << std::endl;
             //Raise MaigstimError
@@ -201,19 +201,19 @@ void MagStim::connect(int &error = MagStim::er)
 
 void MagStim::disconnect(int &error = MagStim::er)
 {
-    if (this->connected) {
+    if (this->m_connected) {
         std::map<QString, std::map<QString, int>> message;
         this->disarm(message, error);
-        // this->robotQueue.push(0); // FW: TODO is this neeeded?
+        // this->m_robotQueue.push(0); // FW: TODO is this neeeded?
         emit updateRobotQueue(0);
-        if (this->robot->isRunning()) {
-            this->robot->wait(); // FW: FIXME join()
+        if (this->m_robot->isRunning()) {
+            this->m_robot->wait(); // FW: FIXME join()
         }
         remoteControl(false,message, error);
-//        this->sendQueue.push(std::make_tuple("","closePort",NULL));
+//        this->m_sendQueue.push(std::make_tuple("","closePort",NULL));
         emit updateSendQueue(std::make_tuple("","closePort",NULL));
-        if (this->connection->isRunning()) {
-            this->connection->wait(); // FW: FXME join()
+        if (this->m_connection->isRunning()) {
+            this->m_connection->wait(); // FW: FXME join()
         }
     }
 }
@@ -221,7 +221,7 @@ void MagStim::disconnect(int &error = MagStim::er)
 void MagStim::updateReceiveQueue(reciveInfo info)
 {
     std::cout << "upgedatete ReciveQueue" << std::endl;
-    this->receiveQueue.push(info);
+    this->m_receiveQueue.push(info);
     emit readInfo();
 }
 
@@ -384,22 +384,22 @@ void MagStim::fire(std::map<QString, std::map<QString, int> > &message = MagStim
 
 void MagStim::resetQuickFire()
 {
-    // this->sendQueue.push(std::make_tuple(QByteArray::number(-1), "", 0)); // FW: TODO is this needed?
+    // this->m_sendQueue.push(std::make_tuple(QByteArray::number(-1), "", 0)); // FW: TODO is this needed?
     emit updateSendQueue(std::make_tuple(QByteArray::number(-1), "", 0));
 }
 
 void MagStim::quickFire()
 {
-    // this->sendQueue.push(std::make_tuple(QByteArray::number(1), "", 0)); // FW: TODO is this needed?
+    // this->m_sendQueue.push(std::make_tuple(QByteArray::number(1), "", 0)); // FW: TODO is this needed?
     emit updateSendQueue(std::make_tuple(QByteArray::number(1), "", 0));
 }
 
 void MagStim::setupSerialPort(QString serialConnection)
 {
     // FW: TODO in case of virtual load virtual
-    this->connection = new SerialPortController(serialConnection, this->sendQueue, this->receiveQueue);
-    QObject::connect(this->connection, &SerialPortController::updateSerialReadQueue, this, &MagStim::updateReceiveQueue);
-    QObject::connect(this, &MagStim::updateSendQueue, this->connection, &SerialPortController::updateSerialWriteQueue);
+    this->m_connection = new SerialPortController(serialConnection, this->m_sendQueue, this->m_receiveQueue);
+    QObject::connect(this->m_connection, &SerialPortController::updateSerialReadQueue, this, &MagStim::updateReceiveQueue);
+    QObject::connect(this, &MagStim::updateSendQueue, this->m_connection, &SerialPortController::updateSerialWriteQueue);
 }
 
 int MagStim::processCommand(QString commandString, QString receiptType, int readBytes, std::tuple<int, int, int> &version, std::map<QString, std::map<QString, int>> &message)
@@ -410,23 +410,23 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
     std::cout << "ProcessCommand: " << commandString.toStdString() << std::endl;
     QByteArray comString = commandString.toLocal8Bit();
     QByteArray reply;
-    if (this->connected || comString.at(0) == (char)81 || comString.at(0) == (char)82 || comString.at(0) == (char)74 || comString.at(0) == (char)70 || comString.contains("EA") || ( comString.at(0) == (char)92 && this->parameterReturnByte != 0 )  ) {
+    if (this->m_connected || comString.at(0) == (char)81 || comString.at(0) == (char)82 || comString.at(0) == (char)74 || comString.at(0) == (char)70 || comString.contains("EA") || ( comString.at(0) == (char)92 && this->m_parameterReturnByte != 0 )  ) {
         sendInfo info;
         QByteArray qb = comString.append(calcCRC(comString)); // FW: FIXME most likely // before: comString + calcCRC(comString)
         std::cout << "ReadBytes in processCommand : " << readBytes << std::endl;
         info = std::make_tuple(qb, receiptType, readBytes);
-        // this->sendQueue.push(info);  // FW: TODO is this needed?
+        // this->m_sendQueue.push(info);  // FW: TODO is this needed?
         emit updateSendQueue(info);
         if (!receiptType.isEmpty()) {
             std::cout <<"Ab jetzt wartet ProcessCommand..." << std::endl;
-            loop.exec();
+            m_loop.exec();
             std::cout << "...Warten beendet" << std::endl;
-            int error = std::get<0>(this->receiveQueue.front());
+            int error = std::get<0>(this->m_receiveQueue.front());
             std::cout << "Error :" << error << std::endl;
 
-            std::cout << "MagStim::processCommand - receiveQueue has " << this->receiveQueue.size() << " entries." << std::endl;
-            reply = std::get<1>(this->receiveQueue.front());
-            this->receiveQueue.pop(); // FW: FIXME
+            std::cout << "MagStim::processCommand - receiveQueue has " << this->m_receiveQueue.size() << " entries." << std::endl;
+            reply = std::get<1>(this->m_receiveQueue.front());
+            this->m_receiveQueue.pop(); // FW: FIXME
 
             if (error) {
                 return error; // FW: Change for C++ Reasons to just error
@@ -445,18 +445,18 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
                 }
             }
         }
-        if (this->connected) {
+        if (this->m_connected) {
             if (comString.at(0) == (char)0x82) {
-                // this->robotQueue.push(-1); // FW: TODO is this neeeded?
+                // this->m_robotQueue.push(-1); // FW: TODO is this neeeded?
                 emit updateRobotQueue(-1);
             } else if (comString.left(2).contains("EA") ) {
-                // this->robotQueue.push(1); // FW: TODO is this neeeded?
+                // this->m_robotQueue.push(1); // FW: TODO is this neeeded?
                 emit updateRobotQueue(1);
             } else if (comString.left(2).contains("EB") ) {
-                // this->robotQueue.push(2); // FW: TODO is this neeeded?
+                // this->m_robotQueue.push(2); // FW: TODO is this neeeded?
                 emit updateRobotQueue(2);
             }  else {
-                // this->robotQueue.push(0); // FW: TODO is this neeeded?
+                // this->m_robotQueue.push(0); // FW: TODO is this neeeded?
                 emit updateRobotQueue(0);
             }
         }

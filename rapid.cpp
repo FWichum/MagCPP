@@ -9,18 +9,18 @@ Rapid::Rapid(QString serialConnection, int superRapid, QString unlockCode, int v
     MagStim(serialConnection)
 {
     this->setDefault();
-    this->super = superRapid;
-    this->unlockCode = unlockCode;
-    this->voltage = voltage;
+    this->m_super = superRapid;
+    this->m_unlockCode = unlockCode;
+    this->m_voltage = voltage;
     if (serialConnection.toLower() == "virtual") {
-        this->version = version; //FW: Is it right?
+        this->m_version = version; //FW: Is it right?
     } else {
-        this->version = std::make_tuple(0,0,0); // FW: Is it right to set to (0,0,0)?
+        this->m_version = std::make_tuple(0,0,0); // FW: Is it right to set to (0,0,0)?
     }
     // FIXME if UnlockCode is provided ...
-    this->parameterReturnBytes = NAN;
-    this->sequenceValidated = false;
-    this->repetitiveMode = false;
+    this->m_parameterReturnByte = NAN;
+    this->m_sequenceValidated = false;
+    this->m_repetitiveMode = false;
 }
 
 Rapid::Rapid(QString serialConnection) :
@@ -92,15 +92,15 @@ std::tuple<int,int,int> Rapid::getVersion(int &er=MagStim::er)
     std::cout << "Version :" << std::get<0>(vers) << std::get<1>(vers)<< std::get<2>(vers) << std::endl;
    // If we didn't receive an error, update the version number and the number of bytes that will be returned by a getParameters() command
     if (er == 0) {
-        this->version = vers;
-        if (std::get<0>(this->version) >= 9) {
-            this->parameterReturnBytes = 24;
+        this->m_version = vers;
+        if (std::get<0>(this->m_version) >= 9) {
+            this->m_parameterReturnByte = 24;
         }
-        else if (std::get<0>(this->version) >= 7) {
-            this->parameterReturnBytes = 22;
+        else if (std::get<0>(this->m_version) >= 7) {
+            this->m_parameterReturnByte = 22;
         }
         else {
-            this->parameterReturnBytes = 21;
+            this->m_parameterReturnByte = 21;
         }
     }
     return vers;
@@ -157,8 +157,8 @@ void Rapid::disconnect()
         This stops maintaining contact with the Magstim and turns the serial port controller off.
     */
     //Just some housekeeping before we call the base magstim class method disconnect
-    this->sequenceValidated = false;
-    this->repetitiveMode = false;
+    this->m_sequenceValidated = false;
+    this->m_repetitiveMode = false;
     int i;
     MagStim::disconnect(i);
     return;
@@ -193,10 +193,10 @@ int Rapid::rTMSMode(bool enable, std::map<QString, std::map<QString, int>> &mess
         If receipt argument is False:
             None
     */
-    this->sequenceValidated = false;
+    this->m_sequenceValidated = false;
     // Durations of 1 or 0 are used to toggle repetitive mode on and off
     QString commandString = "";
-    if (std::get<0>(this->version) >= 9) {
+    if (std::get<0>(this->m_version) >= 9) {
         if (enable) {
             QString commandString = "0010";
         }
@@ -215,7 +215,7 @@ int Rapid::rTMSMode(bool enable, std::map<QString, std::map<QString, int>> &mess
     int error = this->processCommand(commandString, "instrRapid", 4, message);
     if (error == 0) {
         if (enable) {
-            this->repetitiveMode = true;
+            this->m_repetitiveMode = true;
             std::map<QString, std::map<QString, int> > mes;
             int updateError = 0;
             mes = getParameters(updateError);
@@ -230,7 +230,7 @@ int Rapid::rTMSMode(bool enable, std::map<QString, std::map<QString, int>> &mess
                     }
                 }
                 else {
-                    this->repetitiveMode = false;
+                    this->m_repetitiveMode = false;
                 }
             }
         }
@@ -279,8 +279,8 @@ void Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, int> 
 */
 {
     std::cout << "Rapid remoteControl" << std::endl;
-    this->sequenceValidated = false;
-    if (this->unlockCode.isEmpty()) {
+    this->m_sequenceValidated = false;
+    if (this->m_unlockCode.isEmpty()) {
         std::cout << "UnlockCode is empty!" << std::endl;
         if(enable){
             error = this->processCommand("Q@", "instr", 3, message);
@@ -291,7 +291,7 @@ void Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, int> 
     }
     else {
         if(enable){
-            QString string = this->unlockCode.toLatin1().append("Q");
+            QString string = this->m_unlockCode.toLatin1().append("Q");
             error = this->processCommand(string, "instr", 3, message);
         }
         else {
@@ -348,7 +348,7 @@ bool Rapid::isEnhanced()
 
 int Rapid::setFrequency(float newFrequency, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error = MagStim::er, bool receipt)
 {
-    this->sequenceValidated = false;
+    this->m_sequenceValidated = false;
     // Convert to tenths of a Hz
     newFrequency *= 10;
     int helpFreq = int(newFrequency);
@@ -363,7 +363,7 @@ int Rapid::setFrequency(float newFrequency, std::map<QString, std::map<QString, 
         return MagStim::PARAMETER_ACQUISTION_ERR;
     }
     else {
-        int maxFrequency = this->MAX_FREQUENCY[this->voltage][this->super][currentParameters["rapidParam"]["power"]];   // FIXME: in python there are not all arguments in MAX_FREQUENCY
+        int maxFrequency = this->MAX_FREQUENCY[this->m_voltage][this->m_super][currentParameters["rapidParam"]["power"]];   // FIXME: in python there are not all arguments in MAX_FREQUENCY
         if (newFrequency < 0 || newFrequency > maxFrequency){
             return MagStim::PARAMETER_RANGE_ERR;
         }
@@ -382,7 +382,7 @@ int Rapid::setFrequency(float newFrequency, std::map<QString, std::map<QString, 
             QString string1 = QString::number(duration*frequency).rightJustified(5, '0');
             QString string2 = QString::number(duration*frequency).rightJustified(4, '0');
             QString string3 = "D";
-            if(std::get<0>(this->version) >= 9){
+            if(std::get<0>(this->m_version) >= 9){
                 QString string = string3 + string1;
                 updateError = this->processCommand(string, "instrRapid", 4, currentParameters);
             }
@@ -422,7 +422,7 @@ Set number of pulses in rTMS pulse train.
             None
 */
 {
-    this->sequenceValidated = false;
+    this->m_sequenceValidated = false;
 
     // Make sure we have a valid number of pulses value
     if(newPulses % 1) {
@@ -437,7 +437,7 @@ Set number of pulses in rTMS pulse train.
     QString string1 = QString::number(newPulses).rightJustified(5, '0');
     QString string2 = QString::number(newPulses).rightJustified(4, '0');
     QString string3 = "D";
-    if(std::get<0>(this->version) >= 9) {
+    if(std::get<0>(this->m_version) >= 9) {
         QString string = string3 + string1;
         error = this->processCommand(string, "instr", 4, message);
     }
@@ -457,7 +457,7 @@ Set number of pulses in rTMS pulse train.
         QString string2 = QString::number(nPulses/frequency).rightJustified(3, '0');
         QString string3 = "[";
         if(updateError == 0) {
-            if(std::get<0>(this->version) >= 9) {
+            if(std::get<0>(this->m_version) >= 9) {
                 QString string = string3 + string1;
                 if(receipt){
                     updateError = this->processCommand(string, "instrRapid", 4, currentParameters);
@@ -507,7 +507,7 @@ Set duration of rTMS pulse train.
             None
 */
 {
-    this->sequenceValidated = false;
+    this->m_sequenceValidated = false;
 
     // Convert to tenths of a second
     newDuration *= 10;
@@ -516,7 +516,7 @@ Set duration of rTMS pulse train.
     if (helpDuration % 1) {
         return MagStim::PARAMETER_PRECISION_ERR;
     }
-    if(std::get<0>(this->version) >= 9) {
+    if(std::get<0>(this->m_version) >= 9) {
         if (0 > newDuration || newDuration > 9999) {
             return MagStim::PARAMETER_RANGE_ERR;
         }
@@ -529,7 +529,7 @@ Set duration of rTMS pulse train.
     QString string1 = QString::number(newDuration).rightJustified(4, '0');
     QString string2 = QString::number(newDuration).rightJustified(3, '0');
     QString string3 = "[";
-    if(std::get<0>(this->version) >= 9) {
+    if(std::get<0>(this->m_version) >= 9) {
         QString string = string3 + string1;
         error = this->processCommand(string, "instrRapid", 4, message);
     }
@@ -547,7 +547,7 @@ Set duration of rTMS pulse train.
         QString string2 = QString::number(duration*frequency).rightJustified(4, '0');
         QString string3 = "D";
         if(updateError == 0) {
-            if(std::get<0>(this->version) >= 9) {
+            if(std::get<0>(this->m_version) >= 9) {
                 QString string = string3 + string1;
                 updateError = this->processCommand(string, "instrRapid", 4, currentParameters);
             }
@@ -580,7 +580,7 @@ Request current parameter settings from the Rapid.
 */
 {
     std::map<QString, std::map<QString, int> > message;
-    int helpNumber = this->parameterReturnBytes;
+    int helpNumber = this->m_parameterReturnByte;
     error = this->processCommand("\\@n", "rapidParam", helpNumber, message);
 
     return message;
@@ -608,7 +608,7 @@ Set power level for the Rapid.
             None
 */
 {
-    this->sequenceValidated = false;
+    this->m_sequenceValidated = false;
 
     // Make sure we have a valid power value
     if(newPower % 1) {
@@ -634,7 +634,7 @@ Set power level for the Rapid.
         currentParameters = this->getParameters(updateError);
         if(updateError == 0){
             if(currentParameters["rapid"]["singlePulseMode"] == false) {
-                int maxFrequency = this->MAX_FREQUENCY[this->voltage][this->super][currentParameters["rapidParam"]["power"]];
+                int maxFrequency = this->MAX_FREQUENCY[this->m_voltage][this->m_super][currentParameters["rapidParam"]["power"]];
                 if(currentParameters["rapidParam"]["frequency"] > maxFrequency) {
                     if(this->setFrequency(maxFrequency, message, error) != 0){ //FW: FIXME message & error
                         error = MagStim::PARAMETER_UPDATE_ERR;
@@ -667,13 +667,13 @@ Set charge delay duration for the Rapid.
             None
 */
 {
-    if(std::get<0>(this->version) == 0){
+    if(std::get<0>(this->m_version) == 0){
         return MagStim::GET_SYSTEM_STATUS_ERR;
     }
-    else if(std::get<0>(this->version) < 9) {
+    else if(std::get<0>(this->m_version) < 9) {
         return MagStim::SYSTEM_STATUS_VERSION_ERR;
     }
-    this->sequenceValidated = false;
+    this->m_sequenceValidated = false;
 
     // Make sure we have a valid delay duration value
     if(newDelay % 1){
@@ -682,7 +682,7 @@ Set charge delay duration for the Rapid.
     QString string1 = QString::number(newDelay).rightJustified(5, '0');
     QString string2 = QString::number(newDelay).rightJustified(4, '0');
     QString string3 = "n";
-    if(std::get<0>(this->version) >= 10){
+    if(std::get<0>(this->m_version) >= 10){
         QString string = string3 + string1;
         error = this->processCommand(string, "systemRapid", 6, message);
     }
@@ -706,14 +706,14 @@ Get current charge delay duration for the Rapid.
                 charge delay duration ['chargeDelay'] value, otherwise returns an error string
 */
 {
-    if(std::get<0>(this->version) == 0){
+    if(std::get<0>(this->m_version) == 0){
         return MagStim::GET_SYSTEM_STATUS_ERR;
     }
-    else if(std::get<0>(this->version) < 9) {
+    else if(std::get<0>(this->m_version) < 9) {
         return MagStim::SYSTEM_STATUS_VERSION_ERR;
     }
 
-    if(std::get<0>(this->version) > 9) {
+    if(std::get<0>(this->m_version) > 9) {
         error = this->processCommand("o@", "instrCharge", 8, message);
     }
     else {
@@ -740,7 +740,7 @@ Fire the stimulator. This overrides the base Magstim method in order to check wh
             None
 */
 {
-    if (this->repetitiveMode && Rapid::ENFORCE_ENERGY_SAFETY && !this->sequenceValidated) {
+    if (this->m_repetitiveMode && Rapid::ENFORCE_ENERGY_SAFETY && !this->m_sequenceValidated) {
         error = MagStim::SEQUENCE_VALIDATION_ERR;
     }
     else {
@@ -755,7 +755,7 @@ void Rapid::quickFire(int &error = MagStim::er)
    Trigger the stimulator to fire with very low latency using the RTS pin and a custom serial connection.
 */
 {
-    if(this->repetitiveMode && Rapid::ENFORCE_ENERGY_SAFETY && !this->sequenceValidated) {
+    if(this->m_repetitiveMode && Rapid::ENFORCE_ENERGY_SAFETY && !this->m_sequenceValidated) {
         error = MagStim::SEQUENCE_VALIDATION_ERR;
     }
     else {
@@ -795,7 +795,7 @@ Validate the energy consumption for the current rTMS parameters for the Rapid.
         return MagStim::MAX_ON_TIME_ERR;
     }
     else {
-        this->sequenceValidated = true;
+        this->m_sequenceValidated = true;
         return 0; //in python with "Sequence valid."
     }
 }
@@ -811,10 +811,10 @@ et system status from the Rapid. Available only on software version of 9 or late
             rMTS setting ['rapid'], and extended instrument status ['extInstr'] dicts, otherwise returns an error string
 */
 {
-    if (std::get<0>(this->version) == 0) {
+    if (std::get<0>(this->m_version) == 0) {
         return MagStim::GET_SYSTEM_STATUS_ERR;
     }
-    else if (std::get<0>(this->version) >= 9) {
+    else if (std::get<0>(this->m_version) >= 9) {
         int error;
         error = this->processCommand("x@", "systemRapid", 6, message);
         return error;
@@ -838,7 +838,7 @@ void Rapid::setDefault()
 //        YAML::Node config = YAML::LoadFile(file.toStdString());
 //        this->DEFAULT_RAPID_TYPE = config["defaultRapidType"].as<int>();
 //        this->DEFAULT_VOLTAGE = config["defaultVoltage"].as<int>();
-//        this->DEFAULT_UNLOCK_CODE = QString::fromStdString(config["unlockCode"].as<std::string>());
+//        this->DEFAULT_UNLOCK_CODE = QString::fromStdString(config["m_unlockCode"].as<std::string>());
 //        this->ENFORCE_ENERGY_SAFETY = config["enforceEnergySafety"].as<bool>();
 //        this->DEFAULT_VIRTUAL_VERSION = std::make_tuple(5,0,0); //FIXME: config["virtualVersionNumber"].as<std::tuple<int, int, int>>();
     } else {

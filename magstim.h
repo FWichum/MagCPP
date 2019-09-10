@@ -312,19 +312,21 @@ protected:
     */
     virtual char calcCRC(QByteArray command);
 
-    static int er;
-    static std::tuple<int, int, int> ver;
-    static std::map<QString, std::map<QString, int>> mes;
+    static int er;                                                    /**< Use as placeholder */
+    static std::tuple<int, int, int> ver;                             /**< Use as placeholder */
+    static std::map<QString, std::map<QString, int>> mes;             /**< Use as placeholder */
 
-    std::queue<std::tuple<QByteArray, QString, int>> sendQueue;
-    std::queue<std::tuple<int, QByteArray>> receiveQueue;
-    std::queue<float> robotQueue;
-    ConnectionRobot *robot;
-    SerialPortController *connection;
-    QEventLoop loop;
-    bool connected;
-    std::tuple<QByteArray, QString, int> connectionCommand;
-    int parameterReturnByte;
+    std::queue<std::tuple<QByteArray, QString, int>> m_sendQueue;     /**< Queue for writing to Magstim */
+    std::queue<std::tuple<int, QByteArray>> m_receiveQueue;           /**< Queue for reading from Magstim */
+    std::queue<float> m_robotQueue;                                   /**< Queue for controlling the connectionRobot */
+
+    SerialPortController *m_connection;                               /**< Controls the serial port */
+    ConnectionRobot *m_robot;                                         /**< Keeps remote control */
+
+    QEventLoop m_loop;                                                /**< TODO Doxygen */
+    bool m_connected;                                                 /**< TODO Doxygen */
+    std::tuple<QByteArray, QString, int> m_connectionCommand;         /**< TODO Doxygen */
+    int m_parameterReturnByte;                                        /**< TODO Doxygen */
     // connection.daemon = true; //FW: TODO
     // ConnectionRobot robot;
     // robot.daemon = true; //FW: TODO

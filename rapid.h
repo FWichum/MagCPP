@@ -322,13 +322,12 @@ private:
     std::map<int, std::map<int, std::map<int, int>>> MAX_FREQUENCY;
     std::map<QString,std::map<QString, int>> DEFAULT_MESSAGE;
 
-    int super;
-    QString unlockCode;
-    int voltage;
-    std::tuple<int, int, int> version;
-    float parameterReturnBytes;
-    bool sequenceValidated;
-    bool repetitiveMode;
+    int m_super;                              /**< Super Radpid Mode */
+    QString m_unlockCode;                     /**< Unlock code */
+    int m_voltage;                            /**< Voltage of the unit */
+    std::tuple<int, int, int> m_version;      /**< Software version (X, Y, Z) */
+    bool m_sequenceValidated;                 /**< Magstim allows current settings */
+    bool m_repetitiveMode;                    /**< rTMS mode */
 };
 
 #endif // RAPID_H
