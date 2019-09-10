@@ -28,6 +28,9 @@ MagStim::MagStim(QString serialConnection, QObject* parent)
                      &this->m_loop, &QEventLoop::quit);
 }
 
+
+//*************************************************************************************************************
+
 std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::list<int> responseString, QString responseType)
 // Interprets response sent from the Magstim unit.
 {
@@ -128,6 +131,9 @@ std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::li
     return magstimResponse;
 }
 
+
+//*************************************************************************************************************
+
 std::tuple<int, int, int> MagStim::parseMagstimResponse_version(std::list<int> responseString)
 //FW: splitted from parseMagstimResponse to handle different return type for responseString == "version"
 {
@@ -161,6 +167,9 @@ std::tuple<int, int, int> MagStim::parseMagstimResponse_version(std::list<int> r
         magstimResponse = std::make_tuple(versionList.at(0).toInt(), 0, 0);
     return magstimResponse;
 }
+
+
+//*************************************************************************************************************
 
 void MagStim::connect(int &error = MagStim::er)
 /*
@@ -199,6 +208,9 @@ void MagStim::connect(int &error = MagStim::er)
     }
 }
 
+
+//*************************************************************************************************************
+
 void MagStim::disconnect(int &error = MagStim::er)
 {
     if (this->m_connected) {
@@ -218,12 +230,18 @@ void MagStim::disconnect(int &error = MagStim::er)
     }
 }
 
+
+//*************************************************************************************************************
+
 void MagStim::updateReceiveQueue(reciveInfo info)
 {
     std::cout << "upgedatete ReciveQueue" << std::endl;
     this->m_receiveQueue.push(info);
     emit readInfo();
 }
+
+
+//*************************************************************************************************************
 
 void MagStim::remoteControl(bool enable, std::map<QString, std::map<QString, int>> &message = MagStim::mes, int &error = MagStim::er)
 {
@@ -238,12 +256,18 @@ void MagStim::remoteControl(bool enable, std::map<QString, std::map<QString, int
     return;
 }
 
+
+//*************************************************************************************************************
+
 std::map<QString, std::map<QString, int> >MagStim::getParameters(int &error = MagStim::er)
 {
     std::map<QString, std::map<QString, int> > mes;
     error = this->processCommand("J@", "magstimParam", 12, mes);
     return mes;
 }
+
+
+//*************************************************************************************************************
 
 void MagStim::setPower(int newPower, bool delay=false, int &error = MagStim::er, QString commandByte = "@", std::map<QString, std::map<QString, int>> &message = MagStim::mes)
 {
@@ -299,6 +323,9 @@ void MagStim::setPower(int newPower, bool delay=false, int &error = MagStim::er,
     }
 }
 
+
+//*************************************************************************************************************
+
 std::map<QString, std::map<QString, int> > MagStim::getTemperature(int &error = MagStim::er)
 {
     std::map<QString, std::map<QString, int> > mes;
@@ -306,10 +333,16 @@ std::map<QString, std::map<QString, int> > MagStim::getTemperature(int &error = 
     return mes;
 }
 
+
+//*************************************************************************************************************
+
 void MagStim::poke()
 {
 
 }
+
+
+//*************************************************************************************************************
 
 void MagStim::arm(bool delay = false, std::map<QString, std::map<QString, int>> &message = MagStim::mes, int &error = MagStim::er)
 {
@@ -320,12 +353,18 @@ void MagStim::arm(bool delay = false, std::map<QString, std::map<QString, int>> 
     return;
 }
 
+
+//*************************************************************************************************************
+
 void MagStim::disarm(std::map<QString, std::map<QString, int>> &message = MagStim::mes, int &error = MagStim::er)
 {
     QString str = "instr";
     error = this->processCommand("EA", str, 3, message);
     return;
 }
+
+
+//*************************************************************************************************************
 
 bool MagStim::isArmed()
 // Helper function that returns True if the Magstim is armed or ready, False if not or if it could not be determined.
@@ -343,6 +382,9 @@ bool MagStim::isArmed()
     }
 }
 
+
+//*************************************************************************************************************
+
 bool MagStim::isUnderControl()
 // Helper function that returns True if the Magstim is under remote control, False if not or if it could not be determined.
 {
@@ -358,6 +400,9 @@ bool MagStim::isUnderControl()
         return false;
     }
 }
+
+
+//*************************************************************************************************************
 
 bool MagStim::isReadyToFire()
 // Helper function that returns True if the Magstim is ready to fire, False if not or if it could not be determined.
@@ -382,17 +427,26 @@ void MagStim::fire(std::map<QString, std::map<QString, int> > &message = MagStim
     return;
 }
 
+
+//*************************************************************************************************************
+
 void MagStim::resetQuickFire()
 {
     // this->m_sendQueue.push(std::make_tuple(QByteArray::number(-1), "", 0)); // FW: TODO is this needed?
     emit updateSendQueue(std::make_tuple(QByteArray::number(-1), "", 0));
 }
 
+
+//*************************************************************************************************************
+
 void MagStim::quickFire()
 {
     // this->m_sendQueue.push(std::make_tuple(QByteArray::number(1), "", 0)); // FW: TODO is this needed?
     emit updateSendQueue(std::make_tuple(QByteArray::number(1), "", 0));
 }
+
+
+//*************************************************************************************************************
 
 void MagStim::setupSerialPort(QString serialConnection)
 {
@@ -401,6 +455,9 @@ void MagStim::setupSerialPort(QString serialConnection)
     QObject::connect(this->m_connection, &SerialPortController::updateSerialReadQueue, this, &MagStim::updateReceiveQueue);
     QObject::connect(this, &MagStim::updateSendQueue, this->m_connection, &SerialPortController::updateSerialWriteQueue);
 }
+
+
+//*************************************************************************************************************
 
 int MagStim::processCommand(QString commandString, QString receiptType, int readBytes, std::tuple<int, int, int> &version, std::map<QString, std::map<QString, int>> &message)
 {
@@ -474,6 +531,9 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
     }
 }
 
+
+//*************************************************************************************************************
+
 int MagStim::processCommand(QString commandString, QString receiptType, int readBytes, std::tuple<int, int, int> &version)
 {
     if (receiptType == "version") {
@@ -484,6 +544,9 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
     }
 }
 
+
+//*************************************************************************************************************
+
 int MagStim::processCommand(QString commandString, QString receiptType, int readBytes, std::map<QString, std::map<QString, int>> &message)
 {
     if (receiptType == "version") {
@@ -493,6 +556,9 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
         return processCommand(commandString, receiptType, readBytes, vers, message);
     }
 }
+
+
+//*************************************************************************************************************
 
 char MagStim::calcCRC(QByteArray command)
 //  Return the CRC checksum for the command string.

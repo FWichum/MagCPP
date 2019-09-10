@@ -13,6 +13,9 @@ ConnectionRobot::ConnectionRobot(std::queue<std::tuple<QByteArray, QString, int>
 //    this->moveToThread(this);
 }
 
+
+//*************************************************************************************************************
+
 void ConnectionRobot::run()
 {
 //    this->exec();
@@ -83,11 +86,17 @@ void ConnectionRobot::run()
     return;
 }
 
+
+//*************************************************************************************************************
+
 clock_t ConnectionRobot::defaultTimer()
 {
     // FW: TODO switch for each System !?
     return clock();
 }
+
+
+//*************************************************************************************************************
 
 void ConnectionRobot::setCommand(std::tuple<QByteArray, QString, int> connectionCommand)
 {
@@ -97,6 +106,9 @@ void ConnectionRobot::setCommand(std::tuple<QByteArray, QString, int> connection
     this->m_connectionCommand = connectionCommand;
     locker.unlock();
 }
+
+
+//*************************************************************************************************************
 
 void ConnectionRobot::updateUpdateRobotQueue(const float info)
 {

@@ -16,6 +16,9 @@ SerialPortController::SerialPortController(QString serialConnection,
 //        this->moveToThread(this);
 }
 
+
+//*************************************************************************************************************
+
 void SerialPortController::run()
 {
     std::cout << "------------SerialPortController------------" << std::endl;
@@ -166,6 +169,9 @@ void SerialPortController::run()
     porto.close();
 //    exec();
 }
+
+
+//*************************************************************************************************************
 
 void SerialPortController::updateSerialWriteQueue(sendInfo info)
 {

@@ -23,12 +23,18 @@ Rapid::Rapid(QString serialConnection, int superRapid, QString unlockCode, int v
     this->m_repetitiveMode = false;
 }
 
+
+//*************************************************************************************************************
+
 Rapid::Rapid(QString serialConnection) :
     MagStim(serialConnection)
 {
     this->setDefault();
     Rapid(serialConnection,this->DEFAULT_RAPID_TYPE,this->DEFAULT_UNLOCK_CODE,this->DEFAULT_VOLTAGE,this->DEFAULT_VIRTUAL_VERSION);
 }
+
+
+//*************************************************************************************************************
 
 float Rapid::getRapidMinWaitTime(int power, int nPulses, float frequency)
 /*
@@ -45,6 +51,9 @@ Calculate minimum wait time between trains for given power, frequency, and numbe
     }
 }
 
+
+//*************************************************************************************************************
+
 float Rapid::getRapidMaxOnTime(int power, float frequency)
 /*
 Calculate maximum train duration for given power and frequency. If greater than 60 seconds,
@@ -56,6 +65,9 @@ will allow for continuous operation for up to 6000 pulses.
     return PulseNum / FreqPow;
 }
 
+
+//*************************************************************************************************************
+
 float Rapid::getRapidMaxContinuousOperationsFrequency(int power)
 /*
 Calculate maximum frequency that will allow for continuous operation (up to 6000 pulses).
@@ -66,6 +78,9 @@ Calculate maximum frequency that will allow for continuous operation (up to 6000
     return a / b;
 }
 
+
+//*************************************************************************************************************
+
 void Rapid::setupSerialPort(QString serialConnection)
 {
     if (serialConnection.toLower() == "virtual") {
@@ -75,6 +90,9 @@ void Rapid::setupSerialPort(QString serialConnection)
        MagStim::setupSerialPort(serialConnection);
     }
 }
+
+
+//*************************************************************************************************************
 
 std::tuple<int,int,int> Rapid::getVersion(int &er=MagStim::er)
        /*
@@ -106,6 +124,9 @@ std::tuple<int,int,int> Rapid::getVersion(int &er=MagStim::er)
     return vers;
 }
 
+
+//*************************************************************************************************************
+
 int Rapid::getErrorCode()
     /*
     Get current error code from Rapid.
@@ -121,6 +142,9 @@ int Rapid::getErrorCode()
     return this->processCommand("I@", "error", 6, vers);
 
 }
+
+
+//*************************************************************************************************************
 
 void Rapid::connect(int &er=MagStim::er)
     /*
@@ -150,6 +174,9 @@ void Rapid::connect(int &er=MagStim::er)
     }
 }
 
+
+//*************************************************************************************************************
+
 void Rapid::disconnect()
 {
     /*
@@ -163,6 +190,9 @@ void Rapid::disconnect()
     MagStim::disconnect(i);
     return;
 }
+
+
+//*************************************************************************************************************
 
 int Rapid::rTMSMode(bool enable, std::map<QString, std::map<QString, int>> &message = MagStim::mes, bool receipt)
 {
@@ -241,6 +271,8 @@ int Rapid::rTMSMode(bool enable, std::map<QString, std::map<QString, int>> &mess
 }
 
 
+//*************************************************************************************************************
+
 int Rapid::ignoreCoilSafetySwitch(bool receipt = false)
 /*
 This allows the stimulator to ignore the state of coil safety interlock switch.
@@ -260,6 +292,9 @@ This allows the stimulator to ignore the state of coil safety interlock switch.
     std::map<QString, std::map<QString, int>> mes;
     return this->processCommand("b@", "instr", 3, mes);
 }
+
+
+//*************************************************************************************************************
 
 void Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error = MagStim::er)
 /*
@@ -299,6 +334,9 @@ void Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, int> 
         }
     }
 }
+
+
+//*************************************************************************************************************
 
 void Rapid::enhancedPowerMode(bool enable, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error = MagStim::er, bool receipt)
 /*
@@ -340,11 +378,17 @@ void Rapid::enhancedPowerMode(bool enable, std::map<QString, std::map<QString, i
     return;
 }
 
+
+//*************************************************************************************************************
+
 bool Rapid::isEnhanced()
 {
     return true;
     //FIXME
 }
+
+
+//*************************************************************************************************************
 
 int Rapid::setFrequency(float newFrequency, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error = MagStim::er, bool receipt)
 {
@@ -402,6 +446,9 @@ int Rapid::setFrequency(float newFrequency, std::map<QString, std::map<QString, 
         return error;
     }
 }
+
+
+//*************************************************************************************************************
 
 int Rapid::setNPulses(int newPulses, std::map<QString, std::map<QString, int> > &message = MagStim::mes, bool receipt)
 /*
@@ -488,6 +535,9 @@ Set number of pulses in rTMS pulse train.
     }
 }
 
+
+//*************************************************************************************************************
+
 int Rapid::setDuration(float newDuration, std::map<QString, std::map<QString, int> > &message = MagStim::mes, bool receipt)
 /*
 Set duration of rTMS pulse train.
@@ -568,6 +618,9 @@ Set duration of rTMS pulse train.
     }
 }
 
+
+//*************************************************************************************************************
+
 std::map<QString, std::map<QString, int> > Rapid::getParameters(int &error  = MagStim::er)
 /*
 Request current parameter settings from the Rapid.
@@ -585,6 +638,9 @@ Request current parameter settings from the Rapid.
 
     return message;
 }
+
+
+//*************************************************************************************************************
 
 void Rapid::setPower(int newPower, bool delay = false, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error  = MagStim::er)
 /*
@@ -650,6 +706,9 @@ Set power level for the Rapid.
     }
 }
 
+
+//*************************************************************************************************************
+
 int Rapid::setChargeDelay(int newDelay, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error  = MagStim::er, bool receipt)
 /*
 Set charge delay duration for the Rapid.
@@ -695,6 +754,9 @@ Set charge delay duration for the Rapid.
     }
 }
 
+
+//*************************************************************************************************************
+
 int Rapid::getChargeDelay(std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error  = MagStim::er)
 /*
 Get current charge delay duration for the Rapid.
@@ -721,6 +783,8 @@ Get current charge delay duration for the Rapid.
     }
 }
 
+
+//*************************************************************************************************************
 
 void Rapid::fire(int &error = MagStim::er)
 /*
@@ -750,6 +814,9 @@ Fire the stimulator. This overrides the base Magstim method in order to check wh
     }
 }
 
+
+//*************************************************************************************************************
+
 void Rapid::quickFire(int &error = MagStim::er)
 /*
    Trigger the stimulator to fire with very low latency using the RTS pin and a custom serial connection.
@@ -762,6 +829,9 @@ void Rapid::quickFire(int &error = MagStim::er)
         MagStim::quickFire();
     }
 }
+
+
+//*************************************************************************************************************
 
 int Rapid::validateSequence()
 /*
@@ -800,6 +870,9 @@ Validate the energy consumption for the current rTMS parameters for the Rapid.
     }
 }
 
+
+//*************************************************************************************************************
+
 int Rapid::getSystemStatur(std::map<QString, std::map<QString, int> > &message)
 /*
 et system status from the Rapid. Available only on software version of 9 or later.
@@ -825,9 +898,7 @@ et system status from the Rapid. Available only on software version of 9 or late
 }
 
 
-
-
-
+//*************************************************************************************************************
 
 void Rapid::setDefault()
 // FW: CPP exclusive for getting default settings in constructor
