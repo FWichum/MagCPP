@@ -215,7 +215,7 @@ void MagStim::disconnect(int &error = MagStim::er)
     if (this->m_connected) {
         std::map<QString, std::map<QString, int>> message;
         this->disarm(message, error);
-        emit updateRobotQueue(0);
+        emit updateRobotQueue(NAN);
 
         if (this->m_robot->isRunning()) {
             this->m_robot->wait(); // FW: FIXME join()
