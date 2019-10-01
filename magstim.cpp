@@ -148,7 +148,7 @@ std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::li
 std::tuple<int, int, int> MagStim::parseMagstimResponse_version(std::list<int> responseString)
 {
     // Convert to char except first 2 elements
-    char foo[responseString.size()-2]; //FIXME: responseString.size()-2 // 4
+    char foo[4]; //FIXME: responseString.size()-2 // 4
     std::list<int>::iterator it = responseString.begin();
     it++; it++;
     int i=0;
@@ -188,7 +188,7 @@ void MagStim::connect(int &error = MagStim::er)
 
         std::map<QString, std::map<QString, int>> mes;
         remoteControl(true,mes,error);
-
+        std::cout << "Verbunden? " << error << std::endl;
         if (!error) {
             this->m_connected = true;
             this->m_robot->setCommand(this->m_connectionCommand);
@@ -487,7 +487,7 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
 
             reply = std::get<1>(this->m_receiveQueue.front());
             this->m_receiveQueue.pop(); // FW: FIXME
-
+            std::cout << "Empfangen: " << reply.toStdString() << std::endl;
             if (error) {
                 return error; // FW: Change for C++ Reasons to just error
             } else {

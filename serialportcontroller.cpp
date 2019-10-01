@@ -23,7 +23,7 @@ void SerialPortController::run()
 {
     // N.B. most of these settings are actually the default in PySerial, but just being careful.
     QSerialPort porto;
-    porto.setPortName("/dev/ttyS1"); // this->m_adress FIXME
+    porto.setPortName("COM20"); // this->m_adress FIXME
 
     bool ok = porto.open(QIODevice::ReadWrite);
     porto.setBaudRate(QSerialPort::Baud9600);
@@ -86,12 +86,13 @@ void SerialPortController::run()
                         porto.waitForReadyRead(300);
                         int i = porto.read(&c,1);
                         bmessage = (&c);
-
+                        std::cout << "gelesen ... " << c << std::endl;
                         // Read version number
                         if (bmessage.at(0) == 'N') {
-                            while((int) bmessage.back() > 0) {
+                            while(bmessage.back() != '0') {
                                 int i = porto.read(&c,1);
                                 bmessage.append(c);
+                                std::cout << "gelesen ... " << c << std::endl;
                             }
                             // After the end of the version number, read one more byte to grab the CRC
                             int i = porto.read(&c,1);
@@ -103,12 +104,13 @@ void SerialPortController::run()
                             // Read the second byte
                             int i = porto.read(&c,1);
                             bmessage.append(c);
-
+                            std::cout << "gelesen ... " << c << std::endl;
                             // If the second returned byte is a '?' or 'S', then the data value supplied either wasn't acceptable ('?') or the command conflicted with the current settings ('S'),
                             // In these cases, just grab the CRC - otherwise, everything is ok so carry on reading the rest of the message
                             if (bmessage.at(1) != '?' && bmessage.at(1) != 'S') {
                                 int i = porto.read(&c,readBytes-2); // FW: FIXME readBytes-2
                                 bmessage.append(c);
+                                std::cout << "gelesen ... " << c << std::endl;
                             } else {
                                 int i = porto.read(&c,1);
                                 bmessage.append(c);
@@ -117,6 +119,7 @@ void SerialPortController::run()
 
                         if (!reply.isEmpty()) {
                             QString s_data = QString::fromLocal8Bit(bmessage.data());
+                            std::cout << "Gesamt ... " << s_data.toStdString() << std::endl;
                             emit updateSerialReadQueue(std::make_tuple(0, bmessage));
                         }
 

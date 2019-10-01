@@ -94,7 +94,7 @@ std::tuple<int,int,int> Rapid::getVersion(int &er=MagStim::er)
     std::tuple<int, int, int> vers;
     int helper = 0;
     er = this->processCommand("ND", "version", helper, vers);
-
+    std::cout << "Version: " << std::get<0>(vers) << std::get<1>(vers) << std::get<2>(vers) << std::endl;
     // If we didn't receive an error, update the version number and the number of bytes that will be returned by a getParameters() command
     if (er == 0) {
         this->m_version = vers;
