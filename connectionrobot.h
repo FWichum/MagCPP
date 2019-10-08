@@ -22,6 +22,8 @@
 #include <QThread>
 #include <QMutexLocker>
 #include <QMutex>
+#include <QEventLoop>
+#include <QTimer>
 
 //*************************************************************************************************************
 //=============================================================================================================
@@ -87,6 +89,8 @@ private:
     double m_nextPokeTime;                                                  /**< Next time sending a command to the Magstim */
     std::tuple<QByteArray, QString, int> m_connectionCommand;               /**< Command send to the Magstim */
     QMutex m_mutex;                                                         /**< To protect data in this thread */
+    QEventLoop m_loop;                                                      /**< Wait for Signals. Execution stops when data arrives. */
+    QTimer m_timer;                                                         /**< Counter */
 
 
 public slots:
@@ -104,6 +108,12 @@ signals:
     * Send a message to the Magstim unit.
     */
     void updateSerialWriteQueue(const sendInfo info);
+
+    //=========================================================================================================
+    /**
+    * A message was recived. Allows to leave QEventLoop.
+    */
+    void readInfo();
 };
 
 #endif // CONNECTIONROBOT_H
