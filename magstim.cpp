@@ -22,13 +22,13 @@ MagStim::MagStim(QString serialConnection, QObject* parent)
 
     // ConnectionRobot sends Message to SerialPortController for Magstim
     QObject::connect(this->m_robot, &ConnectionRobot::updateSerialWriteQueue,
-                     this->m_connection, &SerialPortController::updateSerialWriteQueue);
+                     this->m_connection, &SerialPortController::updateSerialWriteQueue, Qt::ConnectionType::DirectConnection);
     // Magstim sends commands to ConnectionRobot
     QObject::connect(this,  &MagStim::updateRobotQueue,
-                     this->m_robot, &ConnectionRobot::updateUpdateRobotQueue);
+                     this->m_robot, &ConnectionRobot::updateUpdateRobotQueue, Qt::ConnectionType::DirectConnection);
     // Message was read, finish waiting
     QObject::connect(this, &MagStim::readInfo,
-                     &this->m_loop, &QEventLoop::quit);
+                     &this->m_loop, &QEventLoop::quit, Qt::ConnectionType::DirectConnection);
 }
 
 

@@ -12,10 +12,10 @@ ConnectionRobot::ConnectionRobot(std::queue<std::tuple<QByteArray, QString, int>
     this->m_connectionCommand = std::make_tuple("","",0); //FW: TODO
     // Quit when message arrived in Queue
     QObject::connect(this, &ConnectionRobot::readInfo,
-                     &this->m_loop, &QEventLoop::quit);
+                     &this->m_loop, &QEventLoop::quit, Qt::ConnectionType::DirectConnection);
     // Quit when countdown
     QObject::connect(&this->m_timer, &QTimer::timeout,
-                     &this->m_loop, &QEventLoop::quit);
+                     &this->m_loop, &QEventLoop::quit, Qt::ConnectionType::DirectConnection);
 }
 
 
