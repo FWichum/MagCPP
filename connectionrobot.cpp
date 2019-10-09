@@ -57,11 +57,11 @@ void ConnectionRobot::run()
         }
 
         // Update next poll time to the next poke latency
-        this->m_nextPokeTime = defaultTimer() + pokeLatency * CLOCKS_PER_SEC;
+        this->m_nextPokeTime = clock() + pokeLatency * CLOCKS_PER_SEC;
 
         // While waiting for next poll...
         bool interrupted = false;
-        while (defaultTimer() < this->m_nextPokeTime) {
+        while (clock() < this->m_nextPokeTime) {
             m_timer.start(pokeLatency*1000); // ms
             m_loop.exec(); // stops when: (1) timer or (2) signal
             // ...check to see if there has been an update send from the parent magstim object
@@ -92,13 +92,13 @@ void ConnectionRobot::run()
                     } else if ((int) message == 1) {
                         pokeLatency = 5;
                     }
-                    this->m_nextPokeTime = defaultTimer() + pokeLatency;
+                    this->m_nextPokeTime = clock() + pokeLatency * CLOCKS_PER_SEC;
                 }
             }
         }
 
         // Send message if not stopped or paused
-        if (defaultTimer() >= this->m_nextPokeTime && ~interrupted) {
+        if (clock() >= this->m_nextPokeTime && ~interrupted) {
             emit this->updateSerialWriteQueue(this->m_connectionCommand);
         }
 
@@ -108,12 +108,13 @@ void ConnectionRobot::run()
 
 
 //*************************************************************************************************************
+// runs in the main thread so use is not safe
 
-clock_t ConnectionRobot::defaultTimer()
-{
-    // FW: TODO switch for each System !?
-    return clock();
-}
+//clock_t ConnectionRobot::defaultTimer()
+//{
+//    // FW: TODO switch for each System !?
+//    return clock();
+//}
 
 
 //*************************************************************************************************************
