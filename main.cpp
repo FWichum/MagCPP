@@ -14,6 +14,7 @@ int main(int argc, char *argv[])
     int error=0;
     myMag.connect(error);
     std::map<QString, std::map<QString, int> > xyz;
+    myMag.arm(false,xyz, error);
 
 
 

@@ -33,21 +33,23 @@ void ConnectionRobot::run()
         // If the robot is currently paused, wait until we get a None (stop) or a non-negative number (start/resume) in the queue
         while (this->m_paused) {
             // wait for new entry in RobotQueue
-            m_loop.exec();
-            float message = this->m_updateRobotQueue.front();
-            this->m_updateRobotQueue.pop();
-            if (std::isnan(message)) {
-                this->m_stopped = true;
-                this->m_paused = false;
-            } else if ((int) message >= 0) {
-                // If message is a 2, that means we've just armed so speed up the poke latency (not sure that's possible while paused, but just in case)
-                if ((int) message == 2) {
-                    pokeLatency = 0.5;
-                    // If message is a 1, that means we've just disarmed so slow down the poke latency
-                } else if ((int) message == 1) {
-                    pokeLatency = 5;
+//            m_loop.exec();
+            if (!this->m_updateRobotQueue.empty()) {
+                float message = this->m_updateRobotQueue.front();
+                this->m_updateRobotQueue.pop();
+                if (std::isnan(message)) {
+                    this->m_stopped = true;
+                    this->m_paused = false;
+                } else if ((int) message >= 0) {
+                    // If message is a 2, that means we've just armed so speed up the poke latency (not sure that's possible while paused, but just in case)
+                    if ((int) message == 2) {
+                        pokeLatency = 0.5;
+                        // If message is a 1, that means we've just disarmed so slow down the poke latency
+                    } else if ((int) message == 1) {
+                        pokeLatency = 5;
+                    }
+                    this->m_paused = false;
                 }
-                this->m_paused = false;
             }
         }
 
@@ -62,8 +64,8 @@ void ConnectionRobot::run()
         // While waiting for next poll...
         bool interrupted = false;
         while (clock() < this->m_nextPokeTime) {
-            m_timer.start(pokeLatency*1000); // ms
-            m_loop.exec(); // stops when: (1) timer or (2) signal
+//            m_timer.start(pokeLatency*1000); // ms
+//            m_loop.exec(); // stops when: (1) timer or (2) signal
             // ...check to see if there has been an update send from the parent magstim object
             if (!this->m_updateRobotQueue.empty()) {
                 float message = this->m_updateRobotQueue.front();
