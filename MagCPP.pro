@@ -50,7 +50,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 #for yaml library
-unix|win32: LIBS += -LC:/Users/Felix/Desktop/yaml-cpp-master/build/Release/ -llibyaml-cppmd
+#unix|win32: LIBS += -LC:/Users/Felix/Desktop/yaml-cpp-master/build/Release/ -llibyaml-cppmd
 
-INCLUDEPATH += $$PWD/yaml/include
-DEPENDPATH += $$PWD/yaml/include
+#INCLUDEPATH += $$PWD/yaml/include
+#DEPENDPATH += $$PWD/yaml/include
