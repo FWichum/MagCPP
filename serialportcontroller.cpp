@@ -23,7 +23,7 @@ void SerialPortController::run()
 {
     // N.B. most of these settings are actually the default in PySerial, but just being careful.
     QSerialPort porto;
-    porto.setPortName("/dev/ttyS1"); // this->m_adress FIXME
+    porto.setPortName("COM1"); // this->m_adress FIXME
 
     bool ok = porto.open(QIODevice::ReadWrite);
     porto.setBaudRate(QSerialPort::Baud9600);
@@ -34,6 +34,7 @@ void SerialPortController::run()
     // Make sure the RTS pin is set to off
     porto.setRequestToSend(false);
 
+    std::cout << "Port ist offen: " << ok << std::endl;
     while (true) {
         // This locker will lock the mutex until it is destroyed, i.e. when this function call goes out of scope
         QMutexLocker locker(&m_mutex);
@@ -90,11 +91,13 @@ void SerialPortController::run()
                         // Read version number
                         if (bmessage.at(0) == 'N') {
                             while( (int) bmessage.back() > 0) {
+                                porto.waitForReadyRead(300);
                                 int i = porto.read(&c,1);
                                 bmessage.append(c);
 
                             }
                             // After the end of the version number, read one more byte to grab the CRC
+                            porto.waitForReadyRead(300);
                             int i = porto.read(&c,1);
                             bmessage.append(c);
 
@@ -102,16 +105,19 @@ void SerialPortController::run()
                             // so carry on reading in the response (if it was a '?', then this will be the only returned byte).
                         } else if (bmessage.at(0) != '?') {
                             // Read the second byte
+                            porto.waitForReadyRead(300);
                             int i = porto.read(&c,1);
                             bmessage.append(c);
 
                             // If the second returned byte is a '?' or 'S', then the data value supplied either wasn't acceptable ('?') or the command conflicted with the current settings ('S'),
                             // In these cases, just grab the CRC - otherwise, everything is ok so carry on reading the rest of the message
                             if (bmessage.at(1) != '?' && bmessage.at(1) != 'S') {
+                                porto.waitForReadyRead(300);
                                 int i = porto.read(&c,readBytes-2); // FW: FIXME readBytes-2
                                 bmessage.append(c);
 
                             } else {
+                                porto.waitForReadyRead(300);
                                 int i = porto.read(&c,1);
                                 bmessage.append(c);
                             }
