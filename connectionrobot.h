@@ -71,7 +71,7 @@ public:
     *
     * @return the time
     */
-    clock_t defaultTimer();
+//    clock_t defaultTimer();  // runs in the main thread so use is not safe
 
     //=========================================================================================================
     /**

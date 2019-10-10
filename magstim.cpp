@@ -22,13 +22,13 @@ MagStim::MagStim(QString serialConnection, QObject* parent)
 
     // ConnectionRobot sends Message to SerialPortController for Magstim
     QObject::connect(this->m_robot, &ConnectionRobot::updateSerialWriteQueue,
-                     this->m_connection, &SerialPortController::updateSerialWriteQueue);
+                     this->m_connection, &SerialPortController::updateSerialWriteQueue, Qt::ConnectionType::DirectConnection);
     // Magstim sends commands to ConnectionRobot
     QObject::connect(this,  &MagStim::updateRobotQueue,
-                     this->m_robot, &ConnectionRobot::updateUpdateRobotQueue);
+                     this->m_robot, &ConnectionRobot::updateUpdateRobotQueue, Qt::ConnectionType::DirectConnection);
     // Message was read, finish waiting
     QObject::connect(this, &MagStim::readInfo,
-                     &this->m_loop, &QEventLoop::quit);
+                     &this->m_loop, &QEventLoop::quit, Qt::ConnectionType::DirectConnection);
 }
 
 
@@ -148,7 +148,7 @@ std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::li
 std::tuple<int, int, int> MagStim::parseMagstimResponse_version(std::list<int> responseString)
 {
     // Convert to char except first 2 elements
-    char foo[responseString.size()-2]; //FIXME: responseString.size()-2 // 4
+    char foo[4]; //FIXME: responseString.size()-2 // 4
     std::list<int>::iterator it = responseString.begin();
     it++; it++;
     int i=0;
@@ -392,7 +392,7 @@ bool MagStim::isArmed()
 bool MagStim::isUnderControl()
 
 {
-    int error;
+    int error = 0;
     std::map<QString, std::map<QString, int>> mes;
     remoteControl(true,mes,error);
 

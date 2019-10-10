@@ -12,10 +12,10 @@ ConnectionRobot::ConnectionRobot(std::queue<std::tuple<QByteArray, QString, int>
     this->m_connectionCommand = std::make_tuple("","",0); //FW: TODO
     // Quit when message arrived in Queue
     QObject::connect(this, &ConnectionRobot::readInfo,
-                     &this->m_loop, &QEventLoop::quit);
+                     &this->m_loop, &QEventLoop::quit, Qt::ConnectionType::DirectConnection);
     // Quit when countdown
     QObject::connect(&this->m_timer, &QTimer::timeout,
-                     &this->m_loop, &QEventLoop::quit);
+                     &this->m_loop, &QEventLoop::quit, Qt::ConnectionType::DirectConnection);
 }
 
 
@@ -29,26 +29,27 @@ void ConnectionRobot::run()
     while (true) {
         // This locker will lock the mutex until it is destroyed, i.e. when one while loop is over
         QMutexLocker locker(&m_mutex);
-        locker.relock();
 
         // If the robot is currently paused, wait until we get a None (stop) or a non-negative number (start/resume) in the queue
         while (this->m_paused) {
             // wait for new entry in RobotQueue
-            m_loop.exec();
-            float message = this->m_updateRobotQueue.front();
-            this->m_updateRobotQueue.pop();
-            if (std::isnan(message)) {
-                this->m_stopped = true;
-                this->m_paused = false;
-            } else if ((int) message >= 0) {
-                // If message is a 2, that means we've just armed so speed up the poke latency (not sure that's possible while paused, but just in case)
-                if ((int) message == 2) {
-                    pokeLatency = 0.5;
-                    // If message is a 1, that means we've just disarmed so slow down the poke latency
-                } else if ((int) message == 1) {
-                    pokeLatency = 5;
+//            m_loop.exec();
+            if (!this->m_updateRobotQueue.empty()) {
+                float message = this->m_updateRobotQueue.front();
+                this->m_updateRobotQueue.pop();
+                if (std::isnan(message)) {
+                    this->m_stopped = true;
+                    this->m_paused = false;
+                } else if ((int) message >= 0) {
+                    // If message is a 2, that means we've just armed so speed up the poke latency (not sure that's possible while paused, but just in case)
+                    if ((int) message == 2) {
+                        pokeLatency = 0.5;
+                        // If message is a 1, that means we've just disarmed so slow down the poke latency
+                    } else if ((int) message == 1) {
+                        pokeLatency = 5;
+                    }
+                    this->m_paused = false;
                 }
-                this->m_paused = false;
             }
         }
 
@@ -58,13 +59,13 @@ void ConnectionRobot::run()
         }
 
         // Update next poll time to the next poke latency
-        this->m_nextPokeTime = defaultTimer() + pokeLatency * CLOCKS_PER_SEC;
+        this->m_nextPokeTime = clock() + pokeLatency * CLOCKS_PER_SEC;
 
         // While waiting for next poll...
         bool interrupted = false;
-        while (defaultTimer() < this->m_nextPokeTime) {
-            m_timer.start(pokeLatency*1000); // ms
-            m_loop.exec(); // stops when: (1) timer or (2) signal
+        while (clock() < this->m_nextPokeTime) {
+//            m_timer.start(pokeLatency*1000); // ms
+//            m_loop.exec(); // stops when: (1) timer or (2) signal
             // ...check to see if there has been an update send from the parent magstim object
             if (!this->m_updateRobotQueue.empty()) {
                 float message = this->m_updateRobotQueue.front();
@@ -93,30 +94,29 @@ void ConnectionRobot::run()
                     } else if ((int) message == 1) {
                         pokeLatency = 5;
                     }
-                    this->m_nextPokeTime = defaultTimer() + pokeLatency;
+                    this->m_nextPokeTime = clock() + pokeLatency * CLOCKS_PER_SEC;
                 }
             }
         }
 
         // Send message if not stopped or paused
-        if (defaultTimer() >= this->m_nextPokeTime && ~interrupted) {
+        if (clock() >= this->m_nextPokeTime && ~interrupted) {
             emit this->updateSerialWriteQueue(this->m_connectionCommand);
         }
 
-
-        locker.unlock();
     }
     return;
 }
 
 
 //*************************************************************************************************************
+// runs in the main thread so use is not safe
 
-clock_t ConnectionRobot::defaultTimer()
-{
-    // FW: TODO switch for each System !?
-    return clock();
-}
+//clock_t ConnectionRobot::defaultTimer()
+//{
+//    // FW: TODO switch for each System !?
+//    return clock();
+//}
 
 
 //*************************************************************************************************************
@@ -125,9 +125,8 @@ void ConnectionRobot::setCommand(std::tuple<QByteArray, QString, int> connection
 {
     // This locker will lock the mutex until it is destroyed, i.e. when this function call goes out of scope
     QMutexLocker locker(&m_mutex);
-    locker.relock();
     this->m_connectionCommand = connectionCommand;
-    locker.unlock();
+
 }
 
 
@@ -136,9 +135,7 @@ void ConnectionRobot::setCommand(std::tuple<QByteArray, QString, int> connection
 void ConnectionRobot::updateUpdateRobotQueue(const float info)
 {
     // This locker will lock the mutex until it is destroyed, i.e. when this function call goes out of scope
-    QMutexLocker locker(&m_mutex);
-    locker.relock();
+//    QMutexLocker locker(&m_mutex);
     this->m_updateRobotQueue.push(info);
-    locker.unlock();
     emit readInfo();
 }
