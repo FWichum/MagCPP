@@ -17,18 +17,27 @@ int main(int argc, char *argv[])
     myMag.arm(false,xyz, error);
 
 
-
-//   // myMag.setPower(25, false, xyz, error);
+    //xyz = myMag.getParameters(error);
+  //  xyz = myMag.getTemperature(error);
+ //   bool ContError;
+  //  ContError = myMag.isUnderControl();
+ //   std::cout << "UnderControl :" << ContError << std::endl;
+    // myMag.setPower(25, false, xyz, error);
 //    // myMag.getVersion(error);
 //    myMag.arm(false, xyz, error);
 //   // myMag.setPower(25, false, xyz, error);
 
-//    //myMag.ignoreCoilSafetySwitch(false);
+    myMag.ignoreCoilSafetySwitch(false);
 //    std::cout << "nach ignoreCoilSW" << std::endl;
-//    QThread::sleep(2);
-//    myMag.quickFire(error);
+    QThread::sleep(2);
+    myMag.quickFire(error);
+  //  QThread::sleep(1);
+    myMag.resetQuickFire();
+    QThread::sleep(1);
+    myMag.quickFire(error);
+    QThread::sleep(2);
 //    std::cout << "nach fire" << std::endl;
-
+    myMag.disconnect();
     std::cout << "---------------------------" << std::endl;
     std::cout << "Abschluss Fehler :" << error << std::endl;
 

@@ -23,7 +23,7 @@ void SerialPortController::run()
 {
     // N.B. most of these settings are actually the default in PySerial, but just being careful.
     QSerialPort porto;
-    porto.setPortName("COM20"); // this->m_adress FIXME
+    porto.setPortName("/dev/ttyS1"); // this->m_adress FIXME
 
     bool ok = porto.open(QIODevice::ReadWrite);
     porto.setBaudRate(QSerialPort::Baud9600);
@@ -89,7 +89,7 @@ void SerialPortController::run()
 
                         // Read version number
                         if (bmessage.at(0) == 'N') {
-                            while(bmessage.back() != '0') {
+                            while( (int) bmessage.back() > 0) {
                                 int i = porto.read(&c,1);
                                 bmessage.append(c);
 
