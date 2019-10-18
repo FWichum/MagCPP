@@ -8,6 +8,20 @@
 
 #include "magstim.h"
 
+//*************************************************************************************************************
+//=============================================================================================================
+// Qt INCLUDES
+//=============================================================================================================
+
+#include <QDir>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QVariant>
+#include <QTextStream>
+#include <QMap>
+
 //=============================================================================================================
 /**
 * This is a sub-class of the parent Magstim class used for controlling Rapid^2 Magstim units. It allows firing
@@ -318,9 +332,9 @@ private:
     QString DEFAULT_UNLOCK_CODE;
     bool ENFORCE_ENERGY_SAFETY;
     std::tuple<int, int, int> DEFAULT_VIRTUAL_VERSION;
-    std::map<int, float> JOULES;
-    std::map<int, std::map<int, std::map<int, int>>> MAX_FREQUENCY;
     std::map<QString,std::map<QString, int>> DEFAULT_MESSAGE;
+    QMap<QString, QVariant> JOULES;
+    QMap<QString, QMap<QString, QMap<QString, QVariant>>> MAX_FREQUENCY;
 
     int m_super;                              /**< Super Radpid Mode */
     QString m_unlockCode;                     /**< Unlock code */

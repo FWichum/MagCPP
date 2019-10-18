@@ -54,3 +54,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 #INCLUDEPATH += $$PWD/yaml/include
 #DEPENDPATH += $$PWD/yaml/include
+
+DISTFILES += \
+    rapid_config.json \
+    rapid_system_info.json

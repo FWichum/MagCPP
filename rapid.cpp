@@ -1,10 +1,6 @@
 #include "rapid.h"
 #include "rapid.h"
 
-//#include "yaml/include/yaml-cpp/yaml.h"
-#include <QDir>
-#include <QFile>
-
 Rapid::Rapid(QString serialConnection, int superRapid, QString unlockCode, int voltage, std::tuple<int, int, int> version) :
     MagStim(serialConnection)
 {
@@ -41,7 +37,7 @@ Rapid::Rapid(QString serialConnection) :
 float Rapid::getRapidMinWaitTime(int power, int nPulses, float frequency)
 {
     float minWaitTime = 0.5;
-    float calcWaitTime = (nPulses * ((frequency * this->JOULES[power]) - float(1050.0)));
+    float calcWaitTime = (nPulses * ((frequency * this->JOULES[QString::number(power)].toFloat()) - float(1050.0)));
 
     if(minWaitTime < calcWaitTime) {
         return calcWaitTime;
@@ -57,7 +53,7 @@ float Rapid::getRapidMinWaitTime(int power, int nPulses, float frequency)
 float Rapid::getRapidMaxOnTime(int power, float frequency)
 {
     float PulseNum = 63000.0;
-    float FreqPow = frequency * this->JOULES[power];
+    float FreqPow = frequency * this->JOULES[QString::number(power)].toFloat();
 
     return PulseNum / FreqPow;
 }
@@ -68,7 +64,7 @@ float Rapid::getRapidMaxOnTime(int power, float frequency)
 float Rapid::getRapidMaxContinuousOperationsFrequency(int power)
 {
     float a = 1050.0;
-    float b = this->JOULES[power];
+    float b = this->JOULES[QString::number(power)].toFloat();
 
     return a / b;
 }
@@ -300,7 +296,7 @@ int Rapid::setFrequency(float newFrequency, std::map<QString, std::map<QString, 
         return MagStim::PARAMETER_ACQUISTION_ERR;
     }
     else {
-        int maxFrequency = this->MAX_FREQUENCY[this->m_voltage][this->m_super][currentParameters["rapidParam"]["power"]];   // FIXME: in python there are not all arguments in MAX_FREQUENCY
+        int maxFrequency = this->MAX_FREQUENCY[QString::number(this->m_voltage)][QString::number(this->m_super)][QString::number(currentParameters["rapidParam"]["power"])].toInt();   // FIXME: in python there are not all arguments in MAX_FREQUENCY
         if (newFrequency < 0 || newFrequency > maxFrequency){
             return MagStim::PARAMETER_RANGE_ERR;
         }
@@ -535,7 +531,7 @@ void Rapid::setPower(int newPower, bool delay = false, std::map<QString, std::ma
         currentParameters = this->getParameters(updateError);
         if(updateError == 0){
             if(currentParameters["rapid"]["singlePulseMode"] == false) {
-                int maxFrequency = this->MAX_FREQUENCY[this->m_voltage][this->m_super][currentParameters["rapidParam"]["power"]];
+                int maxFrequency = this->MAX_FREQUENCY[QString::number(this->m_voltage)][QString::number(this->m_super)][QString::number(currentParameters["rapidParam"]["power"])].toInt();
                 if(currentParameters["rapidParam"]["frequency"] > maxFrequency) {
                     if(this->setFrequency(maxFrequency, message, error) != 0){ //FW: FIXME message & error
                         error = MagStim::PARAMETER_UPDATE_ERR;
@@ -689,15 +685,24 @@ int Rapid::getSystemStatur(std::map<QString, std::map<QString, int> > &message)
 
 void Rapid::setDefault()
 {
-    QString file = QDir::currentPath() + "/rapid_config.yaml";
+    QString path = QDir::currentPath() + "/release/rapid_config.json"; // FIXME
 
-    if (QFile::exists(file)) {
-        //        YAML::Node config = YAML::LoadFile(file.toStdString());
-        //        this->DEFAULT_RAPID_TYPE = config["defaultRapidType"].as<int>();
-        //        this->DEFAULT_VOLTAGE = config["defaultVoltage"].as<int>();
-        //        this->DEFAULT_UNLOCK_CODE = QString::fromStdString(config["m_unlockCode"].as<std::string>());
-        //        this->ENFORCE_ENERGY_SAFETY = config["enforceEnergySafety"].as<bool>();
-        //        this->DEFAULT_VIRTUAL_VERSION = std::make_tuple(5,0,0); //FIXME: config["virtualVersionNumber"].as<std::tuple<int, int, int>>();
+    if (QFile::exists(path)) {
+        QFile file(path);
+        file.open(QIODevice::ReadOnly);
+        QTextStream file_text(&file);
+        QString json_file = file_text.readAll();
+        QJsonObject config = QJsonDocument::fromJson(json_file.toUtf8()).object();
+        file.close();
+
+        this->DEFAULT_RAPID_TYPE = config["defaultRapidType"].toInt();
+        this->DEFAULT_VOLTAGE = config["defaultVoltage"].toInt();
+        this->DEFAULT_UNLOCK_CODE = config["unlockCode"].toString();
+        this->ENFORCE_ENERGY_SAFETY = config["enforceEnergySafety"].toBool();
+
+        QString version = config["virtualVersionNumber"].toString();
+        QStringList ver_list = version.mid(1,version.length()-2).split(',');
+        this->DEFAULT_VIRTUAL_VERSION = std::make_tuple(ver_list.at(0).toInt(),ver_list.at(1).toInt(),ver_list.at(2).toInt());
     } else {
         this->DEFAULT_RAPID_TYPE = 0;
         this->DEFAULT_VOLTAGE = 240;
@@ -705,8 +710,34 @@ void Rapid::setDefault()
         this->ENFORCE_ENERGY_SAFETY = true;
         this->DEFAULT_VIRTUAL_VERSION = std::make_tuple(5,0,0);
     }
-    file = QDir::currentPath() + "/rapid_system_info.yaml";
-    //    YAML::Node rapid = YAML::LoadFile(file.toStdString());
-    //    this->MAX_FREQUENCY = rapid["maxFrequency"].as<std::map<int, std::map<int, std::map<int, int>>>>();
-    //    this->JOULES = rapid["joules"].as<std::map<int, float>>();
+
+    path = QDir::currentPath() + "/release/rapid_system_info.json"; // FIXME
+    std::cout << path.toStdString() << std::endl;
+    if (QFile::exists(path)) {
+        QFile file(path);
+        file.open(QIODevice::ReadOnly);
+        QTextStream file_text(&file);
+        QString json_file = file_text.readAll();
+        QJsonObject config_json = QJsonDocument::fromJson(json_file.toUtf8()).object();
+        file.close();
+
+        QVariantMap config = config_json.toVariantMap();
+        this->JOULES = config["joules"].toMap(); // TODO
+
+        QVariantMap vmap_maxf = config["maxFrequency"].toMap();
+        QStringList volts = vmap_maxf.keys();
+        for (int i = 0; i < volts.length(); ++i) {
+            QMap<QString, QMap<QString, QVariant>> map_volt;
+            QVariantMap vmap_volt = vmap_maxf[volts.at(i)].toMap();
+            QStringList modes = vmap_volt.keys();
+            for (int j = 0; j < modes.length(); ++j) {
+                QVariantMap vmap_mode = vmap_volt[modes.at(j)].toMap();
+                map_volt.insert(modes.at(j),vmap_mode);
+            }
+            this->MAX_FREQUENCY.insert(volts.at(i), map_volt);
+        }
+        std::cout <<this->MAX_FREQUENCY["240"]["1"]["43"].toInt() << std::endl;
+    } else {
+        // TODO
+    }
 }
