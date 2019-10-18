@@ -148,7 +148,7 @@ std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::li
 std::tuple<int, int, int> MagStim::parseMagstimResponse_version(std::list<int> responseString)
 {
     // Convert to char except first 2 elements
-    char foo[4]; //FIXME: responseString.size()-2 // 4
+    char foo[20]; //FIXME: responseString.size()-2 Problem with Variable Length Array, instead choose just big enough
     std::list<int>::iterator it = responseString.begin();
     it++; it++;
     int i=0;
