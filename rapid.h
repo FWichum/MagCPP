@@ -150,7 +150,7 @@ public:
     *
     * @return TODO Doxygen
     */
-    int rTMSMode(bool enable, std::map<QString,std::map<QString, int>> &message , bool receipt = false);
+    int rTMSMode(bool enable, std::map<QString, std::map<QString, double> > &message , bool receipt = false);
 
     //=========================================================================================================
     /**
@@ -170,7 +170,7 @@ public:
     * @param[in] message                    [opt] TODO Doxygen
     * @param[in] error                      [opt] Chatches error code
     */
-    void remoteControl(bool enable, std::map<QString, std::map<QString, int>> &message, int &error);
+    void remoteControl(bool enable, std::map<QString, std::map<QString, double> > &message, int &error);
 
     //=========================================================================================================
     /**
@@ -183,7 +183,7 @@ public:
     * @param[in] error                      [opt] Chatches error code
     * @param[in] receipt                    [opt] TODO Doxygen
     */
-    void enhancedPowerMode(bool enable, std::map<QString, std::map<QString, int>> &message, int &error, bool receipt = false);
+    void enhancedPowerMode(bool enable, std::map<QString, std::map<QString, double> > &message, int &error, bool receipt = false);
 
     //=========================================================================================================
     /**
@@ -207,7 +207,7 @@ public:
     *
     * @return TODO Doxygen
     */
-    int setFrequency(float newFrequency, std::map<QString, std::map<QString, int>> &message, int &error, bool receipt = false);
+    int setFrequency(float newFrequency, std::map<QString, std::map<QString, double> > &message, int &error, bool receipt = false);
 
     //=========================================================================================================
     /**
@@ -221,7 +221,7 @@ public:
     *
     * @return TODO Doxygen
     */
-    int setNPulses(int newPulses, std::map<QString, std::map<QString, int>> &message, bool receipt = false);
+    int setNPulses(int newPulses, std::map<QString, std::map<QString, double> > &message, bool receipt = false);
 
     //=========================================================================================================
     /**
@@ -236,7 +236,7 @@ public:
     *
     * @return TODO Doxygen
     */
-    int setDuration(float newDuration, std::map<QString, std::map<QString, int>> &message, bool receipt = false);
+    int setDuration(float newDuration, std::map<QString, std::map<QString, double> > &message, bool receipt = false);
 
     //=========================================================================================================
     /**
@@ -246,7 +246,7 @@ public:
     *
     * @return TODO Doxygen
     */
-    std::map<QString, std::map<QString, int> > getParameters(int &error);
+    std::map<QString, std::map<QString, double> > getParameters(int &error);
 
     //=========================================================================================================
     /**
@@ -259,7 +259,7 @@ public:
     * @param[in] message                    [opt] TODO Doxygen
     * @param[in] error                      [opt] Chatches error code
     */
-    void setPower(int newPower, bool delay, std::map<QString, std::map<QString, int> > &message, int &error);
+    void setPower(int newPower, bool delay, std::map<QString, std::map<QString, double> > &message, int &error);
 
     //=========================================================================================================
     /**
@@ -272,7 +272,7 @@ public:
     *
     * @return TODO Doxygen
     */
-    int setChargeDelay(int newDelay, std::map<QString, std::map<QString, int>> &message, int &error, bool receipt = false);
+    int setChargeDelay(int newDelay, std::map<QString, std::map<QString, double> > &message, int &error, bool receipt = false);
 
     //=========================================================================================================
     /**
@@ -283,7 +283,7 @@ public:
     *
     * @return TODO Doxygen
     */
-    int getChargeDelay(std::map<QString, std::map<QString, int>> &message, int &error);
+    int getChargeDelay(std::map<QString, std::map<QString, double> > &message, int &error);
 
     //=========================================================================================================
     /**
@@ -318,7 +318,7 @@ public:
     *
     * @return TODO Doxygen
     */
-    int getSystemStatur(std::map<QString, std::map<QString, int>> &message);
+    int getSystemStatur(std::map<QString, std::map<QString, double> > &message);
 
 private:
     //=========================================================================================================

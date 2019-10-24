@@ -34,9 +34,9 @@ MagStim::MagStim(QString serialConnection, QObject* parent)
 
 //*************************************************************************************************************
 
-std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::list<int> responseString, QString responseType)
+std::map<QString, std::map<QString, double> > MagStim::parseMagstimResponse(std::list<int> responseString, QString responseType)
 {
-    std::map<QString, std::map<QString, int>> magstimResponse;
+    std::map<QString, std::map<QString, double>> magstimResponse;
 
     if (responseType == "version") {
         return magstimResponse;
@@ -45,7 +45,7 @@ std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::li
         int temp = responseString.front();
         responseString.pop_front();
         // interpret bits
-        std::map<QString, int> instr;
+        std::map<QString, double> instr;
         instr["standby"]        =  temp      & 1;
         instr["armed"]          = (temp >>1) & 1;
         instr["ready"]          = (temp >>2) & 1;
@@ -63,7 +63,7 @@ std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::li
         int temp = responseString.front();
         responseString.pop_front();
         // interpret bits
-        std::map<QString, int> rapid;
+        std::map<QString, double> rapid;
         rapid["enhancedPowerMode"]      =  temp      & 1;
         rapid["train"]                  = (temp >>1) & 1;
         rapid["wait"]                   = (temp >>2) & 1;
@@ -80,42 +80,42 @@ std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::li
 
     // if requesting parameter settings or coil temperature
     if (responseType == "bistimParam") {
-        std::map<QString, int> bistimParam;
-        bistimParam["powerA"]   = rs.mid(0,2).toInt();
-        bistimParam["powerB"]   = rs.mid(3,5).toInt();
-        bistimParam["ppOffset"] = rs.mid(6,8).toInt();
+        std::map<QString, double> bistimParam;
+        bistimParam["powerA"]   = rs.mid(0,2).toDouble();
+        bistimParam["powerB"]   = rs.mid(3,5).toDouble();
+        bistimParam["ppOffset"] = rs.mid(6,8).toDouble();
         magstimResponse["bistimParam"]= bistimParam;
 
     } else if (responseType == "magstimParam") {
-        std::map<QString, int> magstimParam;
-        magstimParam["power"]   = rs.mid(0,3).toInt();
+        std::map<QString, double> magstimParam;
+        magstimParam["power"]   = rs.mid(0,3).toDouble();
         magstimResponse["magstimParam"]= magstimParam;
 
     } else if (responseType == "rapidParam") {
         // This is a bit of a hack to determine which software version we're dealing with
         if (responseString.size() == 20) {
-            std::map<QString, int> rapidParam;
-            rapidParam["power"]     = rs.mid(0,2).toInt();
-            rapidParam["frequency"] = rs.mid(3,6).toInt(); //FW: TODO /10
-            rapidParam["nPulses"]   = rs.mid(7,11).toInt();
-            rapidParam["duration"]  = rs.mid(12,15).toInt(); //FW: TODO /10
-            rapidParam["wait"]      = rs.mid(16,19).toInt(); //FW: TODO /10
+            std::map<QString, double> rapidParam;
+            rapidParam["power"]     = rs.mid(0,2).toDouble();
+            rapidParam["frequency"] = rs.mid(3,6).toDouble() / 10.0;
+            rapidParam["nPulses"]   = rs.mid(7,11).toDouble();
+            rapidParam["duration"]  = rs.mid(12,15).toDouble() / 10.0;
+            rapidParam["wait"]      = rs.mid(16,19).toDouble() / 10.0;
             magstimResponse["rapidParam"]= rapidParam;
         } else {
-            std::map<QString, int> rapidParam;      // responseString 38 50 57 48 = als chr --> 029
+            std::map<QString, double> rapidParam;      // responseString 38 50 57 48 = als chr --> 029
             // Power = 29     WICHTIG = 0:3 heißt 0:2
-            rapidParam["power"]     = rs.mid(0,2).toInt();
-            rapidParam["frequency"] = rs.mid(3,6).toInt(); //FW: TODO /10
-            rapidParam["nPulses"]   = rs.mid(7,10).toInt();
-            rapidParam["duration"]  = rs.mid(11,13).toInt(); //FW: TODO /10
-            rapidParam["wait"]      = rs.mid(14,rs.length()-1).toInt(); //FW: TODO /10
+            rapidParam["power"]     = rs.mid(0,2).toDouble();
+            rapidParam["frequency"] = rs.mid(3,6).toDouble() / 10.0;
+            rapidParam["nPulses"]   = rs.mid(7,10).toDouble();
+            rapidParam["duration"]  = rs.mid(11,13).toDouble() / 10.0;
+            rapidParam["wait"]      = rs.mid(14,rs.length()-1).toDouble() / 10.0;
             magstimResponse["rapidParam"]= rapidParam;
         }
 
     } else if (responseType == "magstimTemp") {
-        std::map<QString, int> magstimTemp;
-        magstimTemp["coil1Temp"]   = rs.mid(0,2).toInt(); //FW: TODO /10
-        magstimTemp["coil2Temp"]   = rs.mid(2,5).toInt(); //FW: TODO /10
+        std::map<QString, double> magstimTemp;
+        magstimTemp["coil1Temp"]   = rs.mid(0,2).toDouble() / 10.0;
+        magstimTemp["coil2Temp"]   = rs.mid(2,5).toDouble() / 10.0;
         magstimResponse["magstimTemp"]= magstimTemp;
 
     } else if (responseType == "systemRapid") {
@@ -123,20 +123,20 @@ std::map<QString, std::map<QString, int> > MagStim::parseMagstimResponse(std::li
         std::string str(responseString.begin(), responseString.end());
         QString rs =  QString::fromUtf8(str.data(), str.size());
         responseString.pop_front();
-        std::map<QString, int> extInstr;
+        std::map<QString, double> extInstr;
         extInstr["plus1ModuleDetected"]         = temp & 1;
         extInstr["specialTriggerModeActive"]    = (temp >> 1) & 1;
         extInstr["chargeDelaySet"]              = (temp >> 2) & 1;
         magstimResponse["extInstr"]= extInstr;
 
     } else if (responseType == "error") {
-        std::map<QString, int> currentErrorCode;
-        currentErrorCode["currentErrorCode"]  = rs.mid(0,rs.length()-2).toInt();
+        std::map<QString, double> currentErrorCode;
+        currentErrorCode["currentErrorCode"]  = rs.mid(0,rs.length()-2).toDouble();
         magstimResponse["currentErrorCode"]= currentErrorCode;
 
     } else if (responseType == "instrCharge") {
-        std::map<QString, int> chargeDelay;
-        chargeDelay["currentErrorCode"]  = rs.toInt();
+        std::map<QString, double> chargeDelay;
+        chargeDelay["currentErrorCode"]  = rs.toDouble();
         magstimResponse["chargeDelay"]= chargeDelay;
     }
     return magstimResponse;
@@ -186,7 +186,7 @@ void MagStim::connect(int &error = MagStim::er)
     if (!this->m_connected) {
         this->m_connection->start(QThread::Priority::TimeCriticalPriority);
 
-        std::map<QString, std::map<QString, int>> mes;
+        std::map<QString, std::map<QString, double>> mes;
         remoteControl(true,mes,error);
         std::cout << "Verbunden? " << error << std::endl;
         if (!error) {
@@ -213,7 +213,7 @@ void MagStim::connect(int &error = MagStim::er)
 void MagStim::disconnect(int &error = MagStim::er)
 {
     if (this->m_connected) {
-        std::map<QString, std::map<QString, int>> message;
+        std::map<QString, std::map<QString, double>> message;
         this->disarm(message, error);
         emit updateRobotQueue(NAN);
 
@@ -241,7 +241,7 @@ void MagStim::updateReceiveQueue(reciveInfo info)
 
 //*************************************************************************************************************
 
-void MagStim::remoteControl(bool enable, std::map<QString, std::map<QString, int>> &message = MagStim::mes, int &error = MagStim::er)
+void MagStim::remoteControl(bool enable, std::map<QString, std::map<QString, double>> &message = MagStim::mes, int &error = MagStim::er)
 {
     QString str = "instr";
 
@@ -257,9 +257,9 @@ void MagStim::remoteControl(bool enable, std::map<QString, std::map<QString, int
 
 //*************************************************************************************************************
 
-std::map<QString, std::map<QString, int> >MagStim::getParameters(int &error = MagStim::er)
+std::map<QString, std::map<QString, double> >MagStim::getParameters(int &error = MagStim::er)
 {
-    std::map<QString, std::map<QString, int> > mes;
+    std::map<QString, std::map<QString, double> > mes;
     error = this->processCommand("J@", "magstimParam", 12, mes);
 
     return mes;
@@ -268,7 +268,7 @@ std::map<QString, std::map<QString, int> >MagStim::getParameters(int &error = Ma
 
 //*************************************************************************************************************
 
-void MagStim::setPower(int newPower, bool delay=false, int &error = MagStim::er, QString commandByte = "@", std::map<QString, std::map<QString, int>> &message = MagStim::mes)
+void MagStim::setPower(int newPower, bool delay=false, int &error = MagStim::er, QString commandByte = "@", std::map<QString, std::map<QString, double>> &message = MagStim::mes)
 {
     // Make sure we have a valid power value
     if (newPower <= 0 || newPower >= 100) {
@@ -329,9 +329,9 @@ void MagStim::setPower(int newPower, bool delay=false, int &error = MagStim::er,
 
 //*************************************************************************************************************
 
-std::map<QString, std::map<QString, int> > MagStim::getTemperature(int &error = MagStim::er)
+std::map<QString, std::map<QString, double> > MagStim::getTemperature(int &error = MagStim::er)
 {
-    std::map<QString, std::map<QString, int> > mes;
+    std::map<QString, std::map<QString, double> > mes;
     error = this->processCommand("F@", "magstimTemp", 9, mes);
     return mes;
 }
@@ -347,7 +347,7 @@ void MagStim::poke()
 
 //*************************************************************************************************************
 
-void MagStim::arm(bool delay = false, std::map<QString, std::map<QString, int>> &message = MagStim::mes, int &error = MagStim::er)
+void MagStim::arm(bool delay = false, std::map<QString, std::map<QString, double> > &message = MagStim::mes, int &error = MagStim::er)
 {
     error = this->processCommand("EB", "instr", 3, message);
     if (delay) {
@@ -359,7 +359,7 @@ void MagStim::arm(bool delay = false, std::map<QString, std::map<QString, int>> 
 
 //*************************************************************************************************************
 
-void MagStim::disarm(std::map<QString, std::map<QString, int>> &message = MagStim::mes, int &error = MagStim::er)
+void MagStim::disarm(std::map<QString, std::map<QString, double>> &message = MagStim::mes, int &error = MagStim::er)
 {
     QString str = "instr";
     error = this->processCommand("EA", str, 3, message);
@@ -372,7 +372,7 @@ void MagStim::disarm(std::map<QString, std::map<QString, int>> &message = MagSti
 bool MagStim::isArmed()
 {
     int error;
-    std::map<QString, std::map<QString, int>> mes;
+    std::map<QString, std::map<QString, double>> mes;
     remoteControl(true,mes,error);
 
     if (error) {
@@ -393,7 +393,7 @@ bool MagStim::isUnderControl()
 
 {
     int error = 0;
-    std::map<QString, std::map<QString, int>> mes;
+    std::map<QString, std::map<QString, double>> mes;
     remoteControl(true,mes,error);
 
     if (error) {
@@ -413,7 +413,7 @@ bool MagStim::isUnderControl()
 bool MagStim::isReadyToFire()
 {
     int error;
-    std::map<QString, std::map<QString, int>> mes;
+    std::map<QString, std::map<QString, double>> mes;
     remoteControl(true,mes,error);
 
     if (error) {
@@ -427,7 +427,7 @@ bool MagStim::isReadyToFire()
     }
 }
 
-void MagStim::fire(std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error = MagStim::er)
+void MagStim::fire(std::map<QString, std::map<QString, double> > &message = MagStim::mes, int &error = MagStim::er)
 {
     QString str = "instr";
     error =  this->processCommand("EHn", str, 3, message);
@@ -469,7 +469,7 @@ void MagStim::setupSerialPort(QString serialConnection)
 
 //*************************************************************************************************************
 
-int MagStim::processCommand(QString commandString, QString receiptType, int readBytes, std::tuple<int, int, int> &version, std::map<QString, std::map<QString, int>> &message)
+int MagStim::processCommand(QString commandString, QString receiptType, int readBytes, std::tuple<int, int, int> &version, std::map<QString, std::map<QString, double>> &message)
 {
     QByteArray comString = commandString.toLocal8Bit();
     QByteArray reply;
@@ -537,7 +537,7 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
 int MagStim::processCommand(QString commandString, QString receiptType, int readBytes, std::tuple<int, int, int> &version)
 {
     if (receiptType == "version") {
-        std::map<QString, std::map<QString, int>> mes;
+        std::map<QString, std::map<QString, double>> mes;
         return processCommand(commandString, receiptType, readBytes, version, mes);
     } else {
         return MagStim::INVALID_DATA_ERR;
@@ -547,7 +547,7 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
 
 //*************************************************************************************************************
 
-int MagStim::processCommand(QString commandString, QString receiptType, int readBytes, std::map<QString, std::map<QString, int>> &message)
+int MagStim::processCommand(QString commandString, QString receiptType, int readBytes, std::map<QString, std::map<QString, double>> &message)
 {
     if (receiptType == "version") {
         return MagStim::INVALID_DATA_ERR;
