@@ -16,8 +16,6 @@ MagStim::MagStim(QString serialConnection, QObject* parent)
 
     this->m_connected = false;
     this->m_connectionCommand = std::make_tuple(QString("Q@n").toUtf8(),"", 3);
-    // m_connection.daemon = true; //FW: TODO daemon
-    // m_robot.daemon = true; //FW: TODO daemon
     // auto queryCommand = std::bind(this->remoteControl, true, true);//FW: TODO queryCommand
 
     // ConnectionRobot sends Message to SerialPortController for Magstim
@@ -46,6 +44,7 @@ std::map<QString, std::map<QString, double> > MagStim::parseMagstimResponse(std:
         responseString.pop_front();
         // interpret bits
         std::map<QString, double> instr;
+        std::cout << "Generell :" << temp << std::endl;
         instr["standby"]        =  temp      & 1;
         instr["armed"]          = (temp >>1) & 1;
         instr["ready"]          = (temp >>2) & 1;
@@ -316,9 +315,9 @@ void MagStim::setPower(int newPower, bool delay=false, int &error = MagStim::er,
     if (delay && !error) {
         if (!error) {
             if (newPower > priorPower) {
-                // FW: TODO sleep
+                QThread::msleep((newPower - priorPower) * 10);
             } else {
-                // FW: TODO sleep
+                QThread::msleep((priorPower - newPower) * 100);
             }
         } else {
             error = MagStim::PARAMETER_UPDATE_ERR;
@@ -351,7 +350,7 @@ void MagStim::arm(bool delay = false, std::map<QString, std::map<QString, double
 {
     error = this->processCommand("EB", "instr", 3, message);
     if (delay) {
-        // sleep FIXME
+        QThread::msleep(1100);
     }
     return;
 }
@@ -371,7 +370,7 @@ void MagStim::disarm(std::map<QString, std::map<QString, double>> &message = Mag
 
 bool MagStim::isArmed()
 {
-    int error;
+    int error = 0;
     std::map<QString, std::map<QString, double>> mes;
     remoteControl(true,mes,error);
 
@@ -396,10 +395,11 @@ bool MagStim::isUnderControl()
     std::map<QString, std::map<QString, double>> mes;
     remoteControl(true,mes,error);
 
+
     if (error) {
         return false;
     }
-    std::cout << "UnderControl Zwischen Fehler :" << error << std::endl;
+
     if (mes["instr"]["remoteStatus"]) {
         return true;
     } else {
@@ -412,7 +412,7 @@ bool MagStim::isUnderControl()
 
 bool MagStim::isReadyToFire()
 {
-    int error;
+    int error = 0;
     std::map<QString, std::map<QString, double>> mes;
     remoteControl(true,mes,error);
 
@@ -476,7 +476,7 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
 
     if (this->m_connected || comString.at(0) == (char)81 || comString.at(0) == (char)82 || comString.at(0) == (char)74 || comString.at(0) == (char)70 || comString.contains("EA") || ( comString.at(0) == (char)92 && this->m_parameterReturnByte != 0 )  ) {
         sendInfo info;
-        QByteArray qb = comString.append(calcCRC(comString)); // FW: FIXME most likely // before: comString + calcCRC(comString)
+        QByteArray qb = comString.append(calcCRC(comString));
 
         info = std::make_tuple(qb, receiptType, readBytes);
         emit updateSendQueue(info);
@@ -486,7 +486,7 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
             int error = std::get<0>(this->m_receiveQueue.front());
 
             reply = std::get<1>(this->m_receiveQueue.front());
-            this->m_receiveQueue.pop(); // FW: FIXME
+            this->m_receiveQueue.pop();
             std::cout << "Empfangen: " << reply.toStdString() << std::endl;
             if (error) {
                 return error; // FW: Change for C++ Reasons to just error
@@ -499,7 +499,7 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
                     return MagStim::COMMAND_CONFLICT_ERR;
                 } else if (reply.at(0) != comString.at(0)) {
                     return MagStim::INVALID_CONFIRMATION_ERR;
-                } else if (calcCRC(reply.mid(0,reply.length()-1)) != reply.at(reply.length()-1)) { //TODO check
+                } else if (calcCRC(reply.mid(0,reply.length()-1)) != reply.at(reply.length()-1)) {
                     return MagStim::CRC_MISMATCH_ERR;
                 }
             }

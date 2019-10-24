@@ -312,7 +312,7 @@ protected:
 
     static int er;                                                    /**< Use as placeholder */
     static std::tuple<int, int, int> ver;                             /**< Use as placeholder */
-    static std::map<QString, std::map<QString, double>> mes;             /**< Use as placeholder */
+    static std::map<QString, std::map<QString, double>> mes;          /**< Use as placeholder */
 
     std::queue<std::tuple<QByteArray, QString, int>> m_sendQueue;     /**< Queue for writing to Magstim */
     std::queue<std::tuple<int, QByteArray>> m_receiveQueue;           /**< Queue for reading from Magstim */
@@ -325,10 +325,6 @@ protected:
     bool m_connected;                                                 /**< TODO Doxygen */
     std::tuple<QByteArray, QString, int> m_connectionCommand;         /**< TODO Doxygen */
     int m_parameterReturnByte;                                        /**< TODO Doxygen */
-    // connection.daemon = true; //FW: TODO
-    // ConnectionRobot robot;
-    // robot.daemon = true; //FW: TODO
-    // auto queryCommand; //FW: TODO
 
 public slots:
     //=========================================================================================================

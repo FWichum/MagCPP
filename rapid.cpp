@@ -230,7 +230,7 @@ void Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, doubl
     }
     else {
         if(enable){
-            QString string = this->m_unlockCode.toLatin1().append("Q");
+            QString string = "Q" + this->m_unlockCode.toLatin1();
             error = this->processCommand(string, "instr", 3, message);
         }
         else {
@@ -685,7 +685,7 @@ int Rapid::getSystemStatur(std::map<QString, std::map<QString, double> > &messag
 
 void Rapid::setDefault()
 {
-    QString path = QDir::currentPath() + "/release/rapid_config.json"; // FIXME
+    QString path = QDir::currentPath() + "/release/rapid_config.json"; // FIXME path settings
 
     if (QFile::exists(path)) {
         QFile file(path);
@@ -711,7 +711,7 @@ void Rapid::setDefault()
         this->DEFAULT_VIRTUAL_VERSION = std::make_tuple(5,0,0);
     }
 
-    path = QDir::currentPath() + "/release/rapid_system_info.json"; // FIXME
+    path = QDir::currentPath() + "/release/rapid_system_info.json"; // FIXME path settings
     std::cout << path.toStdString() << std::endl;
     if (QFile::exists(path)) {
         QFile file(path);
@@ -722,7 +722,7 @@ void Rapid::setDefault()
         file.close();
 
         QVariantMap config = config_json.toVariantMap();
-        this->JOULES = config["joules"].toMap(); // TODO
+        this->JOULES = config["joules"].toMap();
 
         QVariantMap vmap_maxf = config["maxFrequency"].toMap();
         QStringList volts = vmap_maxf.keys();

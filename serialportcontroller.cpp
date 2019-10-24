@@ -23,7 +23,7 @@ void SerialPortController::run()
 {
     // N.B. most of these settings are actually the default in PySerial, but just being careful.
     QSerialPort porto;
-    porto.setPortName("COM1"); // this->m_adress FIXME
+    porto.setPortName(this->m_address); // this->m_adress FIXME
 
     bool ok = porto.open(QIODevice::ReadWrite);
     porto.setBaudRate(QSerialPort::Baud9600);
@@ -73,7 +73,7 @@ void SerialPortController::run()
                 // There shouldn't be any rubbish in the input buffer, but check and clear it just in case
                 if(porto.readBufferSize()!= 0) {    // FIXME funktioniert das überhaupt so? wird es benötigt?
                     porto.clear(QSerialPort::AllDirections);
-                    // porto.flush();
+//                     porto.flush();
                 }
                 try {
                     // Try writing to the port
@@ -90,7 +90,7 @@ void SerialPortController::run()
 
                         // Read version number
                         if (bmessage.at(0) == 'N') {
-                            while( (int) bmessage.back() > 0) {
+                            while((int) bmessage.back() > 0) {
                                 porto.waitForReadyRead(300);
                                 int i = porto.read(&c,1);
                                 bmessage.append(c);
