@@ -302,13 +302,9 @@ void MagStim::setPower(int newPower, bool delay=false, int &error = MagStim::er,
     }
 
     QString commandString = commandByte + QString("%1").arg(newPower, 3, 10, QChar('0'));
-    QString receiptType = "";
+    QString receiptType = "instr";
 
-    if (delay) {
-        receiptType = "instr";
-    }
-
-    error = this->processCommand(commandString + "n", receiptType, 3, message);
+    error = this->processCommand(commandString, receiptType, 3, message);
 
     // If we're meant to delay (and we were able to change the power), then enforce if prior power settings are available
     if (delay && !error) {
@@ -486,7 +482,7 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
 
             reply = std::get<1>(this->m_receiveQueue.front());
             this->m_receiveQueue.pop();
-//            std::cout << "Empfangen: " << reply.toStdString() << std::endl; FIXME nur als Orientierung zum schnellen Finden
+            std::cout << "Empfangen: " << reply.toStdString() << std::endl; // FIXME nur als Orientierung zum schnellen Finden
             if (error) {
                 return error; // FW: Change for C++ Reasons to just error
             } else {

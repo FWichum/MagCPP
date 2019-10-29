@@ -492,7 +492,7 @@ std::map<QString, std::map<QString, double> > Rapid::getParameters(int &error  =
 {
     std::map<QString, std::map<QString, double> > message;
     int helpNumber = this->m_parameterReturnByte;
-    error = this->processCommand("\\@n", "rapidParam", helpNumber, message);
+    error = this->processCommand("\\@", "rapidParam", helpNumber, message);
 
     return message;
 }
