@@ -44,7 +44,6 @@ std::map<QString, std::map<QString, double> > MagStim::parseMagstimResponse(std:
         responseString.pop_front();
         // interpret bits
         std::map<QString, double> instr;
-        std::cout << "Generell :" << temp << std::endl;
         instr["standby"]        =  temp      & 1;
         instr["armed"]          = (temp >>1) & 1;
         instr["ready"]          = (temp >>2) & 1;
@@ -487,7 +486,7 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
 
             reply = std::get<1>(this->m_receiveQueue.front());
             this->m_receiveQueue.pop();
-            std::cout << "Empfangen: " << reply.toStdString() << std::endl;
+//            std::cout << "Empfangen: " << reply.toStdString() << std::endl; FIXME nur als Orientierung zum schnellen Finden
             if (error) {
                 return error; // FW: Change for C++ Reasons to just error
             } else {
@@ -518,7 +517,7 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
         }
 
         std::string s = reply.toStdString();
-        std::list<int> intlist(s.begin(), s.end());
+        std::list<int> intlist(s.begin()+1, s.end()-1);
 
         if (receiptType == "version") {
             version = this->parseMagstimResponse_version(intlist);
