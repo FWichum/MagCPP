@@ -112,10 +112,12 @@ void SerialPortController::run()
                             // If the second returned byte is a '?' or 'S', then the data value supplied either wasn't acceptable ('?') or the command conflicted with the current settings ('S'),
                             // In these cases, just grab the CRC - otherwise, everything is ok so carry on reading the rest of the message
                             if (bmessage.at(1) != '?' && bmessage.at(1) != 'S') {
-                                porto.waitForReadyRead(300);
-                                int i = porto.read(&c,readBytes-2); // FW: FIXME readBytes-2
-                                bmessage.append(c);
-
+                                while (readBytes - 2 > 0) {
+                                    porto.waitForReadyRead(300);
+                                    int i = porto.read(&c,1);
+                                    bmessage.append(c);
+                                    readBytes --;
+                                }
                             } else {
                                 porto.waitForReadyRead(300);
                                 int i = porto.read(&c,1);
