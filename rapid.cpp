@@ -225,7 +225,7 @@ void Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, doubl
             error = this->processCommand("Q@", "instr", 3, message);
         }
         else {
-            error = this->processCommand("R@\n", "instr", 3, message);
+            error = this->processCommand("R@", "instr", 3, message);
         }
     }
     else {
@@ -712,7 +712,6 @@ void Rapid::setDefault()
     }
 
     path = QDir::currentPath() + "/release/rapid_system_info.json"; // FIXME path settings
-    std::cout << path.toStdString() << std::endl;
     if (QFile::exists(path)) {
         QFile file(path);
         file.open(QIODevice::ReadOnly);
@@ -736,8 +735,8 @@ void Rapid::setDefault()
             }
             this->MAX_FREQUENCY.insert(volts.at(i), map_volt);
         }
-        std::cout <<this->MAX_FREQUENCY["240"]["1"]["43"].toInt() << std::endl;
     } else {
+        std::cout << "JSON not read! :( " << std::endl;
         // TODO
     }
 }

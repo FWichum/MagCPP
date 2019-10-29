@@ -425,7 +425,7 @@ bool MagStim::isReadyToFire()
 void MagStim::fire(std::map<QString, std::map<QString, double> > &message = MagStim::mes, int &error = MagStim::er)
 {
     QString str = "instr";
-    error =  this->processCommand("EHn", str, 3, message);
+    error =  this->processCommand("EH", str, 3, message);
     return;
 }
 
