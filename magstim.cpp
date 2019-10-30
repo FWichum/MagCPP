@@ -102,7 +102,7 @@ std::map<QString, std::map<QString, double> > MagStim::parseMagstimResponse(std:
         } else {
             std::map<QString, double> rapidParam;      // responseString 38 50 57 48 = als chr --> 029
             // Power = 29     WICHTIG = 0:3 heißt 0:2
-            rapidParam["power"]     = rs.mid(0,2).toDouble();
+            rapidParam["power"]     = rs.mid(0,3).toDouble(); // FIXME Version 7 (readBytes)
             rapidParam["frequency"] = rs.mid(3,6).toDouble() / 10.0;
             rapidParam["nPulses"]   = rs.mid(7,10).toDouble();
             rapidParam["duration"]  = rs.mid(11,13).toDouble() / 10.0;
@@ -148,7 +148,7 @@ std::tuple<int, int, int> MagStim::parseMagstimResponse_version(std::list<int> r
     // Convert to char except first 2 elements
     char foo[20]; //FIXME: responseString.size()-2 Problem with Variable Length Array, instead choose just big enough
     std::list<int>::iterator it = responseString.begin();
-    it++; it++;
+    it++;
     int i=0;
     do {
         foo[i] = *it;
@@ -269,7 +269,7 @@ std::map<QString, std::map<QString, double> >MagStim::getParameters(int &error =
 void MagStim::setPower(int newPower, bool delay=false, int &error = MagStim::er, QString commandByte = "@", std::map<QString, std::map<QString, double>> &message = MagStim::mes)
 {
     // Make sure we have a valid power value
-    if (newPower <= 0 || newPower >= 100) {
+    if (newPower < 0 || newPower > 100) {
         error = MagStim::PARAMETER_RANGE_ERR;
         return;
     }

@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc,argv);
 
-    Rapid myMag("COM20",0,"",240,std::make_tuple(7,2,0)); // COM1
+    Rapid myMag("COM1",0,"",240,std::make_tuple(7,2,0)); // COM1
     int error=0;
 
     myMag.connect(error);
@@ -17,10 +17,15 @@ int main(int argc, char *argv[])
 
     std::map<QString, std::map<QString, double> > xyz;
     xyz = myMag.getParameters(error);
+    std::cout << "Power mode : " << xyz["rapidParam"]["power"] << std::endl;
+
     std::cout << "GetParameters Error :" << error  <<std::endl;
 
-    myMag.setPower(25, false, xyz, error);
+    myMag.setPower(51, false, xyz, error);
     std::cout << "SetPower Error :" << error  <<std::endl;
+
+    xyz = myMag.getTemperature(error);
+    std::cout << "Temperature  : " << xyz["magstimTemp"]["coil1Temp"] << std::endl;
 
     myMag.arm(false,xyz, error);
     std::cout << "Arm Error :" << error  <<std::endl;
