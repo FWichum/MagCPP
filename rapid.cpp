@@ -649,6 +649,7 @@ int Rapid::validateSequence()
     }
 
     parameters = getParameters(error);
+    std::cout << "Error validate Sequence : " << error << std::endl;
 
     if (error) {
         return MagStim::PARAMETER_ACQUISTION_ERR;
@@ -685,7 +686,7 @@ int Rapid::getSystemStatur(std::map<QString, std::map<QString, double> > &messag
 
 void Rapid::setDefault()
 {
-    QString path = QDir::currentPath() + "/release/rapid_config.json"; // FIXME path settings
+    QString path = ":/MyRessources/rapid_config.json";
 
     if (QFile::exists(path)) {
         QFile file(path);
@@ -711,7 +712,7 @@ void Rapid::setDefault()
         this->DEFAULT_VIRTUAL_VERSION = std::make_tuple(5,0,0);
     }
 
-    path = QDir::currentPath() + "/release/rapid_system_info.json"; // FIXME path settings
+    path = ":/MyRessources/rapid_system_info.json";
     if (QFile::exists(path)) {
         QFile file(path);
         file.open(QIODevice::ReadOnly);
