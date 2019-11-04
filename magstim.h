@@ -109,7 +109,7 @@ public:
     * @param[in] message                    [opt] TODO Doxygen
     * @param[in] error                      [opt] Chatches error code
     */
-    virtual void arm(bool delay, std::map<QString, std::map<QString, double> > &message, int &error);
+    virtual void arm(bool delay = false, std::map<QString, std::map<QString, double> > &message  = MagStim::mes, int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -235,6 +235,9 @@ public:
     const int MIN_WAIT_TIME_ERR         = 17;// MIN_WAIT_TIME_ERR: Minimum wait time between trains violated. Call isReadyToFire() to check.
     const int MAX_ON_TIME_ERR           = 18;// MAX_ON_TIME_ERR: Maximum on time exceeded for current train.
 
+    static int er;                                                    /**< Use as placeholder */
+    static std::tuple<int, int, int> ver;                             /**< Use as placeholder */
+    static std::map<QString, std::map<QString, double>> mes;          /**< Use as placeholder */
 
 protected:
     //=========================================================================================================
@@ -310,9 +313,6 @@ protected:
     */
     virtual char calcCRC(QByteArray command);
 
-    static int er;                                                    /**< Use as placeholder */
-    static std::tuple<int, int, int> ver;                             /**< Use as placeholder */
-    static std::map<QString, std::map<QString, double>> mes;          /**< Use as placeholder */
 
     std::queue<std::tuple<QByteArray, QString, int>> m_sendQueue;     /**< Queue for writing to Magstim */
     std::queue<std::tuple<int, QByteArray>> m_receiveQueue;           /**< Queue for reading from Magstim */

@@ -129,7 +129,7 @@ void Rapid::connect(int &er=MagStim::er)
     if (!er) {
         std::ignore = this->getVersion(er);
         if (er) {
-            this->disconnect();
+            this->disconnect(er);
             throw new std::string("Could not determine software version of Rapid. Disconnecting.");
         }
     }
@@ -138,22 +138,23 @@ void Rapid::connect(int &er=MagStim::er)
 
 //*************************************************************************************************************
 
-void Rapid::disconnect()
+void Rapid::disconnect(int &er = MagStim::er)
 {
     //Just some housekeeping before we call the base magstim class method disconnect
     this->m_sequenceValidated = false;
     this->m_repetitiveMode = false;
-    int i = 0;
-    MagStim::disconnect(i);
+    MagStim::disconnect(er);
     return;
 }
 
 
 //*************************************************************************************************************
 
-int Rapid::rTMSMode(bool enable, std::map<QString, std::map<QString, double>> &message = MagStim::mes)
+void Rapid::rTMSMode(bool enable, std::map<QString, std::map<QString, double>> &message = MagStim::mes, int &er = MagStim::er)
 {
+    er = 0;
     this->m_sequenceValidated = false;
+
     // Durations of 1 or 0 are used to toggle repetitive mode on and off
     QString commandString = "";
 
@@ -174,8 +175,8 @@ int Rapid::rTMSMode(bool enable, std::map<QString, std::map<QString, double>> &m
         }
     }
 
-    int error = this->processCommand(commandString, "instrRapid", 4, message);
-    if (error == 0) {
+    er = this->processCommand(commandString, "instrRapid", 4, message);
+    if (er == 0) {
         if (enable) {
             this->m_repetitiveMode = true;
             std::map<QString, std::map<QString, double> > mes;
@@ -185,10 +186,10 @@ int Rapid::rTMSMode(bool enable, std::map<QString, std::map<QString, double>> &m
                 if (mes["rapidParam"]["frequency"] == 0) {
                     updateError = this->processCommand("B0010", "instrRapid", 4, mes);
                     if (updateError) {
-                        return MagStim::PARAMETER_UPDATE_ERR;
+                        er = MagStim::PARAMETER_UPDATE_ERR;
                     }
                     else {
-                        return MagStim::PARAMETER_ACQUISTION_ERR;
+                        er = MagStim::PARAMETER_ACQUISTION_ERR;
                     }
                 }
                 else {
@@ -196,15 +197,13 @@ int Rapid::rTMSMode(bool enable, std::map<QString, std::map<QString, double>> &m
                 }
             }
         }
-    } else {
-        return error;
     }
 }
 
 
 //*************************************************************************************************************
 
-int Rapid::ignoreCoilSafetySwitch()
+int Rapid::ignoreCoilSafetySwitch(int &error = MagStim::er)
 {
     std::map<QString, std::map<QString, double>> mes;
 

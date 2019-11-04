@@ -138,7 +138,7 @@ public:
     *
     * @param[in] error                      [opt] Chatches error code
     */
-    void disconnect();
+    void disconnect(int &er);
 
     //=========================================================================================================
     /**
@@ -149,7 +149,7 @@ public:
     *
     * @return TODO Doxygen
     */
-    int rTMSMode(bool enable, std::map<QString, std::map<QString, double> > &message);
+    void rTMSMode(bool enable, std::map<QString, std::map<QString, double> > &message, int &er);
 
     //=========================================================================================================
     /**
@@ -157,7 +157,7 @@ public:
     *
     * @return TODO Doxygen
     */
-    int ignoreCoilSafetySwitch();
+    int ignoreCoilSafetySwitch(int &error);
 
     //=========================================================================================================
     /**
@@ -187,7 +187,7 @@ public:
     *
     * @return true if Rapid is in enhanced power mode
     */
-    bool isEnhanced();  // HO: TODO: QueryCommand is needed
+    bool isEnhanced();
 
     //=========================================================================================================
     /**
