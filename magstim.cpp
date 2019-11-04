@@ -182,8 +182,9 @@ std::tuple<int, int, int> MagStim::parseMagstimResponse_version(std::list<int> r
 
 //*************************************************************************************************************
 
-void MagStim::connect(int &error = MagStim::er)
+void MagStim::connect(int &error)
 {
+    error = 0;
     if (!this->m_connected) {
         this->m_connection->start(QThread::Priority::TimeCriticalPriority);
 
@@ -211,8 +212,9 @@ void MagStim::connect(int &error = MagStim::er)
 
 //*************************************************************************************************************
 
-void MagStim::disconnect(int &error = MagStim::er)
+void MagStim::disconnect(int &error)
 {
+    error = 0;
     if (this->m_connected) {
         std::map<QString, std::map<QString, double>> message;
         this->disarm(message, error);
@@ -242,8 +244,9 @@ void MagStim::updateReceiveQueue(reciveInfo info)
 
 //*************************************************************************************************************
 
-void MagStim::remoteControl(bool enable, std::map<QString, std::map<QString, double>> &message = MagStim::mes, int &error = MagStim::er)
+void MagStim::remoteControl(bool enable, std::map<QString, std::map<QString, double>> &message, int &error)
 {
+    error = 0;
     QString str = "instr";
 
     if (enable) {
@@ -258,8 +261,9 @@ void MagStim::remoteControl(bool enable, std::map<QString, std::map<QString, dou
 
 //*************************************************************************************************************
 
-std::map<QString, std::map<QString, double> >MagStim::getParameters(int &error = MagStim::er)
+std::map<QString, std::map<QString, double> >MagStim::getParameters(int &error)
 {
+    error = 0;
     std::map<QString, std::map<QString, double> > mes;
     error = this->processCommand("J@", "magstimParam", 12, mes);
 
@@ -269,8 +273,10 @@ std::map<QString, std::map<QString, double> >MagStim::getParameters(int &error =
 
 //*************************************************************************************************************
 
-void MagStim::setPower(int newPower, bool delay=false, int &error = MagStim::er, QString commandByte = "@", std::map<QString, std::map<QString, double>> &message = MagStim::mes)
+void MagStim::setPower(int newPower,  bool delay, int &error, QString commandByte, std::map<QString, std::map<QString, double>> &message)
 {
+    error = 0;
+
     // Make sure we have a valid power value
     if (newPower < 0 || newPower > 100) {
         error = MagStim::PARAMETER_RANGE_ERR;
@@ -326,8 +332,9 @@ void MagStim::setPower(int newPower, bool delay=false, int &error = MagStim::er,
 
 //*************************************************************************************************************
 
-std::map<QString, std::map<QString, double> > MagStim::getTemperature(int &error = MagStim::er)
+std::map<QString, std::map<QString, double> > MagStim::getTemperature(int &error)
 {
+    error = 0;
     std::map<QString, std::map<QString, double> > mes;
     error = this->processCommand("F@", "magstimTemp", 9, mes);
     return mes;
@@ -354,6 +361,7 @@ void MagStim::poke(bool silent)
 
 void MagStim::arm(bool delay, std::map<QString, std::map<QString, double> > &message, int &error)
 {
+    error = 0;
     error = this->processCommand("EB", "instr", 3, message);
     if (delay) {
         QThread::msleep(1100);
@@ -364,8 +372,9 @@ void MagStim::arm(bool delay, std::map<QString, std::map<QString, double> > &mes
 
 //*************************************************************************************************************
 
-void MagStim::disarm(std::map<QString, std::map<QString, double>> &message = MagStim::mes, int &error = MagStim::er)
+void MagStim::disarm(std::map<QString, std::map<QString, double> > &message, int &error)
 {
+    error = 0;
     QString str = "instr";
     error = this->processCommand("EA", str, 3, message);
     return;
@@ -433,8 +442,9 @@ bool MagStim::isReadyToFire()
     }
 }
 
-void MagStim::fire(std::map<QString, std::map<QString, double> > &message = MagStim::mes, int &error = MagStim::er)
+void MagStim::fire(std::map<QString, std::map<QString, double> > &message, int &error)
 {
+    error = 0;
     QString str = "instr";
     error =  this->processCommand("EH", str, 3, message);
     return;

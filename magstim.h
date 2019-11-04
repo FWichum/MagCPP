@@ -76,7 +76,7 @@ public:
     *
     * @param[in] error                      [opt] Chatches error code
     */
-    virtual void connect(int &error);
+    virtual void connect(int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -85,7 +85,7 @@ public:
     *
     * @param[in] error                      [opt] Chatches error code
     */
-    virtual void disconnect(int &error);
+    virtual void disconnect(int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -95,7 +95,7 @@ public:
     * @param[in] message                    [opt] TODO Doxygen
     * @param[in] error                      [opt] Chatches error code
     */
-    virtual void remoteControl(bool enable, std::map<QString, std::map<QString, double> > &message, int &error);
+    virtual void remoteControl(bool enable, std::map<QString, std::map<QString, double> > &message  = MagStim::mes, int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -118,7 +118,7 @@ public:
     * @param[in] message                    [opt] TODO Doxygen
     * @param[in] error                      [opt] Chatches error code
     */
-    virtual void disarm(std::map<QString, std::map<QString, double> > &message, int &error);
+    virtual void disarm(std::map<QString, std::map<QString, double> > &message = MagStim::mes, int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -127,7 +127,7 @@ public:
     * @param[in] error                      [opt] Chatches error code
     * @param[out] message                   TODO Doxygen
     */
-    virtual std::map<QString, std::map<QString, double> > getParameters(int &error);
+    virtual std::map<QString, std::map<QString, double> > getParameters(int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -138,7 +138,7 @@ public:
     * @param[in] error                      [opt] Chatches error code
     * @param[out] message                   TODO Doxygen
     */
-    virtual std::map<QString, std::map<QString, double> > getTemperature(int &error);
+    virtual std::map<QString, std::map<QString, double> > getTemperature(int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -175,7 +175,7 @@ public:
     * @param[in] commandByte                [opt] should not be changed by the user
     * @param[in] message                    [opt] TODO Doxygen
     */
-    virtual void setPower(int newPower, bool delay, int &error, QString commandByte, std::map<QString, std::map<QString, double> > &message);
+    virtual void setPower(int newPower,  bool delay=false, int &error = MagStim::er, QString commandByte = "@", std::map<QString, std::map<QString, double>> &message = MagStim::mes);
 
     //=========================================================================================================
     /**
@@ -198,7 +198,7 @@ public:
     * @param[in] message                    [opt] TODO Doxygen
     * @param[in] error                      [opt] Chatches error code
     */
-    virtual void fire(std::map<QString, std::map<QString, double> > &message, int &error);
+    virtual void fire(std::map<QString, std::map<QString, double> > &message = MagStim::mes, int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -236,8 +236,8 @@ public:
     const int MAX_ON_TIME_ERR           = 18;// MAX_ON_TIME_ERR: Maximum on time exceeded for current train.
 
     static int er;                                                    /**< Use as placeholder */
-    static std::tuple<int, int, int> ver;                             /**< Use as placeholder */
-    static std::map<QString, std::map<QString, double>> mes;          /**< Use as placeholder */
+    static std::tuple<int, int, int> &ver;                             /**< Use as placeholder */
+    static std::map<QString, std::map<QString, double>> &mes;          /**< Use as placeholder */
 
 protected:
     //=========================================================================================================

@@ -110,7 +110,7 @@ public:
     *
     * @return software version (X, Y, Z)
     */
-    std::tuple<int, int, int> getVersion(int &er);
+    std::tuple<int, int, int> getVersion(int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -129,7 +129,7 @@ public:
     *
     * @param[in] error                      [opt] Chatches error code
     */
-    void connect(int &er);
+    void connect(int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -138,7 +138,7 @@ public:
     *
     * @param[in] error                      [opt] Chatches error code
     */
-    void disconnect(int &er);
+    void disconnect(int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -149,7 +149,7 @@ public:
     *
     * @return TODO Doxygen
     */
-    void rTMSMode(bool enable, std::map<QString, std::map<QString, double> > &message, int &er);
+    void rTMSMode(bool enable, std::map<QString, std::map<QString, double> > &message = MagStim::mes, int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -157,7 +157,7 @@ public:
     *
     * @return TODO Doxygen
     */
-    int ignoreCoilSafetySwitch(int &error);
+    int ignoreCoilSafetySwitch(int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -167,7 +167,7 @@ public:
     * @param[in] message                    [opt] TODO Doxygen
     * @param[in] error                      [opt] Chatches error code
     */
-    void remoteControl(bool enable, std::map<QString, std::map<QString, double> > &message, int &error);
+    void remoteControl(bool enable, std::map<QString, std::map<QString, double> > &message = MagStim::mes, int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -179,7 +179,7 @@ public:
     * @param[in] message                    [opt] TODO Doxygen
     * @param[in] error                      [opt] Chatches error code
     */
-    void enhancedPowerMode(bool enable, std::map<QString, std::map<QString, double> > &message, int &error);
+    void enhancedPowerMode(bool enable, std::map<QString, std::map<QString, double> > &message = MagStim::mes, int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -202,7 +202,7 @@ public:
     *
     * @return TODO Doxygen
     */
-    int setFrequency(float newFrequency, std::map<QString, std::map<QString, double> > &message, int &error);
+    int setFrequency(float newFrequency, std::map<QString, std::map<QString, double> > &message = MagStim::mes, int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -215,7 +215,7 @@ public:
     *
     * @return TODO Doxygen
     */
-    int setNPulses(int newPulses, std::map<QString, std::map<QString, double> > &message);
+    int setNPulses(int newPulses, std::map<QString, std::map<QString, double> > &message = MagStim::mes);
 
     //=========================================================================================================
     /**
@@ -229,7 +229,7 @@ public:
     *
     * @return TODO Doxygen
     */
-    int setDuration(float newDuration, std::map<QString, std::map<QString, double> > &message);
+    int setDuration(float newDuration, std::map<QString, std::map<QString, double> > &message = MagStim::mes);
 
     //=========================================================================================================
     /**
@@ -239,7 +239,7 @@ public:
     *
     * @return TODO Doxygen
     */
-    std::map<QString, std::map<QString, double> > getParameters(int &error);
+    std::map<QString, std::map<QString, double> > getParameters(int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -252,7 +252,7 @@ public:
     * @param[in] message                    [opt] TODO Doxygen
     * @param[in] error                      [opt] Chatches error code
     */
-    void setPower(int newPower, bool delay, std::map<QString, std::map<QString, double> > &message, int &error);
+    void setPower(int newPower, bool delay, std::map<QString, std::map<QString, double> > &message = MagStim::mes, int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -264,7 +264,7 @@ public:
     *
     * @return TODO Doxygen
     */
-    int setChargeDelay(int newDelay, std::map<QString, std::map<QString, double> > &message, int &error);
+    int setChargeDelay(int newDelay, std::map<QString, std::map<QString, double> > &message = MagStim::mes, int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -275,7 +275,7 @@ public:
     *
     * @return TODO Doxygen
     */
-    int getChargeDelay(std::map<QString, std::map<QString, double> > &message, int &error);
+    int getChargeDelay(std::map<QString, std::map<QString, double> > &message = MagStim::mes, int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -285,13 +285,13 @@ public:
     *
     * @param[in] error                      [opt] Chatches error code
     */
-    void fire(int &error);
+    void fire(int &error = MagStim::er);
 
     //=========================================================================================================
     /**
     * Trigger the stimulator to fire with very low latency using the RTS pin and a custom serial connection.
     */
-    void quickFire(int &error);
+    void quickFire(int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -310,7 +310,7 @@ public:
     *
     * @return TODO Doxygen
     */
-    int getSystemStatur(std::map<QString, std::map<QString, double> > &message);
+    int getSystemStatur(std::map<QString, std::map<QString, double> > &message = MagStim::mes);
 
 private:
     //=========================================================================================================
