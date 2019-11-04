@@ -336,9 +336,13 @@ std::map<QString, std::map<QString, double> > MagStim::getTemperature(int &error
 
 //*************************************************************************************************************
 
-void MagStim::poke()
+void MagStim::poke(bool silent)
 {
-
+    if (silent & this->m_connected) {
+        emit updateRobotQueue(0);
+    } else {
+        this->remoteControl(true);
+    }
 }
 
 

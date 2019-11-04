@@ -268,8 +268,15 @@ void Rapid::enhancedPowerMode(bool enable, std::map<QString, std::map<QString, d
 
 bool Rapid::isEnhanced()
 {
-    return true;
-    //FIXME
+    int error = 0;
+    std::map<QString, std::map<QString, double>> mes;
+    remoteControl(true,mes,error);
+
+    if (error) {
+        return  false;
+    } else {
+        return mes["rapid"]["enhancedPowerMode"];
+    }
 }
 
 

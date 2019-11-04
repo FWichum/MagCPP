@@ -188,7 +188,7 @@ public:
     *
     * @param[in] silent                     [opt] whether to bump polling robot but without sending enable remote control command (defaults to False)
     */
-    virtual void poke();
+    virtual void poke(bool silent = false);
 
     //=========================================================================================================
     /**
