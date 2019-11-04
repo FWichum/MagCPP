@@ -32,8 +32,6 @@ void ConnectionRobot::run()
 
         // If the robot is currently paused, wait until we get a None (stop) or a non-negative number (start/resume) in the queue
         while (this->m_paused) {
-            // wait for new entry in RobotQueue
-//            m_loop.exec();
             if (!this->m_updateRobotQueue.empty()) {
                 float message = this->m_updateRobotQueue.front();
                 this->m_updateRobotQueue.pop();
@@ -64,8 +62,7 @@ void ConnectionRobot::run()
         // While waiting for next poll...
         bool interrupted = false;
         while (clock() < this->m_nextPokeTime) {
-//            m_timer.start(pokeLatency*1000); // ms
-//            m_loop.exec(); // stops when: (1) timer or (2) signal
+
             // ...check to see if there has been an update send from the parent magstim object
             if (!this->m_updateRobotQueue.empty()) {
                 float message = this->m_updateRobotQueue.front();
@@ -110,16 +107,6 @@ void ConnectionRobot::run()
 
 
 //*************************************************************************************************************
-// runs in the main thread so use is not safe
-
-//clock_t ConnectionRobot::defaultTimer()
-//{
-//    // FW: TODO switch for each System !?
-//    return clock();
-//}
-
-
-//*************************************************************************************************************
 
 void ConnectionRobot::setCommand(std::tuple<QByteArray, QString, int> connectionCommand)
 {
@@ -134,8 +121,6 @@ void ConnectionRobot::setCommand(std::tuple<QByteArray, QString, int> connection
 
 void ConnectionRobot::updateUpdateRobotQueue(const float info)
 {
-    // This locker will lock the mutex until it is destroyed, i.e. when this function call goes out of scope
-//    QMutexLocker locker(&m_mutex);
     this->m_updateRobotQueue.push(info);
     emit readInfo();
 }

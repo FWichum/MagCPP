@@ -67,14 +67,6 @@ public:
 
     //=========================================================================================================
     /**
-    * Check the time
-    *
-    * @return the time
-    */
-//    clock_t defaultTimer();  // runs in the main thread so use is not safe
-
-    //=========================================================================================================
-    /**
     * Set the command which will be send to the MagStim unit
     *
     * @param[in] connectionCommand          TODO Doxygen

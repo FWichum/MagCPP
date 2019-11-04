@@ -16,14 +16,15 @@ MagStim::MagStim(QString serialConnection, QObject* parent)
 
     this->m_connected = false;
     this->m_connectionCommand = std::make_tuple(QString("Q@n").toUtf8(),"", 3);
-    // auto queryCommand = std::bind(this->remoteControl, true, true);//FW: TODO queryCommand
 
     // ConnectionRobot sends Message to SerialPortController for Magstim
     QObject::connect(this->m_robot, &ConnectionRobot::updateSerialWriteQueue,
                      this->m_connection, &SerialPortController::updateSerialWriteQueue, Qt::ConnectionType::DirectConnection);
+
     // Magstim sends commands to ConnectionRobot
     QObject::connect(this,  &MagStim::updateRobotQueue,
                      this->m_robot, &ConnectionRobot::updateUpdateRobotQueue, Qt::ConnectionType::DirectConnection);
+
     // Message was read, finish waiting
     QObject::connect(this, &MagStim::readInfo,
                      &this->m_loop, &QEventLoop::quit, Qt::ConnectionType::DirectConnection);
@@ -109,7 +110,6 @@ std::map<QString, std::map<QString, double> > MagStim::parseMagstimResponse(std:
             rapidParam["nPulses"]   = rs.mid(7, 4).toDouble();
             rapidParam["duration"]  = rs.mid(11, 3).toDouble() / 10.0;
             rapidParam["wait"]      = rs.mid(14, -1).toDouble() / 10.0;
-            std::cout << std::endl;
             magstimResponse["rapidParam"]= rapidParam;
         }
 
@@ -189,12 +189,12 @@ void MagStim::connect(int &error = MagStim::er)
 
         std::map<QString, std::map<QString, double>> mes;
         remoteControl(true,mes,error);
-        std::cout << "Verbunden? " << error << std::endl;
+
         if (!error) {
             this->m_connected = true;
             this->m_robot->setCommand(this->m_connectionCommand);
             this->m_robot->start(QThread::Priority::TimeCriticalPriority);
-            //            this->m_robot->run();
+
         } else {
             QByteArray qb;
             QString s = "closePort";
@@ -485,7 +485,7 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
 
             reply = std::get<1>(this->m_receiveQueue.front());
             this->m_receiveQueue.pop();
-            std::cout << "Empfangen: " << reply.toStdString() << std::endl; // FIXME nur als Orientierung zum schnellen Finden
+
             if (error) {
                 return error; // FW: Change for C++ Reasons to just error
             } else {
@@ -565,6 +565,7 @@ char MagStim::calcCRC(QByteArray command)
     for (int i = 0 ; i< command.length() ; i++) {
         commandSum += command.at(i);
     }
+
     // Convert command sum to binary, then invert and return 8-bit character value
     return (char) (~commandSum & 0xff);
 }

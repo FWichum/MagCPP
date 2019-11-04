@@ -90,7 +90,7 @@ std::tuple<int,int,int> Rapid::getVersion(int &er=MagStim::er)
     std::tuple<int, int, int> vers;
     int helper = 0;
     er = this->processCommand("ND", "version", helper, vers);
-    std::cout << "Version: " << std::get<0>(vers) << std::get<1>(vers) << std::get<2>(vers) << std::endl;
+
     // If we didn't receive an error, update the version number and the number of bytes that will be returned by a getParameters() command
     if (er == 0) {
         this->m_version = vers;
@@ -143,7 +143,7 @@ void Rapid::disconnect()
     //Just some housekeeping before we call the base magstim class method disconnect
     this->m_sequenceValidated = false;
     this->m_repetitiveMode = false;
-    int i;
+    int i = 0;
     MagStim::disconnect(i);
     return;
 }
@@ -649,8 +649,6 @@ int Rapid::validateSequence()
         TimeHelp = 60;
     }
 
-    std::cout << "Error validate Sequence : " << error << std::endl;
-
     if (error) {
         return MagStim::PARAMETER_ACQUISTION_ERR;
     }
@@ -737,7 +735,6 @@ void Rapid::setDefault()
             this->MAX_FREQUENCY.insert(volts.at(i), map_volt);
         }
     } else {
-        std::cout << "JSON not read! :( " << std::endl;
         // TODO
     }
 }

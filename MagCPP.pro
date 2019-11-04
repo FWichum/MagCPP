@@ -29,7 +29,6 @@ SOURCES += \
         bistim.cpp \
         connectionrobot.cpp \
         magstim.cpp \
-        magstimerror.cpp \
         main.cpp \
         rapid.cpp \
         serialportcontroller.cpp
@@ -38,7 +37,6 @@ HEADERS += \
         bistim.h \
         connectionrobot.h \
         magstim.h \
-        magstimerror.h \
         rapid.h \
         serialportcontroller.h
 

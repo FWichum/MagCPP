@@ -34,7 +34,6 @@ void SerialPortController::run()
     // Make sure the RTS pin is set to off
     porto.setRequestToSend(false);
 
-    std::cout << "Port ist offen: " << ok << std::endl;
     while (true) {
         // This locker will lock the mutex until it is destroyed, i.e. when this function call goes out of scope
         QMutexLocker locker(&m_mutex);
@@ -73,7 +72,6 @@ void SerialPortController::run()
                 // There shouldn't be any rubbish in the input buffer, but check and clear it just in case
                 if(porto.readBufferSize()!= 0) {    // FIXME funktioniert das überhaupt so? wird es benötigt?
                     porto.clear(QSerialPort::AllDirections);
-//                     porto.flush();
                 }
                 try {
                     // Try writing to the port
@@ -127,7 +125,6 @@ void SerialPortController::run()
 
                         if (!reply.isEmpty()) {
                             QString s_data = QString::fromLocal8Bit(bmessage.data());
-//                            std::cout << "Gesamt ... " << s_data.toStdString() << std::endl;
                             std::string useless(s_data.toStdString()); // FW: Why is this needed? FIXME without these 2 lines code will not work :O
                             emit updateSerialReadQueue(std::make_tuple(0, bmessage));
                         }
