@@ -146,21 +146,18 @@ public:
     *
     * @param[in] enable                     whether to enable (True) or disable (False) control
     * @param[in] message                    TODO Doxygen
-    * @param[in] receipt                    TODO Doxygen
     *
     * @return TODO Doxygen
     */
-    int rTMSMode(bool enable, std::map<QString, std::map<QString, double> > &message , bool receipt = false);
+    int rTMSMode(bool enable, std::map<QString, std::map<QString, double> > &message);
 
     //=========================================================================================================
     /**
     * This allows the stimulator to ignore the state of coil safety interlock switch.
     *
-    * @param[in] receipt                    TODO Doxygen
-    *
     * @return TODO Doxygen
     */
-    int ignoreCoilSafetySwitch(bool receipt);
+    int ignoreCoilSafetySwitch();
 
     //=========================================================================================================
     /**
@@ -181,9 +178,8 @@ public:
     * @param[in] enable                     whether to enable (True) or disable (False) control
     * @param[in] message                    [opt] TODO Doxygen
     * @param[in] error                      [opt] Chatches error code
-    * @param[in] receipt                    [opt] TODO Doxygen
     */
-    void enhancedPowerMode(bool enable, std::map<QString, std::map<QString, double> > &message, int &error, bool receipt = false);
+    void enhancedPowerMode(bool enable, std::map<QString, std::map<QString, double> > &message, int &error);
 
     //=========================================================================================================
     /**
@@ -203,11 +199,10 @@ public:
     *                                       decimal values are allowed for frequencies up to 30Hz
     * @param[in] message                    [opt] TODO Doxygen
     * @param[in] error                      [opt] Chatches error code
-    * @param[in] receipt                    [opt] TODO Doxygen
     *
     * @return TODO Doxygen
     */
-    int setFrequency(float newFrequency, std::map<QString, std::map<QString, double> > &message, int &error, bool receipt = false);
+    int setFrequency(float newFrequency, std::map<QString, std::map<QString, double> > &message, int &error);
 
     //=========================================================================================================
     /**
@@ -217,11 +212,10 @@ public:
     *
     * @param[in] newPulses                  new number of pulses (Version 9+: 1-6000; Version 7+: ?; Version 5+: 1-1000?)
     * @param[in] message                    [opt] TODO Doxygen
-    * @param[in] receipt                    [opt] TODO Doxygen
     *
     * @return TODO Doxygen
     */
-    int setNPulses(int newPulses, std::map<QString, std::map<QString, double> > &message, bool receipt = false);
+    int setNPulses(int newPulses, std::map<QString, std::map<QString, double> > &message);
 
     //=========================================================================================================
     /**
@@ -232,11 +226,10 @@ public:
     * @param[in] newDuration                new duration of pulse train in seconds (Version 9+: 1-600; Version 7+: ?;
     *                                       Version 5+: 1-10?); decimal values are allowed for durations up to 30s
     * @param[in] message                    [opt] TODO Doxygen
-    * @param[in] receipt                    [opt] TODO Doxygen
     *
     * @return TODO Doxygen
     */
-    int setDuration(float newDuration, std::map<QString, std::map<QString, double> > &message, bool receipt = false);
+    int setDuration(float newDuration, std::map<QString, std::map<QString, double> > &message);
 
     //=========================================================================================================
     /**
@@ -268,11 +261,10 @@ public:
     * @param[in] newDelay                   new delay duration in seconds (Version 10+: 1-10000; Version 9: 1-2000)
     * @param[in] message                    [opt] TODO Doxygen
     * @param[in] error                      [opt] Chatches error code
-    * @param[in] receipt                    [opt] TODO Doxygen
     *
     * @return TODO Doxygen
     */
-    int setChargeDelay(int newDelay, std::map<QString, std::map<QString, double> > &message, int &error, bool receipt = false);
+    int setChargeDelay(int newDelay, std::map<QString, std::map<QString, double> > &message, int &error);
 
     //=========================================================================================================
     /**

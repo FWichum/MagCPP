@@ -341,8 +341,12 @@ void MagStim::poke(bool silent)
     if (silent & this->m_connected) {
         emit updateRobotQueue(0);
     } else {
-        this->remoteControl(true);
+        int error = 0;
+        std::map<QString, std::map<QString, double>> mes;
+        remoteControl(true,mes,error);
     }
+
+    return;
 }
 
 
