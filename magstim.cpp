@@ -79,9 +79,9 @@ std::map<QString, std::map<QString, double> > MagStim::parseMagstimResponse(std:
     // if requesting parameter settings or coil temperature
     if (responseType == "bistimParam") {
         std::map<QString, double> bistimParam;
-        bistimParam["powerA"]   = rs.mid(0,2).toDouble();
-        bistimParam["powerB"]   = rs.mid(3,5).toDouble();
-        bistimParam["ppOffset"] = rs.mid(6,8).toDouble();
+        bistimParam["powerA"]   = rs.mid(0,3).toDouble();
+        bistimParam["powerB"]   = rs.mid(3,3).toDouble();
+        bistimParam["ppOffset"] = rs.mid(6,3).toDouble();
         magstimResponse["bistimParam"]= bistimParam;
 
     } else if (responseType == "magstimParam") {
@@ -91,29 +91,32 @@ std::map<QString, std::map<QString, double> > MagStim::parseMagstimResponse(std:
 
     } else if (responseType == "rapidParam") {
         // This is a bit of a hack to determine which software version we're dealing with
-        if (responseString.size() == 20) {
+        if (responseString.size() == 20) { // Software Version >9
             std::map<QString, double> rapidParam;
-            rapidParam["power"]     = rs.mid(0,2).toDouble();
-            rapidParam["frequency"] = rs.mid(3,6).toDouble() / 10.0;
-            rapidParam["nPulses"]   = rs.mid(7,11).toDouble();
-            rapidParam["duration"]  = rs.mid(12,15).toDouble() / 10.0;
-            rapidParam["wait"]      = rs.mid(16,19).toDouble() / 10.0;
+            rapidParam["power"]     = rs.mid(0, 3).toDouble();
+            rapidParam["frequency"] = rs.mid(3, 4).toDouble() / 10.0;
+            rapidParam["nPulses"]   = rs.mid(7, 5).toDouble();
+            rapidParam["duration"]  = rs.mid(12, 4).toDouble() / 10.0;
+            rapidParam["wait"]      = rs.mid(16, -1).toDouble() / 10.0;
             magstimResponse["rapidParam"]= rapidParam;
-        } else {
-            std::map<QString, double> rapidParam;      // responseString 38 50 57 48 = als chr --> 029
-            // Power = 29     WICHTIG = 0:3 heißt 0:2
-            rapidParam["power"]     = rs.mid(0,3).toDouble(); // FIXME Version 7 (readBytes)
-            rapidParam["frequency"] = rs.mid(3,6).toDouble() / 10.0;
-            rapidParam["nPulses"]   = rs.mid(7,10).toDouble();
-            rapidParam["duration"]  = rs.mid(11,13).toDouble() / 10.0;
-            rapidParam["wait"]      = rs.mid(14,rs.length()-1).toDouble() / 10.0;
+
+        } else { // Software Version < 9
+        // FW: TODO not quite sure, if this is correct for software version < 7 aswell
+        // (just 21 returnbytes (getVersion) and 17 bytes for these following parameters
+            std::map<QString, double> rapidParam;
+            rapidParam["power"]     = rs.mid(0, 3).toDouble();
+            rapidParam["frequency"] = rs.mid(3, 4).toDouble() / 10.0;
+            rapidParam["nPulses"]   = rs.mid(7, 4).toDouble();
+            rapidParam["duration"]  = rs.mid(11, 3).toDouble() / 10.0;
+            rapidParam["wait"]      = rs.mid(14, -1).toDouble() / 10.0;
+            std::cout << std::endl;
             magstimResponse["rapidParam"]= rapidParam;
         }
 
     } else if (responseType == "magstimTemp") {
         std::map<QString, double> magstimTemp;
         magstimTemp["coil1Temp"]   = rs.mid(0,2).toDouble() / 10.0;
-        magstimTemp["coil2Temp"]   = rs.mid(2,5).toDouble() / 10.0;
+        magstimTemp["coil2Temp"]   = rs.mid(2,4).toDouble() / 10.0;
         magstimResponse["magstimTemp"]= magstimTemp;
 
     } else if (responseType == "systemRapid") {

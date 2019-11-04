@@ -637,6 +637,7 @@ int Rapid::validateSequence()
     // pre-initialization
     std::map<QString, std::map<QString, double> > parameters;
     int error = 0;
+    parameters = getParameters(error);
     float duration = parameters["rapidParam"]["duration"] / 10;
     float MaxOnTime = Rapid::getRapidMaxOnTime(parameters["rapidParam"]["duration"], parameters["rapidParam"]["frequency"]);
     float TimeHelp;
@@ -648,7 +649,6 @@ int Rapid::validateSequence()
         TimeHelp = 60;
     }
 
-    parameters = getParameters(error);
     std::cout << "Error validate Sequence : " << error << std::endl;
 
     if (error) {
