@@ -9,10 +9,12 @@ ConnectionRobot::ConnectionRobot(std::queue<std::tuple<QByteArray, QString, int>
     this->m_stopped = false;
     this->m_paused = true;
     this->m_nextPokeTime = NAN;
-    this->m_connectionCommand = std::make_tuple("","",0); //FW: TODO
+    this->m_connectionCommand = std::make_tuple("","",0);
+
     // Quit when message arrived in Queue
     QObject::connect(this, &ConnectionRobot::readInfo,
                      &this->m_loop, &QEventLoop::quit, Qt::ConnectionType::DirectConnection);
+
     // Quit when countdown
     QObject::connect(&this->m_timer, &QTimer::timeout,
                      &this->m_loop, &QEventLoop::quit, Qt::ConnectionType::DirectConnection);
@@ -38,12 +40,12 @@ void ConnectionRobot::run()
                 if (std::isnan(message)) {
                     this->m_stopped = true;
                     this->m_paused = false;
-                } else if ((int) message >= 0) {
+                } else if (int(message) >= 0) {
                     // If message is a 2, that means we've just armed so speed up the poke latency (not sure that's possible while paused, but just in case)
-                    if ((int) message == 2) {
+                    if (int(message) == 2) {
                         pokeLatency = 0.5;
                         // If message is a 1, that means we've just disarmed so slow down the poke latency
-                    } else if ((int) message == 1) {
+                    } else if (int(message) == 1) {
                         pokeLatency = 5;
                     }
                     this->m_paused = false;
@@ -75,7 +77,7 @@ void ConnectionRobot::run()
                     break;
 
                     //  If the message is -1, we've relinquished remote control so signal the process to pause
-                } else if ((int) message == -1) {
+                } else if (int(message) == -1) {
                     pokeLatency = 5;
                     this->m_paused = true;
                     interrupted = true;
@@ -84,11 +86,11 @@ void ConnectionRobot::run()
                     // Any other message signals a command has been sent to the serial port controller
                 } else {
                     // If message is a 2, that means we've just armed so speed up the poke latency (not sure that's possible while paused, but just in case)
-                    if ((int) message == 2) {
+                    if (int(message) == 2) {
                         pokeLatency = 0.5;
 
                         // If message is a 1, that means we've just disarmed so slow down the poke latency
-                    } else if ((int) message == 1) {
+                    } else if (int(message) == 1) {
                         pokeLatency = 5;
                     }
                     this->m_nextPokeTime = clock() + pokeLatency * CLOCKS_PER_SEC;
@@ -97,7 +99,7 @@ void ConnectionRobot::run()
         }
 
         // Send message if not stopped or paused
-        if (clock() >= this->m_nextPokeTime && ~interrupted) {
+        if (clock() >= this->m_nextPokeTime && !interrupted) {
             emit this->updateSerialWriteQueue(this->m_connectionCommand);
         }
 

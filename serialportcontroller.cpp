@@ -21,11 +21,11 @@ SerialPortController::SerialPortController(QString serialConnection,
 
 void SerialPortController::run()
 {
-    // N.B. most of these settings are actually the default in PySerial, but just being careful.
+    // N.B. most of these settings are actually the default, but just being careful.
     QSerialPort porto;
-    porto.setPortName(this->m_address); // this->m_adress FIXME
+    porto.setPortName(this->m_address);
 
-    bool ok = porto.open(QIODevice::ReadWrite);
+    porto.open(QIODevice::ReadWrite);
     porto.setBaudRate(QSerialPort::Baud9600);
     porto.setDataBits(QSerialPort::Data8);
     porto.setStopBits(QSerialPort::OneStop);
@@ -37,7 +37,6 @@ void SerialPortController::run()
     while (true) {
         // This locker will lock the mutex until it is destroyed, i.e. when this function call goes out of scope
         QMutexLocker locker(&m_mutex);
-        int readBytes;
         QString reply;
         QByteArray bmessage;
         float message;
@@ -58,45 +57,45 @@ void SerialPortController::run()
             }
 
             // If the first part of the message is a 1 this signals the process to trigger a quick fire using the RTS pin
-            else if((int)message == 1) {
+            else if(int(message) == 1) {
                 porto.setRequestToSend(true);
             }
 
             // If the first part of the message is a -1 this signals the process to reset the RTS pin
-            else if((int)message == -1 ){
+            else if(int(message) == -1 ){
                 porto.setRequestToSend(false);
             }
 
             // Otherwise, the message is a command string
             else {
                 // There shouldn't be any rubbish in the input buffer, but check and clear it just in case
-                if(porto.readBufferSize()!= 0) {    // FIXME funktioniert das überhaupt so? wird es benötigt?
+                if(porto.readBufferSize()!= 0) {
                     porto.clear(QSerialPort::AllDirections);
                 }
                 try {
                     // Try writing to the port
                     QString s_data = QString::fromLocal8Bit(bmessage.data());
 
-                    int i = porto.write(bmessage);
-                    bool ok = porto.waitForBytesWritten(300);
+                    porto.write(bmessage);
+                    porto.waitForBytesWritten(300);
 
                     // Read response (this gets a little confusing, as I don't want to rely on timeout to know if there's an error)
                     try {
                         porto.waitForReadyRead(300);
-                        int i = porto.read(&c,1);
+                        porto.read(&c,1);
                         bmessage = (&c);
 
                         // Read version number
                         if (bmessage.at(0) == 'N') {
-                            while((int) bmessage.back() > 0) {
+                            while(int(bmessage.back()) > 0) {
                                 porto.waitForReadyRead(300);
-                                int i = porto.read(&c,1);
+                                porto.read(&c,1);
                                 bmessage.append(c);
 
                             }
                             // After the end of the version number, read one more byte to grab the CRC
                             porto.waitForReadyRead(300);
-                            int i = porto.read(&c,1);
+                            porto.read(&c,1);
                             bmessage.append(c);
 
                             // If the first byte is not '?', then the message was understood
@@ -104,7 +103,7 @@ void SerialPortController::run()
                         } else if (bmessage.at(0) != '?') {
                             // Read the second byte
                             porto.waitForReadyRead(300);
-                            int i = porto.read(&c,1);
+                            porto.read(&c,1);
                             bmessage.append(c);
 
                             // If the second returned byte is a '?' or 'S', then the data value supplied either wasn't acceptable ('?') or the command conflicted with the current settings ('S'),
@@ -112,13 +111,13 @@ void SerialPortController::run()
                             if (bmessage.at(1) != '?' && bmessage.at(1) != 'S') {
                                 while (readBytes - 2 > 0) {
                                     porto.waitForReadyRead(300);
-                                    int i = porto.read(&c,1);
+                                    porto.read(&c,1);
                                     bmessage.append(c);
                                     readBytes --;
                                 }
                             } else {
                                 porto.waitForReadyRead(300);
-                                int i = porto.read(&c,1);
+                                porto.read(&c,1);
                                 bmessage.append(c);
                             }
                         }
@@ -129,10 +128,10 @@ void SerialPortController::run()
                             emit updateSerialReadQueue(std::make_tuple(0, bmessage));
                         }
 
-                    } catch (...) { // FW: FIXME
+                    } catch (...) {
                         emit updateSerialReadQueue(std::make_tuple(SerialPortController::SERIAL_READ_ERROR, bmessage));
                     }
-                } catch (...) { //FW: FIXME
+                } catch (...) {
                     emit updateSerialReadQueue(std::make_tuple(SerialPortController::SERIAL_WRITE_ERROR, bmessage));
 
                 }

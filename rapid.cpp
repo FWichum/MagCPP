@@ -4,21 +4,22 @@
 Rapid::Rapid(QString serialConnection, int superRapid, QString unlockCode, int voltage, std::tuple<int, int, int> version) :
     MagStim(serialConnection)
 {
-    this->setDefault();
+    try {
+        this->setDefault();
+    } catch (const char* msg) {
+        std::cout << msg << std::endl;
+    }
     this->m_super = superRapid;
     this->m_unlockCode = unlockCode;
     this->m_voltage = voltage;
     this->m_parameterReturnByte = NAN;
     this->m_sequenceValidated = false;
     this->m_repetitiveMode = false;
+    this->m_version = std::make_tuple(0,0,0);
 
-    if (serialConnection.toLower() == "virtual") {
-        this->m_version = version; //FW: Is it right?
-    } else {
-        this->m_version = std::make_tuple(0,0,0); // FW: Is it right to set to (0,0,0)?
+    if (!unlockCode.isEmpty()) {
+        this->m_connectionCommand = std::make_tuple(QString("x@G").toUtf8(),"", 6);
     }
-
-    // FIXME if UnlockCode is provided ...
 }
 
 
@@ -27,7 +28,11 @@ Rapid::Rapid(QString serialConnection, int superRapid, QString unlockCode, int v
 Rapid::Rapid(QString serialConnection) :
     MagStim(serialConnection)
 {
-    this->setDefault();
+    try {
+        this->setDefault();
+    } catch (const char* msg) {
+        std::cout << msg << std::endl;
+    }
     Rapid(serialConnection,this->DEFAULT_RAPID_TYPE,this->DEFAULT_UNLOCK_CODE,this->DEFAULT_VOLTAGE,this->DEFAULT_VIRTUAL_VERSION);
 }
 
@@ -74,12 +79,7 @@ float Rapid::getRapidMaxContinuousOperationsFrequency(int power)
 
 void Rapid::setupSerialPort(QString serialConnection)
 {
-    if (serialConnection.toLower() == "virtual") {
-        // FW: TODO in case of virtual
-    }
-    else {
-        MagStim::setupSerialPort(serialConnection);
-    }
+    MagStim::setupSerialPort(serialConnection);
 }
 
 
@@ -183,7 +183,7 @@ void Rapid::rTMSMode(bool enable, std::map<QString, std::map<QString, double>> &
             int updateError = 0;
             mes = getParameters(updateError);
             if (updateError == 0) {
-                if (mes["rapidParam"]["frequency"] == 0) {
+                if (mes["rapidParam"]["frequency"] == 0) { // FIXME
                     updateError = this->processCommand("B0010", "instrRapid", 4, mes);
                     if (updateError) {
                         error = MagStim::PARAMETER_UPDATE_ERR;
@@ -290,7 +290,7 @@ int Rapid::setFrequency(float newFrequency, std::map<QString, std::map<QString, 
         return MagStim::PARAMETER_ACQUISTION_ERR;
     }
     else {
-        int maxFrequency = this->MAX_FREQUENCY[QString::number(this->m_voltage)][QString::number(this->m_super)][QString::number(currentParameters["rapidParam"]["power"])].toInt();   // FIXME: in python there are not all arguments in MAX_FREQUENCY
+        int maxFrequency = this->MAX_FREQUENCY[QString::number(this->m_voltage)][QString::number(this->m_super)][QString::number(currentParameters["rapidParam"]["power"])].toInt();
         if (newFrequency < 0 || newFrequency > maxFrequency){
             return MagStim::PARAMETER_RANGE_ERR;
         }
@@ -386,6 +386,7 @@ int Rapid::setNPulses(int newPulses, std::map<QString, std::map<QString, double>
             if(updateError){
                 return MagStim::PARAMETER_UPDATE_ERR;
             }
+            return 0;
         }
         else {
             return MagStim::PARAMETER_ACQUISTION_ERR;
@@ -456,6 +457,7 @@ int Rapid::setDuration(float newDuration, std::map<QString, std::map<QString, do
             if(updateError){
                 return MagStim::PARAMETER_UPDATE_ERR;
             }
+            return 0;
         }
         else {
             return MagStim::PARAMETER_ACQUISTION_ERR;
@@ -510,10 +512,10 @@ void Rapid::setPower(int newPower, bool delay = false, std::map<QString, std::ma
         int updateError = 0;
         currentParameters = this->getParameters(updateError);
         if(updateError == 0){
-            if(currentParameters["rapid"]["singlePulseMode"] == false) {
+            if(bool(currentParameters["rapid"]["singlePulseMode"]) == false) {
                 int maxFrequency = this->MAX_FREQUENCY[QString::number(this->m_voltage)][QString::number(this->m_super)][QString::number(currentParameters["rapidParam"]["power"])].toInt();
                 if(currentParameters["rapidParam"]["frequency"] > maxFrequency) {
-                    if(this->setFrequency(maxFrequency, message, error) != 0){ //FW: FIXME message & error
+                    if(this->setFrequency(maxFrequency, message, error) != 0){
                         error = MagStim::PARAMETER_UPDATE_ERR;
                         return;
                     }
@@ -578,6 +580,7 @@ int Rapid::getChargeDelay(std::map<QString, std::map<QString, double> > &message
     else {
         error = this->processCommand("o@", "instrCharge", 7, message);
     }
+    return error;
 }
 
 
@@ -636,7 +639,7 @@ int Rapid::validateSequence()
     }
     else {
         this->m_sequenceValidated = true;
-        return 0; //in python with "Sequence valid."
+        return 0;
     }
 }
 
@@ -673,20 +676,21 @@ void Rapid::setDefault()
         QJsonObject config = QJsonDocument::fromJson(json_file.toUtf8()).object();
         file.close();
 
-        this->DEFAULT_RAPID_TYPE = config["defaultRapidType"].toInt();
-        this->DEFAULT_VOLTAGE = config["defaultVoltage"].toInt();
-        this->DEFAULT_UNLOCK_CODE = config["unlockCode"].toString();
+        this->DEFAULT_RAPID_TYPE    = config["defaultRapidType"].toInt();
+        this->DEFAULT_VOLTAGE       = config["defaultVoltage"].toInt();
+        this->DEFAULT_UNLOCK_CODE   = config["unlockCode"].toString();
         this->ENFORCE_ENERGY_SAFETY = config["enforceEnergySafety"].toBool();
 
         QString version = config["virtualVersionNumber"].toString();
         QStringList ver_list = version.mid(1,version.length()-2).split(',');
         this->DEFAULT_VIRTUAL_VERSION = std::make_tuple(ver_list.at(0).toInt(),ver_list.at(1).toInt(),ver_list.at(2).toInt());
+
     } else {
-        this->DEFAULT_RAPID_TYPE = 0;
-        this->DEFAULT_VOLTAGE = 240;
-        this->DEFAULT_UNLOCK_CODE = "";
-        this->ENFORCE_ENERGY_SAFETY = true;
-        this->DEFAULT_VIRTUAL_VERSION = std::make_tuple(5,0,0);
+        this->DEFAULT_RAPID_TYPE      = 0;
+        this->DEFAULT_VOLTAGE         = 240;
+        this->DEFAULT_UNLOCK_CODE     = "";
+        this->ENFORCE_ENERGY_SAFETY   = true;
+        this->DEFAULT_VIRTUAL_VERSION = std::make_tuple(7,0,0);
     }
 
     path = ":/MyRessources/rapid_system_info.json";
@@ -714,6 +718,6 @@ void Rapid::setDefault()
             this->MAX_FREQUENCY.insert(volts.at(i), map_volt);
         }
     } else {
-        // TODO
+        throw "Could not read Rapid System Info. rTMS mode for Rapid is not possible.";
     }
 }

@@ -202,9 +202,9 @@ void MagStim::connect(int &error)
             int i;
             emit updateSendQueue(std::make_tuple(qb,s,i));
             if (this->m_connection->isRunning()) {
-                this->m_connection->wait(); //FW: FIXME join()
+                this->m_connection->wait();
             }
-            //Raise MaigstimError FIXME
+            throw "Could not establish remote control over the Magstim.";
         }
     }
 }
@@ -221,13 +221,13 @@ void MagStim::disconnect(int &error)
         emit updateRobotQueue(NAN);
 
         if (this->m_robot->isRunning()) {
-            this->m_robot->wait(); // FW: FIXME join()
+            this->m_robot->wait();
         }
         remoteControl(false,message, error);
         emit updateSendQueue(std::make_tuple("","closePort",NULL));
 
         if (this->m_connection->isRunning()) {
-            this->m_connection->wait(); // FW: FXME join()
+            this->m_connection->wait();
         }
     }
 }
@@ -290,7 +290,6 @@ void MagStim::setPower(int newPower,  bool delay, int &error, QString commandByt
         if (error) {
             return;
         }
-        //FW: FIXME!!!
         try {
             if (commandByte == "@") {
                 priorPower = message["bistimParam"]["PowerA"];
@@ -471,7 +470,6 @@ void MagStim::quickFire()
 
 void MagStim::setupSerialPort(QString serialConnection)
 {
-    // FW: TODO in case of virtual load virtual
     this->m_connection = new SerialPortController(serialConnection, this->m_sendQueue, this->m_receiveQueue);
 
     // Read response from Magstim
@@ -490,7 +488,7 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
     QByteArray comString = commandString.toLocal8Bit();
     QByteArray reply;
 
-    if (this->m_connected || comString.at(0) == (char)81 || comString.at(0) == (char)82 || comString.at(0) == (char)74 || comString.at(0) == (char)70 || comString.contains("EA") || ( comString.at(0) == (char)92 && this->m_parameterReturnByte != 0 )  ) {
+    if (this->m_connected || comString.at(0) == char(81) || comString.at(0) == char(82) || comString.at(0) == char(74) || comString.at(0) == char(70) || comString.contains("EA") || ( comString.at(0) == char(92) && this->m_parameterReturnByte != 0 )  ) {
         sendInfo info;
         QByteArray qb = comString.append(calcCRC(comString));
 
@@ -505,13 +503,13 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
             this->m_receiveQueue.pop();
 
             if (error) {
-                return error; // FW: Change for C++ Reasons to just error
+                return error;
             } else {
-                if (reply.at(0) == (char)63) {
+                if (reply.at(0) == char(63)) {
                     return MagStim::INVALID_COMMAND_ERR;
-                } else if (reply.at(1) == (char)63)  {
+                } else if (reply.at(1) == char(63))  {
                     return MagStim::INVALID_DATA_ERR;
-                } else if (reply.at(1) == (char)83) {
+                } else if (reply.at(1) == char(83)) {
                     return MagStim::COMMAND_CONFLICT_ERR;
                 } else if (reply.at(0) != comString.at(0)) {
                     return MagStim::INVALID_CONFIRMATION_ERR;
@@ -522,7 +520,7 @@ int MagStim::processCommand(QString commandString, QString receiptType, int read
         }
 
         if (this->m_connected) {
-            if (comString.at(0) == (char)0x82) {
+            if (comString.at(0) == char(82)) {
                 emit updateRobotQueue(-1);
             } else if (comString.left(2).contains("EA") ) {
                 emit updateRobotQueue(1);
@@ -585,5 +583,5 @@ char MagStim::calcCRC(QByteArray command)
     }
 
     // Convert command sum to binary, then invert and return 8-bit character value
-    return (char) (~commandSum & 0xff);
+    return char(~commandSum & 0xff);
 }
