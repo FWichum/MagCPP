@@ -80,8 +80,8 @@ public:
     /**
     * Constructs a ConnectionRobot
     *
-    * @param[in] serialWriteQueue           TODO Doxygen
-    * @param[in] updateRobotQueue           TODO Doxygen
+    * @param[in] serialWriteQueue           Queue for writing to Magstim
+    * @param[in] updateRobotQueue           Queue for controlling the connectionRobot
     */
     ConnectionRobot(std::queue<std::tuple<QByteArray, QString, int>> serialWriteQueue,
                     std::queue<float> updateRobotQueue);
@@ -98,7 +98,7 @@ public:
     /**
     * Set the command which will be send to the MagStim unit
     *
-    * @param[in] connectionCommand          TODO Doxygen
+    * @param[in] connectionCommand          Command to stay in connection with MagStim
     */
     void setCommand(std::tuple<QByteArray, QString, int> connectionCommand);
 
@@ -119,7 +119,7 @@ public slots:
     /**
     * Updates the update queue to control the robot
     *
-    * @param[in] info                       TODO Doxygen
+    * @param[in] info                       message for Robot (NAN: stop; -1: pause; 0: go on; 1: slow down; 2: speed up)
     */
     void updateUpdateRobotQueue(const float info);
 

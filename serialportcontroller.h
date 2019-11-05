@@ -80,8 +80,8 @@ public:
     * Constructs a SerialPortController
     *
     * @param[in] serialConnection           The serial port
-    * @param[in] serialWriteQueue           TODO Doxygen
-    * @param[in] serialReadQueue            TODO Doxygen
+    * @param[in] serialWriteQueue           Queue to send messages to MagStim unit
+    * @param[in] serialReadQueue            Queue to recive messages from MagStim unit
     */
     SerialPortController(QString serialConnection,
                          std::queue<std::tuple<QByteArray, QString, int>> serialWriteQueue,
@@ -98,7 +98,7 @@ public:
 private:
     std::queue<std::tuple<QByteArray, QString, int>> m_serialWriteQueue;      /**< Queue for writing to Magstim */
     std::queue<std::tuple<int, QByteArray>> m_serialReadQueue;                /**< Queue for reading from Magstim */
-    QString m_address;                                                        /**<  Adress of port */
+    QString m_address;                                                        /**< Adress of port */
     QMutex m_mutex;                                                           /**< To protect data in this thread */
 
     const int SERIAL_WRITE_ERROR = 1; // SERIAL_WRITE_ERR: Could not send the command.
@@ -109,7 +109,7 @@ public slots:
     /**
     * Updates the write queue to send something to Magstim.
     *
-    * @param[in] info                       TODO Doxygen
+    * @param[in] info                       std::tuple<QByteArray, QString, int>
     */
     void updateSerialWriteQueue(sendInfo info);
 

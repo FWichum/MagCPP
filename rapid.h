@@ -74,9 +74,9 @@ public:
     *
     * @param[in] serialConnection           The serial port
     * @param[in] superRapid                 TODO Doxygen
-    * @param[in] unlockCode                 TODO Doxygen
-    * @param[in] voltage                    TODO Doxygen
-    * @param[in] version                    TODO Doxygen
+    * @param[in] unlockCode                 if provided, leave empty if not
+    * @param[in] voltage                    240 / 115
+    * @param[in] version                    software version
     */
     Rapid(QString serialConnection, int superRapid, QString unlockCode, int voltage, std::tuple<int, int, int> version);
 
@@ -124,9 +124,9 @@ public:
 
     //=========================================================================================================
     /**
-    * TODO Doxygen
+    * Opens the serialportcontroller to connect with the MagStim unit
     *
-    * @param[in] serialConnection           TODO Doxygen
+    * @param[in] serialConnection           SerialPort (Example: Windows: "COM1"; Linux: "/dev/ttyS0")
     */
     void setupSerialPort(QString serialConnection);
 
@@ -173,15 +173,16 @@ public:
     * This is a helper function to enable/disable rTMS mode.
     *
     * @param[in] enable                     whether to enable (True) or disable (False) control
-    * @param[in] message                    TODO Doxygen
-    *
-    * @return TODO Doxygen
+    * @param[in] message                    Rapid parameters (see more: MagStim::parseMagstimResponse)
+    * @param[in] error                      [opt] Chatches error code
     */
     void rTMSMode(bool enable, std::map<QString, std::map<QString, double> > &message = MagStim::mes, int &error = MagStim::er);
 
     //=========================================================================================================
     /**
     * This allows the stimulator to ignore the state of coil safety interlock switch.
+    *
+    * @param[in] error                      [opt] Chatches error code
     *
     * @return TODO Doxygen
     */
@@ -192,7 +193,7 @@ public:
     * Enable/Disable remote control of stimulator. Disabling remote control will first disarm the Rapid unit.
     *
     * @param[in] enable                     whether to enable (True) or disable (False) control
-    * @param[in] message                    [opt] TODO Doxygen
+    * @param[in] message                    [opt] Rapid parameters (see more: MagStim::parseMagstimResponse)
     * @param[in] error                      [opt] Chatches error code
     */
     void remoteControl(bool enable, std::map<QString, std::map<QString, double> > &message = MagStim::mes, int &error = MagStim::er);
@@ -204,7 +205,7 @@ public:
     *   Disabling will automatically reduce intensity to 100% if over
     *
     * @param[in] enable                     whether to enable (True) or disable (False) control
-    * @param[in] message                    [opt] TODO Doxygen
+    * @param[in] message                    [opt] Rapid parameters (see more: MagStim::parseMagstimResponse)
     * @param[in] error                      [opt] Chatches error code
     */
     void enhancedPowerMode(bool enable, std::map<QString, std::map<QString, double> > &message = MagStim::mes, int &error = MagStim::er);
@@ -225,7 +226,7 @@ public:
     *
     * @param[in] newFrequency               new frequency of pulse train in Hertz (0-100 for 240V systems, 0-60 for 115V systems);
     *                                       decimal values are allowed for frequencies up to 30Hz
-    * @param[in] message                    [opt] TODO Doxygen
+    * @param[in] message                    [opt] Rapid parameters (see more: MagStim::parseMagstimResponse)
     * @param[in] error                      [opt] Chatches error code
     *
     * @return TODO Doxygen
@@ -239,7 +240,7 @@ public:
     *   based on the current Frequency parameter setting.
     *
     * @param[in] newPulses                  new number of pulses (Version 9+: 1-6000; Version 7+: ?; Version 5+: 1-1000?)
-    * @param[in] message                    [opt] TODO Doxygen
+    * @param[in] message                    [opt] Rapid parameters (see more: MagStim::parseMagstimResponse)
     *
     * @return TODO Doxygen
     */
@@ -253,7 +254,7 @@ public:
     *
     * @param[in] newDuration                new duration of pulse train in seconds (Version 9+: 1-600; Version 7+: ?;
     *                                       Version 5+: 1-10?); decimal values are allowed for durations up to 30s
-    * @param[in] message                    [opt] TODO Doxygen
+    * @param[in] message                    [opt] Rapid parameters (see more: MagStim::parseMagstimResponse)
     *
     * @return TODO Doxygen
     */
@@ -277,7 +278,7 @@ public:
     *
     * @param[in] newPower                   new power level (0-100)
     * @param[in] delay                      [opt] enforce delay to allow Rapid time to change Power (defaults to False)
-    * @param[in] message                    [opt] TODO Doxygen
+    * @param[in] message                    [opt] Rapid parameters (see more: MagStim::parseMagstimResponse)
     * @param[in] error                      [opt] Chatches error code
     */
     void setPower(int newPower, bool delay, std::map<QString, std::map<QString, double> > &message = MagStim::mes, int &error = MagStim::er);
@@ -287,7 +288,7 @@ public:
     * Set charge delay duration for the Rapid.
     *
     * @param[in] newDelay                   new delay duration in seconds (Version 10+: 1-10000; Version 9: 1-2000)
-    * @param[in] message                    [opt] TODO Doxygen
+    * @param[in] message                    [opt] Rapid parameters (see more: MagStim::parseMagstimResponse)
     * @param[in] error                      [opt] Chatches error code
     *
     * @return TODO Doxygen
@@ -298,7 +299,7 @@ public:
     /**
     * Get current charge delay duration for the Rapid.
     *
-    * @param[in] message                    [opt] TODO Doxygen
+    * @param[in] message                    [opt] Rapid parameters (see more: MagStim::parseMagstimResponse)
     * @param[in] error                      [opt] Chatches error code
     *
     * @return TODO Doxygen
@@ -334,7 +335,7 @@ public:
     /**
     * Get system status from the Rapid. Available only on software version of 9 or later.
     *
-    * @param[in] message                    TODO Doxygen
+    * @param[in] message                    Rapid parameters (see more: MagStim::parseMagstimResponse)
     *
     * @return TODO Doxygen
     */
