@@ -34,8 +34,9 @@
 // INCLUDES
 //=============================================================================================================
 
-#include "connectionrobot.h"
-#include "serialportcontroller.h"
+#include "../magcpp_global.h"
+#include "../connection/connectionrobot.h"
+#include "../connection/serialportcontroller.h"
 
 #include <map>
 #include <stdio.h>
@@ -81,7 +82,7 @@ typedef std::tuple<int, QByteArray> reciveInfo;
 * @brief The base Magstim class is used for controlling the unit.
 */
 
-class MagStim : public QObject
+class MAGCPPSHARED_EXPORT MagStim : public QObject
 {
     Q_OBJECT
 

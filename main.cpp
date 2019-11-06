@@ -2,50 +2,50 @@
 
 #include "magstim.h"
 #include "rapid.h"
+#include <ctime>
 
 #include <QApplication>
+#include <QString>
 
 int main(int argc, char *argv[])
 {
-    QApplication a(argc,argv);
-
-    Rapid myMag("COM1",0,"",240,std::make_tuple(7,2,0)); // COM1
-    int error=0;
+    Rapid myMag("COM20",0,"",240,std::make_tuple(7,2,0)); // COM1
+    int error = 0;
 
     myMag.connect(error);
-    std::cout << "Connect Error :" << error  <<std::endl;
 
     std::map<QString, std::map<QString, double> > xyz;
     xyz = myMag.getParameters(error);
-    std::cout << "Power mode : " << xyz["rapidParam"]["power"] << std::endl;
+    std::cout << "Power : " << xyz["rapidParam"]["power"] << std::endl;
+    std::cout << "Frequency : " << xyz["rapidParam"]["frequency"] << std::endl;
+    std::cout << "nPulses : " << xyz["rapidParam"]["nPulses"] << std::endl;
+    std::cout << "Duration : " << xyz["rapidParam"]["duration"] << std::endl;
+    std::cout << "Wait : " << xyz["rapidParam"]["wait"] << std::endl;
 
-    std::cout << "GetParameters Error :" << error  <<std::endl;
 
-    myMag.setPower(51, false, xyz, error);
-    std::cout << "SetPower Error :" << error  <<std::endl;
-
-    xyz = myMag.getTemperature(error);
-    std::cout << "Temperature  : " << xyz["magstimTemp"]["coil1Temp"] << std::endl;
+    myMag.setPower(20, false, xyz, error);
 
     myMag.arm(false,xyz, error);
-    std::cout << "Arm Error :" << error  <<std::endl;
 
     std::cout << "Armed, underControll, ReadyToFire : " << myMag.isArmed() << myMag.isUnderControl() << myMag.isReadyToFire() << std::endl;
 
-    myMag.ignoreCoilSafetySwitch(false);
-
-    QThread::sleep(4);
-    myMag.quickFire(error);
-    myMag.resetQuickFire();
+    myMag.ignoreCoilSafetySwitch(error);
 
     QThread::sleep(1);
+	
     myMag.quickFire(error);
+    myMag.resetQuickFire();
+	QThread::msleep(20);
+	myMag.quickFire(error);
+    myMag.resetQuickFire();
 
     QThread::sleep(2);
-    myMag.disconnect();
+	
+    myMag.disconnect(error);
 
     std::cout << "---------------------------" << std::endl;
-    std::cout << "Abschluss Fehler :" << error << std::endl;
+    std::cout << "Termination error :" << error << std::endl;
 
     return a.exec();
 }
+

@@ -1,6 +1,6 @@
 //=============================================================================================================
 /**
-* @file     serialportcontroller.h
+* @file     connectionrobot.h
 * @author   Hannes Oppermann <hannes.oppermann@tu-ilmenau.de>;
 *           Felix Wichum <felix.wichum@tu-ilmenau.de>
 * @version  1.0
@@ -22,34 +22,38 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 *
-* @brief    Contains the declaration of the SerialPortController class.
+* @brief    Contains the declaration of the ConnectionRobot class.
 *
 */
 
-#ifndef SERIALPORTCONTROLLER_H
-#define SERIALPORTCONTROLLER_H
+#ifndef CONNECTIONROBOT_H
+#define CONNECTIONROBOT_H
 
 //*************************************************************************************************************
 //=============================================================================================================
 // INCLUDES
 //=============================================================================================================
 
+#include "../magcpp_global.h"
+#include "../connection/serialportcontroller.h"
+
 #include <queue>
-#include <qiodevice.h>
-#include <QIODevice>
-#include <iostream>
+#include <ctime>
+#include <tuple>
+#include <cmath>
 
 //*************************************************************************************************************
 //=============================================================================================================
 // Qt INCLUDES
 //=============================================================================================================
 
-#include <QtSerialPort/QSerialPort>
-#include <QThread>
 #include <QByteArray>
+#include <QString>
+#include <QThread>
 #include <QMutexLocker>
 #include <QMutex>
-#include <QSerialPort>
+#include <QEventLoop>
+#include <QTimer>
 
 //*************************************************************************************************************
 //=============================================================================================================
@@ -58,67 +62,80 @@
 
 typedef std::tuple<QByteArray, QString, int> sendInfo;
 typedef std::tuple<int, QByteArray> reciveInfo;
-Q_DECLARE_METATYPE(sendInfo);
-Q_DECLARE_METATYPE(reciveInfo);
 
 //=============================================================================================================
 /**
-* The class creates a Thread which has direct control of the serial port. Commands for relaying via the
-* serial port are received from signals.
+* The class creates a thread which sends an 'enable remote control' command to the Magstim via the serialPortController
+* thread every 500ms.
 *   N.B. Note that all functions except for run, are run in the callers thread
 *
-* @brief Controls the serial port.
+* @brief Keeps remote control.
 */
 
-class SerialPortController : public QThread
+class MAGCPPSHARED_EXPORT ConnectionRobot : public QThread
 {
-    Q_OBJECT
+     Q_OBJECT
 
 public:
     //=========================================================================================================
     /**
-    * Constructs a SerialPortController
+    * Constructs a ConnectionRobot
     *
-    * @param[in] serialConnection           The serial port
-    * @param[in] serialWriteQueue           Queue to send messages to MagStim unit
-    * @param[in] serialReadQueue            Queue to recive messages from MagStim unit
+    * @param[in] serialWriteQueue           Queue for writing to Magstim
+    * @param[in] updateRobotQueue           Queue for controlling the connectionRobot
     */
-    SerialPortController(QString serialConnection,
-                         std::queue<std::tuple<QByteArray, QString, int>> serialWriteQueue,
-                         std::queue<std::tuple<int, QByteArray>> serialReadQueue);
+    ConnectionRobot(std::queue<std::tuple<QByteArray, QString, int>> serialWriteQueue,
+                    std::queue<float> updateRobotQueue);
 
     //=========================================================================================================
     /**
-    * Continuously monitor the serialWriteQueue for commands from other Threads to be sent to the Magstim.
-    * When requested, will return the automated reply from the Magstim unit to the calling process via signals.
+    * Continuously send commands to the serialPortController thread at regular intervals, while also monitoring
+    * the updateTimeQueue for commands from the parent thread if this should be delayed, paused, or stopped.
     *   N.B. This should be called via start()
     */
     void run() override;
 
-private:
-    std::queue<std::tuple<QByteArray, QString, int>> m_serialWriteQueue;      /**< Queue for writing to Magstim */
-    std::queue<std::tuple<int, QByteArray>> m_serialReadQueue;                /**< Queue for reading from Magstim */
-    QString m_address;                                                        /**< Adress of port */
-    QMutex m_mutex;                                                           /**< To protect data in this thread */
+    //=========================================================================================================
+    /**
+    * Set the command which will be send to the MagStim unit
+    *
+    * @param[in] connectionCommand          Command to stay in connection with MagStim
+    */
+    void setCommand(std::tuple<QByteArray, QString, int> connectionCommand);
 
-    const int SERIAL_WRITE_ERROR = 1; // SERIAL_WRITE_ERR: Could not send the command.
-    const int SERIAL_READ_ERROR  = 2; // SERIAL_READ_ERR:  Could not read the magstim response.
+private:
+    std::queue<std::tuple<QByteArray, QString, int>> m_serialWriteQueue;    /**< Queue for writing to Magstim */
+    std::queue<float> m_updateRobotQueue;                                   /**< Queue for controlling the connectionRobot */
+    bool m_stopped;                                                         /**< Stop the Robot */
+    bool m_paused;                                                          /**< Pause the Robot */
+    double m_nextPokeTime;                                                  /**< Next time sending a command to the Magstim */
+    std::tuple<QByteArray, QString, int> m_connectionCommand;               /**< Command send to the Magstim */
+    QMutex m_mutex;                                                         /**< To protect data in this thread */
+    QEventLoop m_loop;                                                      /**< Wait for Signals. Execution stops when data arrives. */
+    QTimer m_timer;                                                         /**< Counter */
+
 
 public slots:
     //=========================================================================================================
     /**
-    * Updates the write queue to send something to Magstim.
+    * Updates the update queue to control the robot
     *
-    * @param[in] info                       std::tuple<QByteArray, QString, int>
+    * @param[in] info                       message for Robot (NAN: stop; -1: pause; 0: go on; 1: slow down; 2: speed up)
     */
-    void updateSerialWriteQueue(sendInfo info);
+    void updateUpdateRobotQueue(const float info);
 
 signals:
     //=========================================================================================================
     /**
-    * A message from the Magstim unit was read.
+    * Send a message to the Magstim unit.
     */
-    void updateSerialReadQueue(const reciveInfo &info);
+    void updateSerialWriteQueue(const sendInfo info);
+
+    //=========================================================================================================
+    /**
+    * A message was recived. Allows to leave QEventLoop.
+    */
+    void readInfo();
 };
 
-#endif // SERIALPORTCONTROLLER_H
+#endif // CONNECTIONROBOT_H

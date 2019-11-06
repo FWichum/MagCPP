@@ -30,7 +30,7 @@
 // INCLUDES
 //=============================================================================================================
 
-#include "rapid.h"
+#include "../devices/rapid.h"
 
 //*************************************************************************************************************
 
@@ -700,7 +700,7 @@ int Rapid::getSystemStatur(std::map<QString, std::map<QString, double> > &messag
 
 void Rapid::setDefault()
 {
-    QString path = ":/MyRessources/rapid_config.json";
+    QString path = ":/Configuration/rapid_config.json";
 
     if (QFile::exists(path)) {
         QFile file(path);
@@ -727,7 +727,7 @@ void Rapid::setDefault()
         this->DEFAULT_VIRTUAL_VERSION = std::make_tuple(7,0,0);
     }
 
-    path = ":/MyRessources/rapid_system_info.json";
+    path = ":/Configuration/rapid_system_info.json";
     if (QFile::exists(path)) {
         QFile file(path);
         file.open(QIODevice::ReadOnly);

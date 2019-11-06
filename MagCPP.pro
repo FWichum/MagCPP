@@ -9,8 +9,16 @@ QT       += serialport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
+TEMPLATE = lib
+
 TARGET = MagCPP
-TEMPLATE = app
+TARGET = $$join(TARGET,,MNE$$MNE_LIB_VERSION,)
+CONFIG(debug, debug|release) {
+    TARGET = $$join(TARGET,,,d)
+}
+
+
+DEFINES += MAGCPP_LIBRARY
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
@@ -26,19 +34,19 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
-        bistim.cpp \
-        connectionrobot.cpp \
-        magstim.cpp \
-        main.cpp \
-        rapid.cpp \
-        serialportcontroller.cpp
+        devices/magstim.cpp \
+        devices/bistim.cpp \
+        devices/rapid.cpp \
+        connection/connectionrobot.cpp \
+        connection/serialportcontroller.cpp
 
 HEADERS += \
-        bistim.h \
-        connectionrobot.h \
-        magstim.h \
-        rapid.h \
-        serialportcontroller.h
+        magcpp_global.h \
+        devices/magstim.h \
+        devices/bistim.h \
+        devices/rapid.h \
+        connection/connectionrobot.h \
+        connection/serialportcontroller.h
 
 FORMS +=
 
@@ -47,11 +55,11 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-#for yaml library
-#unix|win32: LIBS += -LC:/Users/Felix/Desktop/yaml-cpp-master/build/Release/ -llibyaml-cppmd
-
-#INCLUDEPATH += $$PWD/yaml/include
-#DEPENDPATH += $$PWD/yaml/include
-
 RESOURCES += \
-    MyRessources/myres.qrc
+    configuration/myres.qrc
+
+# Install headers to include directory
+header_files.files = $${HEADERS}
+header_files.path = $${MNE_INSTALL_INCLUDE_DIR}/magcpp
+
+INSTALLS += header_files

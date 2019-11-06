@@ -1,6 +1,6 @@
 //=============================================================================================================
 /**
-* @file     bistim.cpp
+* @file     bistim.h
 * @author   Hannes Oppermann <hannes.oppermann@tu-ilmenau.de>;
 *           Felix Wichum <felix.wichum@tu-ilmenau.de>
 * @version  1.0
@@ -22,13 +22,20 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 *
-* @brief    Definition of the Bistim class.
+* @brief    Contains the declaration of the Bistim class.
+*
 */
 
-#include "bistim.h"
+#ifndef BISTIM_H
+#define BISTIM_H
 
-BiStim::BiStim(QString serialConnection) :
-    MagStim (serialConnection)
+#include "../magcpp_global.h"
+#include "../devices/magstim.h"
+
+class MAGCPPSHARED_EXPORT BiStim : public MagStim
 {
+public:
+    BiStim(QString serialConnection);
+};
 
-}
+#endif // BISTIM_H
