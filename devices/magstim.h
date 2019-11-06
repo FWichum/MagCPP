@@ -8,6 +8,7 @@
 *
 * @section  LICENSE
 *
+* This software was derived from the python toolbox MagPy by N. McNair
 * Copyright (C) 2019, Hannes Oppermann and Felix Wichum. All rights reserved.
 *
 * GNU General Public License v3.0 (LICENSE)

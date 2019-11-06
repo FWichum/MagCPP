@@ -9,6 +9,8 @@
 
 int main(int argc, char *argv[])
 {
+	QApplication a(argc, argv);
+	
     Rapid myMag("COM20",0,"",240,std::make_tuple(7,2,0)); // COM1
     int error = 0;
 

@@ -6,6 +6,7 @@
 * @version  1.0
 * @date     November, 2019
 *
+* This software was derived from the python toolbox MagPy by N. McNair
 * @section  LICENSE
 *
 * Copyright (C) 2019, Hannes Oppermann and Felix Wichum. All rights reserved.
