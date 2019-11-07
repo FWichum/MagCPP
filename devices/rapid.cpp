@@ -1,28 +1,59 @@
-#include "rapid.h"
-#include "rapid.h"
+//=============================================================================================================
+/**
+* @file     rapid.cpp
+* @author   Hannes Oppermann <hannes.oppermann@tu-ilmenau.de>;
+*           Felix Wichum <felix.wichum@tu-ilmenau.de>
+* @version  1.0
+* @date     November, 2019
+*
+* @section  LICENSE
+*
+* Copyright (C) 2019, Hannes Oppermann and Felix Wichum. All rights reserved.
+*
+* GNU General Public License v3.0 (LICENSE)
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*
+* @brief    Definition of the Rapid class.
+*/
 
-//#include "yaml/include/yaml-cpp/yaml.h"
-#include <QDir>
-#include <QFile>
+//*************************************************************************************************************
+//=============================================================================================================
+// INCLUDES
+//=============================================================================================================
+
+#include "../devices/rapid.h"
+
+//*************************************************************************************************************
+
 
 Rapid::Rapid(QString serialConnection, int superRapid, QString unlockCode, int voltage, std::tuple<int, int, int> version) :
     MagStim(serialConnection)
 {
-    this->setDefault();
+    try {
+        this->setDefault();
+    } catch (const char* msg) {
+        std::cout << msg << std::endl;
+    }
     this->m_super = superRapid;
     this->m_unlockCode = unlockCode;
     this->m_voltage = voltage;
     this->m_parameterReturnByte = NAN;
     this->m_sequenceValidated = false;
     this->m_repetitiveMode = false;
+    this->m_version = std::make_tuple(0,0,0);
 
-    if (serialConnection.toLower() == "virtual") {
-        this->m_version = version; //FW: Is it right?
-    } else {
-        this->m_version = std::make_tuple(0,0,0); // FW: Is it right to set to (0,0,0)?
+    if (!unlockCode.isEmpty()) {
+        this->m_connectionCommand = std::make_tuple(QString("x@G").toUtf8(),"", 6);
     }
-
-    // FIXME if UnlockCode is provided ...
 }
 
 
@@ -31,7 +62,11 @@ Rapid::Rapid(QString serialConnection, int superRapid, QString unlockCode, int v
 Rapid::Rapid(QString serialConnection) :
     MagStim(serialConnection)
 {
-    this->setDefault();
+    try {
+        this->setDefault();
+    } catch (const char* msg) {
+        std::cout << msg << std::endl;
+    }
     Rapid(serialConnection,this->DEFAULT_RAPID_TYPE,this->DEFAULT_UNLOCK_CODE,this->DEFAULT_VOLTAGE,this->DEFAULT_VIRTUAL_VERSION);
 }
 
@@ -41,7 +76,7 @@ Rapid::Rapid(QString serialConnection) :
 float Rapid::getRapidMinWaitTime(int power, int nPulses, float frequency)
 {
     float minWaitTime = 0.5;
-    float calcWaitTime = (nPulses * ((frequency * this->JOULES[power]) - float(1050.0)));
+    float calcWaitTime = (nPulses * ((frequency * this->JOULES[QString::number(power)].toFloat()) - float(1050.0)));
 
     if(minWaitTime < calcWaitTime) {
         return calcWaitTime;
@@ -57,7 +92,7 @@ float Rapid::getRapidMinWaitTime(int power, int nPulses, float frequency)
 float Rapid::getRapidMaxOnTime(int power, float frequency)
 {
     float PulseNum = 63000.0;
-    float FreqPow = frequency * this->JOULES[power];
+    float FreqPow = frequency * this->JOULES[QString::number(power)].toFloat();
 
     return PulseNum / FreqPow;
 }
@@ -68,7 +103,7 @@ float Rapid::getRapidMaxOnTime(int power, float frequency)
 float Rapid::getRapidMaxContinuousOperationsFrequency(int power)
 {
     float a = 1050.0;
-    float b = this->JOULES[power];
+    float b = this->JOULES[QString::number(power)].toFloat();
 
     return a / b;
 }
@@ -78,25 +113,20 @@ float Rapid::getRapidMaxContinuousOperationsFrequency(int power)
 
 void Rapid::setupSerialPort(QString serialConnection)
 {
-    if (serialConnection.toLower() == "virtual") {
-        // FW: TODO in case of virtual
-    }
-    else {
-        MagStim::setupSerialPort(serialConnection);
-    }
+    MagStim::setupSerialPort(serialConnection);
 }
 
 
 //*************************************************************************************************************
 
-std::tuple<int,int,int> Rapid::getVersion(int &er=MagStim::er)
+std::tuple<int,int,int> Rapid::getVersion(int &error)
 {
     std::tuple<int, int, int> vers;
     int helper = 0;
-    er = this->processCommand("ND", "version", helper, vers);
-    std::cout << "Version: " << std::get<0>(vers) << std::get<1>(vers) << std::get<2>(vers) << std::endl;
+    error = this->processCommand("ND", "version", helper, vers);
+
     // If we didn't receive an error, update the version number and the number of bytes that will be returned by a getParameters() command
-    if (er == 0) {
+    if (error == 0) {
         this->m_version = vers;
         if (std::get<0>(this->m_version) >= 9) {
             this->m_parameterReturnByte = 24;
@@ -126,14 +156,14 @@ int Rapid::getErrorCode()
 
 //*************************************************************************************************************
 
-void Rapid::connect(int &er=MagStim::er)
+void Rapid::connect(int &error)
 {
-    MagStim::connect(er);
+    MagStim::connect(error);
 
-    if (!er) {
-        std::ignore = this->getVersion(er);
-        if (er) {
-            this->disconnect();
+    if (!error) {
+        std::ignore = this->getVersion(error);
+        if (error) {
+            this->disconnect(error);
             throw new std::string("Could not determine software version of Rapid. Disconnecting.");
         }
     }
@@ -142,22 +172,23 @@ void Rapid::connect(int &er=MagStim::er)
 
 //*************************************************************************************************************
 
-void Rapid::disconnect()
+void Rapid::disconnect(int &error)
 {
     //Just some housekeeping before we call the base magstim class method disconnect
     this->m_sequenceValidated = false;
     this->m_repetitiveMode = false;
-    int i;
-    MagStim::disconnect(i);
+    MagStim::disconnect(error);
     return;
 }
 
 
 //*************************************************************************************************************
 
-int Rapid::rTMSMode(bool enable, std::map<QString, std::map<QString, int>> &message = MagStim::mes, bool receipt)
+void Rapid::rTMSMode(bool enable, std::map<QString, std::map<QString, double>> &message, int &error)
 {
+    error = 0;
     this->m_sequenceValidated = false;
+
     // Durations of 1 or 0 are used to toggle repetitive mode on and off
     QString commandString = "";
 
@@ -178,21 +209,21 @@ int Rapid::rTMSMode(bool enable, std::map<QString, std::map<QString, int>> &mess
         }
     }
 
-    int error = this->processCommand(commandString, "instrRapid", 4, message);
+    error = this->processCommand(commandString, "instrRapid", 4, message);
     if (error == 0) {
         if (enable) {
             this->m_repetitiveMode = true;
-            std::map<QString, std::map<QString, int> > mes;
+            std::map<QString, std::map<QString, double> > mes;
             int updateError = 0;
             mes = getParameters(updateError);
             if (updateError == 0) {
-                if (mes["rapidParam"]["frequency"] == 0) {
+                if (mes["rapidParam"]["frequency"] == 0) { // FIXME
                     updateError = this->processCommand("B0010", "instrRapid", 4, mes);
                     if (updateError) {
-                        return MagStim::PARAMETER_UPDATE_ERR;
+                        error = MagStim::PARAMETER_UPDATE_ERR;
                     }
                     else {
-                        return MagStim::PARAMETER_ACQUISTION_ERR;
+                        error = MagStim::PARAMETER_ACQUISTION_ERR;
                     }
                 }
                 else {
@@ -201,18 +232,14 @@ int Rapid::rTMSMode(bool enable, std::map<QString, std::map<QString, int>> &mess
             }
         }
     }
-
-    if (receipt) {
-        return error;
-    }
 }
 
 
 //*************************************************************************************************************
 
-int Rapid::ignoreCoilSafetySwitch(bool receipt = false)
+int Rapid::ignoreCoilSafetySwitch(int &error)
 {
-    std::map<QString, std::map<QString, int>> mes;
+    std::map<QString, std::map<QString, double>> mes;
 
     return this->processCommand("b@", "instr", 3, mes);
 }
@@ -220,7 +247,7 @@ int Rapid::ignoreCoilSafetySwitch(bool receipt = false)
 
 //*************************************************************************************************************
 
-void Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error = MagStim::er)
+void Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, double> > &message, int &error)
 {
     this->m_sequenceValidated = false;
 
@@ -229,12 +256,12 @@ void Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, int> 
             error = this->processCommand("Q@", "instr", 3, message);
         }
         else {
-            error = this->processCommand("R@\n", "instr", 3, message);
+            error = this->processCommand("R@", "instr", 3, message);
         }
     }
     else {
         if(enable){
-            QString string = this->m_unlockCode.toLatin1().append("Q");
+            QString string = "Q" + this->m_unlockCode.toLatin1();
             error = this->processCommand(string, "instr", 3, message);
         }
         else {
@@ -246,23 +273,13 @@ void Rapid::remoteControl(bool enable, std::map<QString, std::map<QString, int> 
 
 //*************************************************************************************************************
 
-void Rapid::enhancedPowerMode(bool enable, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error = MagStim::er, bool receipt)
+void Rapid::enhancedPowerMode(bool enable, std::map<QString, std::map<QString, double> > &message, int &error)
 {
     if(enable) {
-        if(receipt) {
-            error = this->processCommand("^@", "instrRapid", 4, message);
-        }
-        else {
-            error = this->processCommand("^@", "", 4, message);
-        }
+        error = this->processCommand("^@", "instrRapid", 4, message);
     }
     else {
-        if(receipt) {
-            error = this->processCommand("_@", "instrRapid", 4, message);
-        }
-        else {
-            error = this->processCommand("_@", "", 4, message);
-        }
+        error = this->processCommand("_@", "instrRapid", 4, message);
     }
     return;
 }
@@ -272,14 +289,21 @@ void Rapid::enhancedPowerMode(bool enable, std::map<QString, std::map<QString, i
 
 bool Rapid::isEnhanced()
 {
-    return true;
-    //FIXME
+    int error = 0;
+    std::map<QString, std::map<QString, double>> mes;
+    remoteControl(true,mes,error);
+
+    if (error) {
+        return  false;
+    } else {
+        return mes["rapid"]["enhancedPowerMode"];
+    }
 }
 
 
 //*************************************************************************************************************
 
-int Rapid::setFrequency(float newFrequency, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error = MagStim::er, bool receipt)
+int Rapid::setFrequency(float newFrequency, std::map<QString, std::map<QString, double> > &message, int &error)
 {
     this->m_sequenceValidated = false;
 
@@ -292,7 +316,7 @@ int Rapid::setFrequency(float newFrequency, std::map<QString, std::map<QString, 
         return MagStim::PARAMETER_PRECISION_ERR;
     }
 
-    std::map<QString, std::map<QString, int> > currentParameters;
+    std::map<QString, std::map<QString, double> > currentParameters;
     int updateError = 0;
     currentParameters = getParameters(updateError);
 
@@ -300,7 +324,7 @@ int Rapid::setFrequency(float newFrequency, std::map<QString, std::map<QString, 
         return MagStim::PARAMETER_ACQUISTION_ERR;
     }
     else {
-        int maxFrequency = this->MAX_FREQUENCY[this->m_voltage][this->m_super][currentParameters["rapidParam"]["power"]];   // FIXME: in python there are not all arguments in MAX_FREQUENCY
+        int maxFrequency = this->MAX_FREQUENCY[QString::number(this->m_voltage)][QString::number(this->m_super)][QString::number(currentParameters["rapidParam"]["power"])].toInt();
         if (newFrequency < 0 || newFrequency > maxFrequency){
             return MagStim::PARAMETER_RANGE_ERR;
         }
@@ -312,7 +336,7 @@ int Rapid::setFrequency(float newFrequency, std::map<QString, std::map<QString, 
 
     // If we didn't get an error, update the other parameters accordingly
     if (error == 0){
-        std::map<QString, std::map<QString, int> > currentParameters;
+        std::map<QString, std::map<QString, double> > currentParameters;
         int updateError = 0;
         currentParameters = getParameters(updateError);
 
@@ -338,8 +362,7 @@ int Rapid::setFrequency(float newFrequency, std::map<QString, std::map<QString, 
         else {
             return MagStim::PARAMETER_ACQUISTION_ERR;
         }
-    }
-    if(receipt) {
+    } else {
         return error;
     }
 }
@@ -347,7 +370,7 @@ int Rapid::setFrequency(float newFrequency, std::map<QString, std::map<QString, 
 
 //*************************************************************************************************************
 
-int Rapid::setNPulses(int newPulses, std::map<QString, std::map<QString, int> > &message = MagStim::mes, bool receipt)
+int Rapid::setNPulses(int newPulses, std::map<QString, std::map<QString, double> > &message)
 {
     this->m_sequenceValidated = false;
 
@@ -376,7 +399,7 @@ int Rapid::setNPulses(int newPulses, std::map<QString, std::map<QString, int> > 
 
     // If we didn't get an error, update the other parameters accordingly
     if(error == 0) {
-        std::map<QString, std::map<QString, int> > currentParameters;
+        std::map<QString, std::map<QString, double> > currentParameters;
         int updateError = 0;
         currentParameters = getParameters(updateError);
         int nPulses = currentParameters["rapidParam"]["nPulses"];
@@ -388,31 +411,21 @@ int Rapid::setNPulses(int newPulses, std::map<QString, std::map<QString, int> > 
         if(updateError == 0) {
             if(std::get<0>(this->m_version) >= 9) {
                 QString string = string3 + string1;
-                if(receipt){
-                    updateError = this->processCommand(string, "instrRapid", 4, currentParameters);
-                }
-                else {
-                    updateError = this->processCommand(string, "", 4, currentParameters);
-                }
+                updateError = this->processCommand(string, "instrRapid", 4, currentParameters);
             }
             else {
                 QString string = string3 + string2;
-                if(receipt){
-                    updateError = this->processCommand(string, "instrRapid", 4, currentParameters);
-                }
-                else {
-                    updateError = this->processCommand(string, "", 4, currentParameters);
-                }
+                updateError = this->processCommand(string, "instrRapid", 4, currentParameters);
             }
             if(updateError){
                 return MagStim::PARAMETER_UPDATE_ERR;
             }
+            return 0;
         }
         else {
             return MagStim::PARAMETER_ACQUISTION_ERR;
         }
-    }
-    if(receipt){
+    } else {
         return error;
     }
 }
@@ -420,7 +433,7 @@ int Rapid::setNPulses(int newPulses, std::map<QString, std::map<QString, int> > 
 
 //*************************************************************************************************************
 
-int Rapid::setDuration(float newDuration, std::map<QString, std::map<QString, int> > &message = MagStim::mes, bool receipt)
+int Rapid::setDuration(float newDuration, std::map<QString, std::map<QString, double> > &message)
 {
     this->m_sequenceValidated = false;
 
@@ -457,7 +470,7 @@ int Rapid::setDuration(float newDuration, std::map<QString, std::map<QString, in
     }
 
     if(error == 0) {
-        std::map<QString, std::map<QString, int> > currentParameters;
+        std::map<QString, std::map<QString, double> > currentParameters;
         int updateError = 0;
         currentParameters = getParameters(updateError);
         int duration = currentParameters["rapidParam"]["duration"];
@@ -478,13 +491,12 @@ int Rapid::setDuration(float newDuration, std::map<QString, std::map<QString, in
             if(updateError){
                 return MagStim::PARAMETER_UPDATE_ERR;
             }
+            return 0;
         }
         else {
             return MagStim::PARAMETER_ACQUISTION_ERR;
         }
-    }
-
-    if(receipt){
+    } else {
         return error;
     }
 }
@@ -492,11 +504,11 @@ int Rapid::setDuration(float newDuration, std::map<QString, std::map<QString, in
 
 //*************************************************************************************************************
 
-std::map<QString, std::map<QString, int> > Rapid::getParameters(int &error  = MagStim::er)
+std::map<QString, std::map<QString, double> > Rapid::getParameters(int &error)
 {
-    std::map<QString, std::map<QString, int> > message;
+    std::map<QString, std::map<QString, double> > message;
     int helpNumber = this->m_parameterReturnByte;
-    error = this->processCommand("\\@n", "rapidParam", helpNumber, message);
+    error = this->processCommand("\\@", "rapidParam", helpNumber, message);
 
     return message;
 }
@@ -504,7 +516,7 @@ std::map<QString, std::map<QString, int> > Rapid::getParameters(int &error  = Ma
 
 //*************************************************************************************************************
 
-void Rapid::setPower(int newPower, bool delay = false, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error  = MagStim::er)
+void Rapid::setPower(int newPower, bool delay = false, std::map<QString, std::map<QString, double> > &message, int &error)
 {
     this->m_sequenceValidated = false;
 
@@ -530,14 +542,14 @@ void Rapid::setPower(int newPower, bool delay = false, std::map<QString, std::ma
     MagStim::setPower(newPower, delay, error, "@", message);
 
     if(error == 0) {
-        std::map<QString, std::map<QString, int> > currentParameters;
+        std::map<QString, std::map<QString, double> > currentParameters;
         int updateError = 0;
         currentParameters = this->getParameters(updateError);
         if(updateError == 0){
-            if(currentParameters["rapid"]["singlePulseMode"] == false) {
-                int maxFrequency = this->MAX_FREQUENCY[this->m_voltage][this->m_super][currentParameters["rapidParam"]["power"]];
+            if(bool(currentParameters["rapid"]["singlePulseMode"]) == false) {
+                int maxFrequency = this->MAX_FREQUENCY[QString::number(this->m_voltage)][QString::number(this->m_super)][QString::number(currentParameters["rapidParam"]["power"])].toInt();
                 if(currentParameters["rapidParam"]["frequency"] > maxFrequency) {
-                    if(this->setFrequency(maxFrequency, message, error) != 0){ //FW: FIXME message & error
+                    if(this->setFrequency(maxFrequency, message, error) != 0){
                         error = MagStim::PARAMETER_UPDATE_ERR;
                         return;
                     }
@@ -554,7 +566,7 @@ void Rapid::setPower(int newPower, bool delay = false, std::map<QString, std::ma
 
 //*************************************************************************************************************
 
-int Rapid::setChargeDelay(int newDelay, std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error  = MagStim::er, bool receipt)
+int Rapid::setChargeDelay(int newDelay, std::map<QString, std::map<QString, double> > &message, int &error)
 {
     if(std::get<0>(this->m_version) == 0){
         return MagStim::GET_SYSTEM_STATUS_ERR;
@@ -580,15 +592,14 @@ int Rapid::setChargeDelay(int newDelay, std::map<QString, std::map<QString, int>
         QString string = string3 + string2;
         error = this->processCommand(string, "instrRapid", 4, message);
     }
-    if(receipt) {
-        return error;
-    }
+
+    return error;
 }
 
 
 //*************************************************************************************************************
 
-int Rapid::getChargeDelay(std::map<QString, std::map<QString, int> > &message = MagStim::mes, int &error  = MagStim::er)
+int Rapid::getChargeDelay(std::map<QString, std::map<QString, double> > &message, int &error)
 {
     if(std::get<0>(this->m_version) == 0){
         return MagStim::GET_SYSTEM_STATUS_ERR;
@@ -603,18 +614,19 @@ int Rapid::getChargeDelay(std::map<QString, std::map<QString, int> > &message = 
     else {
         error = this->processCommand("o@", "instrCharge", 7, message);
     }
+    return error;
 }
 
 
 //*************************************************************************************************************
 
-void Rapid::fire(int &error = MagStim::er)
+void Rapid::fire(int &error)
 {
     if (this->m_repetitiveMode && Rapid::ENFORCE_ENERGY_SAFETY && !this->m_sequenceValidated) {
         error = MagStim::SEQUENCE_VALIDATION_ERR;
     }
     else {
-        std::map<QString, std::map<QString, int>> message;
+        std::map<QString, std::map<QString, double>> message;
         int error;
         MagStim::fire(message, error);
     }
@@ -623,7 +635,7 @@ void Rapid::fire(int &error = MagStim::er)
 
 //*************************************************************************************************************
 
-void Rapid::quickFire(int &error = MagStim::er)
+void Rapid::quickFire(int &error)
 {
     if(this->m_repetitiveMode && Rapid::ENFORCE_ENERGY_SAFETY && !this->m_sequenceValidated) {
         error = MagStim::SEQUENCE_VALIDATION_ERR;
@@ -639,8 +651,9 @@ void Rapid::quickFire(int &error = MagStim::er)
 int Rapid::validateSequence()
 {
     // pre-initialization
-    std::map<QString, std::map<QString, int> > parameters;
+    std::map<QString, std::map<QString, double> > parameters;
     int error = 0;
+    parameters = getParameters(error);
     float duration = parameters["rapidParam"]["duration"] / 10;
     float MaxOnTime = Rapid::getRapidMaxOnTime(parameters["rapidParam"]["duration"], parameters["rapidParam"]["frequency"]);
     float TimeHelp;
@@ -652,8 +665,6 @@ int Rapid::validateSequence()
         TimeHelp = 60;
     }
 
-    parameters = getParameters(error);
-
     if (error) {
         return MagStim::PARAMETER_ACQUISTION_ERR;
     }
@@ -662,14 +673,14 @@ int Rapid::validateSequence()
     }
     else {
         this->m_sequenceValidated = true;
-        return 0; //in python with "Sequence valid."
+        return 0;
     }
 }
 
 
 //*************************************************************************************************************
 
-int Rapid::getSystemStatur(std::map<QString, std::map<QString, int> > &message)
+int Rapid::getSystemStatur(std::map<QString, std::map<QString, double> > &message)
 {
     if (std::get<0>(this->m_version) == 0) {
         return MagStim::GET_SYSTEM_STATUS_ERR;
@@ -689,24 +700,58 @@ int Rapid::getSystemStatur(std::map<QString, std::map<QString, int> > &message)
 
 void Rapid::setDefault()
 {
-    QString file = QDir::currentPath() + "/rapid_config.yaml";
+    QString path = ":/Configuration/rapid_config.json";
 
-    if (QFile::exists(file)) {
-        //        YAML::Node config = YAML::LoadFile(file.toStdString());
-        //        this->DEFAULT_RAPID_TYPE = config["defaultRapidType"].as<int>();
-        //        this->DEFAULT_VOLTAGE = config["defaultVoltage"].as<int>();
-        //        this->DEFAULT_UNLOCK_CODE = QString::fromStdString(config["m_unlockCode"].as<std::string>());
-        //        this->ENFORCE_ENERGY_SAFETY = config["enforceEnergySafety"].as<bool>();
-        //        this->DEFAULT_VIRTUAL_VERSION = std::make_tuple(5,0,0); //FIXME: config["virtualVersionNumber"].as<std::tuple<int, int, int>>();
+    if (QFile::exists(path)) {
+        QFile file(path);
+        file.open(QIODevice::ReadOnly);
+        QTextStream file_text(&file);
+        QString json_file = file_text.readAll();
+        QJsonObject config = QJsonDocument::fromJson(json_file.toUtf8()).object();
+        file.close();
+
+        this->DEFAULT_RAPID_TYPE    = config["defaultRapidType"].toInt();
+        this->DEFAULT_VOLTAGE       = config["defaultVoltage"].toInt();
+        this->DEFAULT_UNLOCK_CODE   = config["unlockCode"].toString();
+        this->ENFORCE_ENERGY_SAFETY = config["enforceEnergySafety"].toBool();
+
+        QString version = config["virtualVersionNumber"].toString();
+        QStringList ver_list = version.mid(1,version.length()-2).split(',');
+        this->DEFAULT_VIRTUAL_VERSION = std::make_tuple(ver_list.at(0).toInt(),ver_list.at(1).toInt(),ver_list.at(2).toInt());
+
     } else {
-        this->DEFAULT_RAPID_TYPE = 0;
-        this->DEFAULT_VOLTAGE = 240;
-        this->DEFAULT_UNLOCK_CODE = "";
-        this->ENFORCE_ENERGY_SAFETY = true;
-        this->DEFAULT_VIRTUAL_VERSION = std::make_tuple(5,0,0);
+        this->DEFAULT_RAPID_TYPE      = 0;
+        this->DEFAULT_VOLTAGE         = 240;
+        this->DEFAULT_UNLOCK_CODE     = "";
+        this->ENFORCE_ENERGY_SAFETY   = true;
+        this->DEFAULT_VIRTUAL_VERSION = std::make_tuple(7,0,0);
     }
-    file = QDir::currentPath() + "/rapid_system_info.yaml";
-    //    YAML::Node rapid = YAML::LoadFile(file.toStdString());
-    //    this->MAX_FREQUENCY = rapid["maxFrequency"].as<std::map<int, std::map<int, std::map<int, int>>>>();
-    //    this->JOULES = rapid["joules"].as<std::map<int, float>>();
+
+    path = ":/Configuration/rapid_system_info.json";
+    if (QFile::exists(path)) {
+        QFile file(path);
+        file.open(QIODevice::ReadOnly);
+        QTextStream file_text(&file);
+        QString json_file = file_text.readAll();
+        QJsonObject config_json = QJsonDocument::fromJson(json_file.toUtf8()).object();
+        file.close();
+
+        QVariantMap config = config_json.toVariantMap();
+        this->JOULES = config["joules"].toMap();
+
+        QVariantMap vmap_maxf = config["maxFrequency"].toMap();
+        QStringList volts = vmap_maxf.keys();
+        for (int i = 0; i < volts.length(); ++i) {
+            QMap<QString, QMap<QString, QVariant>> map_volt;
+            QVariantMap vmap_volt = vmap_maxf[volts.at(i)].toMap();
+            QStringList modes = vmap_volt.keys();
+            for (int j = 0; j < modes.length(); ++j) {
+                QVariantMap vmap_mode = vmap_volt[modes.at(j)].toMap();
+                map_volt.insert(modes.at(j),vmap_mode);
+            }
+            this->MAX_FREQUENCY.insert(volts.at(i), map_volt);
+        }
+    } else {
+        throw "Could not read Rapid System Info. rTMS mode for Rapid is not possible.";
+    }
 }

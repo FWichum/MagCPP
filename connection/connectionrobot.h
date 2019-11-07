@@ -1,3 +1,32 @@
+//=============================================================================================================
+/**
+* @file     connectionrobot.h
+* @author   Hannes Oppermann <hannes.oppermann@tu-ilmenau.de>;
+*           Felix Wichum <felix.wichum@tu-ilmenau.de>
+* @version  1.0
+* @date     November, 2019
+*
+* @section  LICENSE
+*
+* This software was derived from the python toolbox MagPy by N. McNair
+* Copyright (C) 2019, Hannes Oppermann and Felix Wichum. All rights reserved.
+*
+* GNU General Public License v3.0 (LICENSE)
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*
+* @brief    Contains the declaration of the ConnectionRobot class.
+*
+*/
+
 #ifndef CONNECTIONROBOT_H
 #define CONNECTIONROBOT_H
 
@@ -6,11 +35,13 @@
 // INCLUDES
 //=============================================================================================================
 
-#include "serialportcontroller.h"
+#include "../magcpp_global.h"
+#include "../connection/serialportcontroller.h"
 
 #include <queue>
 #include <ctime>
 #include <tuple>
+#include <cmath>
 
 //*************************************************************************************************************
 //=============================================================================================================
@@ -42,7 +73,7 @@ typedef std::tuple<int, QByteArray> reciveInfo;
 * @brief Keeps remote control.
 */
 
-class ConnectionRobot : public QThread
+class MAGCPPSHARED_EXPORT ConnectionRobot : public QThread
 {
      Q_OBJECT
 
@@ -51,8 +82,8 @@ public:
     /**
     * Constructs a ConnectionRobot
     *
-    * @param[in] serialWriteQueue           TODO Doxygen
-    * @param[in] updateRobotQueue           TODO Doxygen
+    * @param[in] serialWriteQueue           Queue for writing to Magstim
+    * @param[in] updateRobotQueue           Queue for controlling the connectionRobot
     */
     ConnectionRobot(std::queue<std::tuple<QByteArray, QString, int>> serialWriteQueue,
                     std::queue<float> updateRobotQueue);
@@ -67,17 +98,9 @@ public:
 
     //=========================================================================================================
     /**
-    * Check the time
-    *
-    * @return the time
-    */
-//    clock_t defaultTimer();  // runs in the main thread so use is not safe
-
-    //=========================================================================================================
-    /**
     * Set the command which will be send to the MagStim unit
     *
-    * @param[in] connectionCommand          TODO Doxygen
+    * @param[in] connectionCommand          Command to stay in connection with MagStim
     */
     void setCommand(std::tuple<QByteArray, QString, int> connectionCommand);
 
@@ -98,7 +121,7 @@ public slots:
     /**
     * Updates the update queue to control the robot
     *
-    * @param[in] info                       TODO Doxygen
+    * @param[in] info                       message for Robot (NAN: stop; -1: pause; 0: go on; 1: slow down; 2: speed up)
     */
     void updateUpdateRobotQueue(const float info);
 

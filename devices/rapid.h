@@ -1,3 +1,32 @@
+//=============================================================================================================
+/**
+* @file     rapid.h
+* @author   Hannes Oppermann <hannes.oppermann@tu-ilmenau.de>;
+*           Felix Wichum <felix.wichum@tu-ilmenau.de>
+* @version  1.0
+* @date     November, 2019
+*
+* This software was derived from the python toolbox MagPy by N. McNair
+* @section  LICENSE
+*
+* Copyright (C) 2019, Hannes Oppermann and Felix Wichum. All rights reserved.
+*
+* GNU General Public License v3.0 (LICENSE)
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*
+* @brief    Contains the declaration of the Rapid class.
+*
+*/
+
 #ifndef RAPID_H
 #define RAPID_H
 
@@ -6,7 +35,22 @@
 // INCLUDES
 //=============================================================================================================
 
-#include "magstim.h"
+#include "../magcpp_global.h"
+#include "../devices/magstim.h"
+
+//*************************************************************************************************************
+//=============================================================================================================
+// Qt INCLUDES
+//=============================================================================================================
+
+#include <QDir>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QVariant>
+#include <QTextStream>
+#include <QMap>
 
 //=============================================================================================================
 /**
@@ -23,7 +67,7 @@
 * @brief This is a sub-class of the parent Magstim class used for controlling Rapid^2 Magstim units
 */
 
-class Rapid : public MagStim
+class MAGCPPSHARED_EXPORT Rapid : public MagStim
 {
 public:
     //=========================================================================================================
@@ -32,9 +76,9 @@ public:
     *
     * @param[in] serialConnection           The serial port
     * @param[in] superRapid                 TODO Doxygen
-    * @param[in] unlockCode                 TODO Doxygen
-    * @param[in] voltage                    TODO Doxygen
-    * @param[in] version                    TODO Doxygen
+    * @param[in] unlockCode                 if provided, leave empty if not
+    * @param[in] voltage                    240 / 115
+    * @param[in] version                    software version
     */
     Rapid(QString serialConnection, int superRapid, QString unlockCode, int voltage, std::tuple<int, int, int> version);
 
@@ -82,9 +126,9 @@ public:
 
     //=========================================================================================================
     /**
-    * TODO Doxygen
+    * Opens the serialportcontroller to connect with the MagStim unit
     *
-    * @param[in] serialConnection           TODO Doxygen
+    * @param[in] serialConnection           SerialPort (Example: Windows: "COM1"; Linux: "/dev/ttyS0")
     */
     void setupSerialPort(QString serialConnection);
 
@@ -96,7 +140,7 @@ public:
     *
     * @return software version (X, Y, Z)
     */
-    std::tuple<int, int, int> getVersion(int &er);
+    std::tuple<int, int, int> getVersion(int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -115,7 +159,7 @@ public:
     *
     * @param[in] error                      [opt] Chatches error code
     */
-    void connect(int &er);
+    void connect(int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -124,39 +168,37 @@ public:
     *
     * @param[in] error                      [opt] Chatches error code
     */
-    void disconnect();
+    void disconnect(int &error = MagStim::er);
 
     //=========================================================================================================
     /**
     * This is a helper function to enable/disable rTMS mode.
     *
     * @param[in] enable                     whether to enable (True) or disable (False) control
-    * @param[in] message                    TODO Doxygen
-    * @param[in] receipt                    TODO Doxygen
-    *
-    * @return TODO Doxygen
+    * @param[in] message                    Rapid parameters (see more: MagStim::parseMagstimResponse)
+    * @param[in] error                      [opt] Chatches error code
     */
-    int rTMSMode(bool enable, std::map<QString,std::map<QString, int>> &message , bool receipt = false);
+    void rTMSMode(bool enable, std::map<QString, std::map<QString, double> > &message = MagStim::mes, int &error = MagStim::er);
 
     //=========================================================================================================
     /**
     * This allows the stimulator to ignore the state of coil safety interlock switch.
     *
-    * @param[in] receipt                    TODO Doxygen
+    * @param[in] error                      [opt] Chatches error code
     *
     * @return TODO Doxygen
     */
-    int ignoreCoilSafetySwitch(bool receipt);
+    int ignoreCoilSafetySwitch(int &error = MagStim::er);
 
     //=========================================================================================================
     /**
     * Enable/Disable remote control of stimulator. Disabling remote control will first disarm the Rapid unit.
     *
     * @param[in] enable                     whether to enable (True) or disable (False) control
-    * @param[in] message                    [opt] TODO Doxygen
+    * @param[in] message                    [opt] Rapid parameters (see more: MagStim::parseMagstimResponse)
     * @param[in] error                      [opt] Chatches error code
     */
-    void remoteControl(bool enable, std::map<QString, std::map<QString, int>> &message, int &error);
+    void remoteControl(bool enable, std::map<QString, std::map<QString, double> > &message = MagStim::mes, int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -165,11 +207,10 @@ public:
     *   Disabling will automatically reduce intensity to 100% if over
     *
     * @param[in] enable                     whether to enable (True) or disable (False) control
-    * @param[in] message                    [opt] TODO Doxygen
+    * @param[in] message                    [opt] Rapid parameters (see more: MagStim::parseMagstimResponse)
     * @param[in] error                      [opt] Chatches error code
-    * @param[in] receipt                    [opt] TODO Doxygen
     */
-    void enhancedPowerMode(bool enable, std::map<QString, std::map<QString, int>> &message, int &error, bool receipt = false);
+    void enhancedPowerMode(bool enable, std::map<QString, std::map<QString, double> > &message = MagStim::mes, int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -177,7 +218,7 @@ public:
     *
     * @return true if Rapid is in enhanced power mode
     */
-    bool isEnhanced();  // HO: TODO: QueryCommand is needed
+    bool isEnhanced();
 
     //=========================================================================================================
     /**
@@ -187,13 +228,12 @@ public:
     *
     * @param[in] newFrequency               new frequency of pulse train in Hertz (0-100 for 240V systems, 0-60 for 115V systems);
     *                                       decimal values are allowed for frequencies up to 30Hz
-    * @param[in] message                    [opt] TODO Doxygen
+    * @param[in] message                    [opt] Rapid parameters (see more: MagStim::parseMagstimResponse)
     * @param[in] error                      [opt] Chatches error code
-    * @param[in] receipt                    [opt] TODO Doxygen
     *
     * @return TODO Doxygen
     */
-    int setFrequency(float newFrequency, std::map<QString, std::map<QString, int>> &message, int &error, bool receipt = false);
+    int setFrequency(float newFrequency, std::map<QString, std::map<QString, double> > &message = MagStim::mes, int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -202,12 +242,11 @@ public:
     *   based on the current Frequency parameter setting.
     *
     * @param[in] newPulses                  new number of pulses (Version 9+: 1-6000; Version 7+: ?; Version 5+: 1-1000?)
-    * @param[in] message                    [opt] TODO Doxygen
-    * @param[in] receipt                    [opt] TODO Doxygen
+    * @param[in] message                    [opt] Rapid parameters (see more: MagStim::parseMagstimResponse)
     *
     * @return TODO Doxygen
     */
-    int setNPulses(int newPulses, std::map<QString, std::map<QString, int>> &message, bool receipt = false);
+    int setNPulses(int newPulses, std::map<QString, std::map<QString, double> > &message = MagStim::mes);
 
     //=========================================================================================================
     /**
@@ -217,12 +256,11 @@ public:
     *
     * @param[in] newDuration                new duration of pulse train in seconds (Version 9+: 1-600; Version 7+: ?;
     *                                       Version 5+: 1-10?); decimal values are allowed for durations up to 30s
-    * @param[in] message                    [opt] TODO Doxygen
-    * @param[in] receipt                    [opt] TODO Doxygen
+    * @param[in] message                    [opt] Rapid parameters (see more: MagStim::parseMagstimResponse)
     *
     * @return TODO Doxygen
     */
-    int setDuration(float newDuration, std::map<QString, std::map<QString, int>> &message, bool receipt = false);
+    int setDuration(float newDuration, std::map<QString, std::map<QString, double> > &message = MagStim::mes);
 
     //=========================================================================================================
     /**
@@ -232,7 +270,7 @@ public:
     *
     * @return TODO Doxygen
     */
-    std::map<QString, std::map<QString, int> > getParameters(int &error);
+    std::map<QString, std::map<QString, double> > getParameters(int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -242,34 +280,33 @@ public:
     *
     * @param[in] newPower                   new power level (0-100)
     * @param[in] delay                      [opt] enforce delay to allow Rapid time to change Power (defaults to False)
-    * @param[in] message                    [opt] TODO Doxygen
+    * @param[in] message                    [opt] Rapid parameters (see more: MagStim::parseMagstimResponse)
     * @param[in] error                      [opt] Chatches error code
     */
-    void setPower(int newPower, bool delay, std::map<QString, std::map<QString, int> > &message, int &error);
+    void setPower(int newPower, bool delay, std::map<QString, std::map<QString, double> > &message = MagStim::mes, int &error = MagStim::er);
 
     //=========================================================================================================
     /**
     * Set charge delay duration for the Rapid.
     *
     * @param[in] newDelay                   new delay duration in seconds (Version 10+: 1-10000; Version 9: 1-2000)
-    * @param[in] message                    [opt] TODO Doxygen
+    * @param[in] message                    [opt] Rapid parameters (see more: MagStim::parseMagstimResponse)
     * @param[in] error                      [opt] Chatches error code
-    * @param[in] receipt                    [opt] TODO Doxygen
     *
     * @return TODO Doxygen
     */
-    int setChargeDelay(int newDelay, std::map<QString, std::map<QString, int>> &message, int &error, bool receipt = false);
+    int setChargeDelay(int newDelay, std::map<QString, std::map<QString, double> > &message = MagStim::mes, int &error = MagStim::er);
 
     //=========================================================================================================
     /**
     * Get current charge delay duration for the Rapid.
     *
-    * @param[in] message                    [opt] TODO Doxygen
+    * @param[in] message                    [opt] Rapid parameters (see more: MagStim::parseMagstimResponse)
     * @param[in] error                      [opt] Chatches error code
     *
     * @return TODO Doxygen
     */
-    int getChargeDelay(std::map<QString, std::map<QString, int>> &message, int &error);
+    int getChargeDelay(std::map<QString, std::map<QString, double> > &message = MagStim::mes, int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -279,13 +316,13 @@ public:
     *
     * @param[in] error                      [opt] Chatches error code
     */
-    void fire(int &error);
+    void fire(int &error = MagStim::er);
 
     //=========================================================================================================
     /**
     * Trigger the stimulator to fire with very low latency using the RTS pin and a custom serial connection.
     */
-    void quickFire(int &error);
+    void quickFire(int &error = MagStim::er);
 
     //=========================================================================================================
     /**
@@ -300,11 +337,11 @@ public:
     /**
     * Get system status from the Rapid. Available only on software version of 9 or later.
     *
-    * @param[in] message                    TODO Doxygen
+    * @param[in] message                    Rapid parameters (see more: MagStim::parseMagstimResponse)
     *
     * @return TODO Doxygen
     */
-    int getSystemStatur(std::map<QString, std::map<QString, int>> &message);
+    int getSystemStatur(std::map<QString, std::map<QString, double> > &message = MagStim::mes);
 
 private:
     //=========================================================================================================
@@ -318,9 +355,9 @@ private:
     QString DEFAULT_UNLOCK_CODE;
     bool ENFORCE_ENERGY_SAFETY;
     std::tuple<int, int, int> DEFAULT_VIRTUAL_VERSION;
-    std::map<int, float> JOULES;
-    std::map<int, std::map<int, std::map<int, int>>> MAX_FREQUENCY;
     std::map<QString,std::map<QString, int>> DEFAULT_MESSAGE;
+    QMap<QString, QVariant> JOULES;
+    QMap<QString, QMap<QString, QMap<QString, QVariant>>> MAX_FREQUENCY;
 
     int m_super;                              /**< Super Radpid Mode */
     QString m_unlockCode;                     /**< Unlock code */

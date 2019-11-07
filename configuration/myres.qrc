@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/configuration">
+        <file>rapid_config.json</file>
+        <file>rapid_system_info.json</file>
+    </qresource>
+</RCC>
