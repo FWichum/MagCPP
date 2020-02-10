@@ -32,7 +32,7 @@ QT       += serialport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TEMPLATE = lib
+TEMPLATE = app
 
 TARGET = MagCPP
 CONFIG(debug, debug|release) {
@@ -60,7 +60,8 @@ SOURCES += \
         devices/bistim.cpp \
         devices/rapid.cpp \
         connection/connectionrobot.cpp \
-        connection/serialportcontroller.cpp
+        connection/serialportcontroller.cpp \
+        main.cpp
 
 HEADERS += \
         magcpp_global.h \
